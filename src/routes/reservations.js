@@ -224,3 +224,31 @@ router.post('/:id/assign-room', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// ── POST /api/reservations/direct — create from dashboard ─────
+router.post('/direct', async (req, res) => {
+  try {
+    const {
+      hotelId, guestId, agentId, roomTypeId, seasonId,
+      checkinDate, checkoutDate, roomsCount, plan,
+      ratePerNight, source, specialRequests
+    } = req.body;
+
+    const { createReservation } = require('../models/reservation');
+    const reservation = await createReservation({
+      hotelId, agentId: agentId || null, guestId: guestId || null,
+      roomTypeId, seasonId: seasonId || null,
+      checkinDate, checkoutDate,
+      roomsCount: parseInt(roomsCount) || 1,
+      plan: plan || 'EP',
+      ratePerNight: parseFloat(ratePerNight) || 0,
+      source: source || 'walk_in',
+      specialRequests
+    });
+
+    res.status(201).json({ success: true, data: reservation });
+  } catch (err) {
+    console.error('Direct booking error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
