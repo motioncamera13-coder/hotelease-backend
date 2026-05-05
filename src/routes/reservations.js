@@ -129,17 +129,28 @@ router.patch('/:id/status', async (req, res) => {
     const reservation = await Reservation.updateStatus(req.params.id, status);
 
     // Send instant WhatsApp message on check-in or checkout
+    let waStatus = null;
     if (status === 'checked_in') {
-      sendInstantCheckin(req.params.id).catch(err =>
-        console.error('WhatsApp checkin error:', err.message)
-      );
+      try {
+        await sendInstantCheckin(req.params.id);
+        waStatus = 'sent';
+        console.log('WhatsApp check-in message sent for', req.params.id);
+      } catch (err) {
+        waStatus = 'failed: ' + err.message;
+        console.error('WhatsApp checkin error:', err.message);
+      }
     } else if (status === 'checked_out') {
-      sendInstantCheckout(req.params.id).catch(err =>
-        console.error('WhatsApp checkout error:', err.message)
-      );
+      try {
+        await sendInstantCheckout(req.params.id);
+        waStatus = 'sent';
+        console.log('WhatsApp checkout message sent for', req.params.id);
+      } catch (err) {
+        waStatus = 'failed: ' + err.message;
+        console.error('WhatsApp checkout error:', err.message);
+      }
     }
 
-    res.json({ success: true, data: reservation, whatsapp: status === 'checked_in' ? 'Message sent to guest' : undefined });
+    res.json({ success: true, data: reservation, whatsapp: waStatus });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -262,6 +273,19 @@ router.post('/direct', async (req, res) => {
     res.status(201).json({ success: true, data: reservation });
   } catch (err) {
     console.error('Direct booking error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/reservations/test-whatsapp — test WA message ────
+router.post('/test-whatsapp', async (req, res) => {
+  try {
+    const { phone, hotelName } = req.body;
+    const { sendWAMessage } = require('../utils/whatsapp-scheduler');
+    const msg = `Test message from HotelEase!\n\nIf you received this, WhatsApp is working correctly for ${hotelName || 'your hotel'}. ✅`;
+    await sendWAMessage(phone, msg);
+    res.json({ success: true, message: 'Test WhatsApp sent to ' + phone });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
