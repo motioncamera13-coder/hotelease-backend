@@ -193,3 +193,34 @@ router.get('/availability/check', async (req, res) => {
 });
 
 module.exports = router;
+
+// ── POST /api/reservations/:id/assign-room ────────────────────
+router.post('/:id/assign-room', async (req, res) => {
+  try {
+    const { roomId } = req.body;
+
+    // Check if room already assigned
+    const existing = await db.query(
+      'SELECT * FROM reservation_rooms WHERE reservation_id=$1',
+      [req.params.id]
+    );
+
+    if (existing.rows.length > 0) {
+      // Update existing assignment
+      await db.query(
+        'UPDATE reservation_rooms SET room_id=$1 WHERE reservation_id=$2',
+        [roomId, req.params.id]
+      );
+    } else {
+      // New assignment
+      await db.query(
+        'INSERT INTO reservation_rooms (reservation_id, room_id) VALUES ($1,$2)',
+        [req.params.id, roomId]
+      );
+    }
+
+    res.json({ success: true, message: 'Room assigned successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
