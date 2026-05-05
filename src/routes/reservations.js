@@ -289,3 +289,49 @@ router.post('/test-whatsapp', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// -- POST /api/reservations/test-whatsapp-raw -- raw Meta API test
+router.post('/test-whatsapp-raw', async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const axios = require('axios');
+    const payload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: phone.replace(/^\+/, '').replace(/\s/g, ''),
+      type: 'template',
+      template: {
+        name: 'hotel_checkin',
+        language: { code: 'en' },
+        components: [{
+          type: 'body',
+          parameters: [
+            { type: 'text', text: 'Hotel Sukhsagar Regency' },
+            { type: 'text', text: 'Mr Test Guest' },
+            { type: 'text', text: 'Room 304' },
+            { type: 'text', text: '07 May 2026' },
+            { type: 'text', text: 'MAP - Breakfast and Dinner' },
+            { type: 'text', text: 'SukhSagar@2026' }
+          ]
+        }]
+      }
+    };
+
+    const result = await axios.post(
+      `https://graph.facebook.com/v25.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    res.json({ success: true, meta_response: result.data });
+  } catch (err) {
+    res.status(500).json({ 
+      error: err.message,
+      meta_error: err.response?.data 
+    });
+  }
+});
