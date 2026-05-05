@@ -18,9 +18,33 @@ async function sendWAMessage(to, text) {
       type: 'text',
       text: { body: text, preview_url: false },
     }, { headers: HEADERS });
-    console.log(`✓ WA sent to ${phone}`);
+    console.log(`OK WA sent to ${phone}`);
   } catch (err) {
-    console.error(`✗ WA failed to ${phone}:`, err.response?.data || err.message);
+    console.error(`FAIL WA failed to ${phone}:`, err.response?.data || err.message);
+  }
+}
+
+// -- Send using approved Meta template -------------------------
+async function sendWATemplate(to, templateName, components) {
+  const phone = to.replace(/^\+/, '').replace(/\s/g, '');
+  try {
+    const payload = {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: phone,
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: 'en' },
+        components: components
+      }
+    };
+    const res = await axios.post(WA_URL, payload, { headers: HEADERS });
+    console.log('OK Template sent to ' + phone + ':', res.data?.messages?.[0]?.id);
+    return true;
+  } catch (err) {
+    console.error('FAIL Template failed to ' + phone + ':', JSON.stringify(err.response?.data || err.message));
+    return false;
   }
 }
 
@@ -154,21 +178,34 @@ async function sendInstantCheckin(reservationId) {
 
   const rooms = booking.room_numbers ? `Room ${booking.room_numbers}` : booking.room_type_name;
 
-  const msg =
-    `Welcome to ${booking.hotel_name}! 🏨\n\n` +
-    `Dear ${booking.guest_name || 'Guest'},\n\n` +
-    `You are now checked in. Here are your details:\n\n` +
-    `🛏 ${rooms}\n` +
-    `📅 Check-out: ${checkoutDate}\n` +
-    `🍽 Plan: ${booking.plan}\n\n` +
-    `📶 WiFi: ${booking.wifi_name || process.env.WIFI_NAME || 'Ask reception'}\n` +
-    `🍳 Breakfast: 7:30 AM - 10:30 AM\n` +
-    `📞 Reception: ${booking.hotel_phone || 'Dial 0 from room'}\n\n` +
-    `We wish you a wonderful stay!\n` +
-    `Team ${booking.hotel_name} 🙏`;
+  // Use approved template: hotel_checkin
+  // Variables: {{1}}=hotel name, {{2}}=guest name, {{3}}=room,
+  //            {{4}}=checkout date, {{5}}=plan, {{6}}=wifi
+  const wifi = booking.wifi_name || process.env.WIFI_NAME || 'Ask reception';
+  const plan = booking.plan === 'CP' ? 'CP - With Breakfast' :
+               booking.plan === 'MAP' ? 'MAP - Breakfast and Dinner' :
+               'EP - Room Only';
 
-  await sendWAMessage(booking.guest_phone, msg);
-  console.log(`✓ Instant check-in message sent to ${booking.guest_phone}`);
+  const components = [{
+    type: 'body',
+    parameters: [
+      { type: 'text', text: booking.hotel_name || 'Hotel' },
+      { type: 'text', text: booking.guest_name || 'Guest' },
+      { type: 'text', text: rooms },
+      { type: 'text', text: checkoutDate },
+      { type: 'text', text: plan },
+      { type: 'text', text: wifi }
+    ]
+  }];
+
+  const sent = await sendWATemplate(booking.guest_phone, 'hotel_checkin', components);
+  if (sent) {
+    console.log('Instant check-in template sent to ' + booking.guest_phone);
+  } else {
+    // Fallback to text message
+    const msg = 'Welcome to ' + booking.hotel_name + '!\n\nDear ' + (booking.guest_name || 'Guest') + ',\n\nYou are now checked in.\nRoom: ' + rooms + '\nCheck-out: ' + checkoutDate + '\nPlan: ' + booking.plan + '\nWiFi: ' + wifi + '\n\nEnjoy your stay!';
+    await sendWAMessage(booking.guest_phone, msg);
+  }
 }
 
 // ── Instant checkout message (fires immediately) ──────────────
