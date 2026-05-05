@@ -120,4 +120,98 @@ async function sendReviewRequests() {
   }
 }
 
-module.exports = { sendCheckinMessages, sendCheckoutMessages, sendReviewRequests };
+// exports moved to bottom
+
+// ── Instant check-in message (fires immediately) ──────────────
+async function sendInstantCheckin(reservationId) {
+  const res = await db.query(`
+    SELECT r.*, g.name as guest_name, g.phone as guest_phone,
+           rt.name as room_type_name, h.name as hotel_name,
+           h.phone as hotel_phone, h.city,
+           STRING_AGG(rm.room_number, ', ' ORDER BY rm.room_number) as room_numbers,
+           h.wifi_name, h.breakfast_time, h.checkout_time
+    FROM reservations r
+    LEFT JOIN guests g ON r.guest_id = g.id
+    LEFT JOIN room_types rt ON r.room_type_id = rt.id
+    LEFT JOIN hotels h ON r.hotel_id = h.id
+    LEFT JOIN reservation_rooms rr ON r.id = rr.reservation_id
+    LEFT JOIN rooms rm ON rr.room_id = rm.id
+    WHERE r.id = $1
+    GROUP BY r.id, g.name, g.phone, rt.name, h.name, h.phone, h.city, h.wifi_name, h.breakfast_time, h.checkout_time
+  `, [reservationId]);
+
+  if (!res.rows[0]) return;
+  const booking = res.rows[0];
+
+  if (!booking.guest_phone) {
+    console.log(`No guest phone for reservation ${reservationId}`);
+    return;
+  }
+
+  const checkoutDate = new Date(booking.checkout_date).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
+
+  const rooms = booking.room_numbers ? `Room ${booking.room_numbers}` : booking.room_type_name;
+
+  const msg =
+    `Welcome to ${booking.hotel_name}! 🏨\n\n` +
+    `Dear ${booking.guest_name || 'Guest'},\n\n` +
+    `You are now checked in. Here are your details:\n\n` +
+    `🛏 ${rooms}\n` +
+    `📅 Check-out: ${checkoutDate}\n` +
+    `🍽 Plan: ${booking.plan}\n\n` +
+    `📶 WiFi: ${booking.wifi_name || process.env.WIFI_NAME || 'Ask reception'}\n` +
+    `🍳 Breakfast: 7:30 AM - 10:30 AM\n` +
+    `📞 Reception: ${booking.hotel_phone || 'Dial 0 from room'}\n\n` +
+    `We wish you a wonderful stay!\n` +
+    `Team ${booking.hotel_name} 🙏`;
+
+  await sendWAMessage(booking.guest_phone, msg);
+  console.log(`✓ Instant check-in message sent to ${booking.guest_phone}`);
+}
+
+// ── Instant checkout message (fires immediately) ──────────────
+async function sendInstantCheckout(reservationId) {
+  const res = await db.query(`
+    SELECT r.*, g.name as guest_name, g.phone as guest_phone,
+           rt.name as room_type_name, h.name as hotel_name,
+           h.google_review_link
+    FROM reservations r
+    LEFT JOIN guests g ON r.guest_id = g.id
+    LEFT JOIN room_types rt ON r.room_type_id = rt.id
+    LEFT JOIN hotels h ON r.hotel_id = h.id
+    WHERE r.id = $1
+  `, [reservationId]);
+
+  if (!res.rows[0]) return;
+  const booking = res.rows[0];
+  if (!booking.guest_phone) return;
+
+  const bill = await require('../models/reservation').generateBill(reservationId);
+
+  const msg =
+    `Dear ${booking.guest_name || 'Guest'},\n\n` +
+    `Thank you for staying at ${booking.hotel_name}! 🙏\n\n` +
+    `Your bill summary:\n` +
+    `🛏 ${booking.room_type_name} x ${booking.rooms_count} x ${booking.nights} nights\n` +
+    `💰 Room charges: Rs.${Math.round(bill.room_charges).toLocaleString()}\n` +
+    (bill.extra_charges > 0 ? `➕ Extra charges: Rs.${Math.round(bill.extra_charges).toLocaleString()}\n` : '') +
+    `🧾 GST (${bill.gst_rate}%): Rs.${Math.round(bill.gst_amount).toLocaleString()}\n` +
+    `━━━━━━━━━━━━━━━\n` +
+    `Total: Rs.${Math.round(bill.total).toLocaleString()}\n\n` +
+    `We hope to see you again! 😊\n` +
+    (booking.google_review_link ? `\nPlease share your experience:\n${booking.google_review_link}` : '');
+
+  await sendWAMessage(booking.guest_phone, msg);
+  console.log(`✓ Instant checkout message sent to ${booking.guest_phone}`);
+}
+
+module.exports = {
+  sendCheckinMessages,
+  sendCheckoutMessages,
+  sendReviewRequests,
+  sendInstantCheckin,
+  sendInstantCheckout,
+  sendWAMessage
+};

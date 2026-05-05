@@ -1,4 +1,5 @@
 const express = require('express');
+const { sendInstantCheckin, sendInstantCheckout } = require('../utils/whatsapp-scheduler');
 const router = express.Router();
 const Reservation = require('../models/reservation');
 const RatesModel = require('../models/rates');
@@ -126,7 +127,19 @@ router.patch('/:id/status', async (req, res) => {
       return res.status(400).json({ error: 'Invalid status' });
     }
     const reservation = await Reservation.updateStatus(req.params.id, status);
-    res.json({ success: true, data: reservation });
+
+    // Send instant WhatsApp message on check-in or checkout
+    if (status === 'checked_in') {
+      sendInstantCheckin(req.params.id).catch(err =>
+        console.error('WhatsApp checkin error:', err.message)
+      );
+    } else if (status === 'checked_out') {
+      sendInstantCheckout(req.params.id).catch(err =>
+        console.error('WhatsApp checkout error:', err.message)
+      );
+    }
+
+    res.json({ success: true, data: reservation, whatsapp: status === 'checked_in' ? 'Message sent to guest' : undefined });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
