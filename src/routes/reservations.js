@@ -130,7 +130,7 @@ router.patch('/:id/status', async (req, res) => {
 
     // Send WhatsApp via bot service
     let waStatus = null;
-    const BOT_URL = process.env.BOT_URL || 'https://hotel-whatsapp-bot-2ole.onrender.com';
+    const BOT_URL = process.env.BOT_URL || 'https://hotelease-pms.onrender.com/api/reservations';
 
     if (status === 'checked_in' || status === 'checked_out') {
       try {
@@ -321,7 +321,7 @@ router.post('/direct', async (req, res) => {
 
     // Send opt-in request to guest via bot
     try {
-      const BOT_URL = process.env.BOT_URL || 'https://hotel-whatsapp-bot-2ole.onrender.com';
+      const BOT_URL = process.env.BOT_URL || 'https://hotelease-pms.onrender.com/api/reservations';
       const axios = require('axios');
 
       // Get guest phone and hotel details
@@ -412,5 +412,99 @@ router.post('/test-whatsapp-raw', async (req, res) => {
       error: err.message,
       meta_error: err.response?.data 
     });
+  }
+});
+
+// ── POST /api/reservations/send-checkin ───────────────────────
+router.post('/send-checkin', async (req, res) => {
+  try {
+    const { phone, guestName, hotelName, room, checkout, plan, wifi } = req.body;
+    const axios = require('axios');
+    const msg =
+      `Welcome to ${hotelName}!\n\n` +
+      `Dear ${guestName},\n\n` +
+      `You are now checked in. Here are your details:\n\n` +
+      `Room: ${room}\n` +
+      `Check-out: ${checkout}\n` +
+      `Plan: ${plan}\n` +
+      `WiFi: ${wifi}\n\n` +
+      `For assistance please call reception.\n\n` +
+      `We wish you a wonderful stay!\n` +
+      `Team ${hotelName}`;
+
+    await axios.post(
+      `https://graph.facebook.com/v25.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: phone.replace(/^\+/, '').replace(/\s/g, ''),
+        type: 'text',
+        text: { body: msg }
+      },
+      { headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`, 'Content-Type': 'application/json' } }
+    );
+    res.json({ success: true, message: 'Check-in message sent to ' + phone });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/reservations/send-checkout ──────────────────────
+router.post('/send-checkout', async (req, res) => {
+  try {
+    const { phone, guestName, hotelName, roomCharges, gst, total, reviewLink } = req.body;
+    const axios = require('axios');
+    const msg =
+      `Dear ${guestName},\n\n` +
+      `Thank you for staying at ${hotelName}!\n\n` +
+      `Bill summary:\n` +
+      `Room charges: Rs.${roomCharges}\n` +
+      `GST: Rs.${gst}\n` +
+      `Total: Rs.${total}\n\n` +
+      `We hope to see you again!\n` +
+      (reviewLink ? `\nPlease share your experience:\n${reviewLink}` : '');
+
+    await axios.post(
+      `https://graph.facebook.com/v25.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: phone.replace(/^\+/, '').replace(/\s/g, ''),
+        type: 'text',
+        text: { body: msg }
+      },
+      { headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`, 'Content-Type': 'application/json' } }
+    );
+    res.json({ success: true, message: 'Checkout message sent to ' + phone });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/reservations/send-optin ─────────────────────────
+router.post('/send-optin', async (req, res) => {
+  try {
+    const { phone, guestName, hotelName } = req.body;
+    const axios = require('axios');
+    const msg =
+      `Dear ${guestName},\n\n` +
+      `Your booking at ${hotelName} is confirmed!\n\n` +
+      `Reply *YES* to receive your check-in details and updates on WhatsApp.\n\n` +
+      `Team ${hotelName}`;
+
+    await axios.post(
+      `https://graph.facebook.com/v25.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        recipient_type: 'individual',
+        to: phone.replace(/^\+/, '').replace(/\s/g, ''),
+        type: 'text',
+        text: { body: msg }
+      },
+      { headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`, 'Content-Type': 'application/json' } }
+    );
+    res.json({ success: true, message: 'Opt-in request sent to ' + phone });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
