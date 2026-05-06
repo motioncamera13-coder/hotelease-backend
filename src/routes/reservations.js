@@ -128,25 +128,74 @@ router.patch('/:id/status', async (req, res) => {
     }
     const reservation = await Reservation.updateStatus(req.params.id, status);
 
-    // Send instant WhatsApp message on check-in or checkout
+    // Send WhatsApp via bot service
     let waStatus = null;
-    if (status === 'checked_in') {
+    const BOT_URL = process.env.BOT_URL || 'https://hotel-whatsapp-bot-2ole.onrender.com';
+
+    if (status === 'checked_in' || status === 'checked_out') {
       try {
-        await sendInstantCheckin(req.params.id);
-        waStatus = 'sent';
-        console.log('WhatsApp check-in message sent for', req.params.id);
+        // Get reservation details
+        const resDetails = await db.query(`
+          SELECT r.*, g.name as guest_name, g.phone as guest_phone,
+                 rt.name as room_type_name, h.name as hotel_name,
+                 h.wifi_name, h.google_review_link,
+                 STRING_AGG(rm.room_number, ', ' ORDER BY rm.room_number) as room_numbers
+          FROM reservations r
+          LEFT JOIN guests g ON r.guest_id = g.id
+          LEFT JOIN room_types rt ON r.room_type_id = rt.id
+          LEFT JOIN hotels h ON r.hotel_id = h.id
+          LEFT JOIN reservation_rooms rr ON r.id = rr.reservation_id
+          LEFT JOIN rooms rm ON rr.room_id = rm.id
+          WHERE r.id = $1
+          GROUP BY r.id, g.name, g.phone, rt.name, h.name, h.wifi_name, h.google_review_link
+        `, [req.params.id]);
+
+        const res2 = resDetails.rows[0];
+        if (res2?.guest_phone) {
+          const phone = res2.guest_phone.replace(/^\+/, '').replace(/\s/g, '');
+          const nights = res2.nights || 1;
+          const rooms = res2.rooms_count || 1;
+          const rate = parseFloat(res2.rate_per_night || 0);
+          const roomCharges = Math.round(rate * rooms * nights);
+          const gstRate = rate >= 7500 ? 18 : 12;
+          const gstAmount = Math.round(roomCharges * gstRate / 100);
+          const total = roomCharges + gstAmount;
+
+          const checkoutDate = new Date(res2.checkout_date).toLocaleDateString('en-IN', {
+            day: 'numeric', month: 'short', year: 'numeric'
+          });
+
+          const axios = require('axios');
+
+          if (status === 'checked_in') {
+            await axios.post(BOT_URL + '/send-checkin', {
+              phone,
+              guestName: res2.guest_name || 'Guest',
+              hotelName: res2.hotel_name || 'Hotel',
+              room: res2.room_numbers ? 'Room ' + res2.room_numbers : res2.room_type_name,
+              checkout: checkoutDate,
+              plan: res2.plan === 'CP' ? 'CP - With Breakfast' :
+                    res2.plan === 'MAP' ? 'MAP - Breakfast and Dinner' : 'EP - Room Only',
+              wifi: res2.wifi_name || process.env.WIFI_NAME || 'Ask reception'
+            });
+            waStatus = 'checkin_sent';
+          } else {
+            await axios.post(BOT_URL + '/send-checkout', {
+              phone,
+              guestName: res2.guest_name || 'Guest',
+              hotelName: res2.hotel_name || 'Hotel',
+              roomCharges: roomCharges.toLocaleString(),
+              gst: gstAmount.toLocaleString(),
+              total: total.toLocaleString(),
+              reviewLink: res2.google_review_link || ''
+            });
+            waStatus = 'checkout_sent';
+          }
+          console.log('WhatsApp ' + status + ' message sent via bot to', phone);
+        }
       } catch (err) {
         waStatus = 'failed: ' + err.message;
-        console.error('WhatsApp checkin error:', err.message);
-      }
-    } else if (status === 'checked_out') {
-      try {
-        await sendInstantCheckout(req.params.id);
-        waStatus = 'sent';
-        console.log('WhatsApp checkout message sent for', req.params.id);
-      } catch (err) {
-        waStatus = 'failed: ' + err.message;
-        console.error('WhatsApp checkout error:', err.message);
+        console.error('WhatsApp error:', err.message);
       }
     }
 
@@ -269,6 +318,36 @@ router.post('/direct', async (req, res) => {
       source: source || 'walk_in',
       specialRequests
     });
+
+    // Send opt-in request to guest via bot
+    try {
+      const BOT_URL = process.env.BOT_URL || 'https://hotel-whatsapp-bot-2ole.onrender.com';
+      const axios = require('axios');
+
+      // Get guest phone and hotel details
+      if (guestId) {
+        const guestData = await db.query(
+          'SELECT g.phone, g.name, h.name as hotel_name, h.wifi_name FROM guests g JOIN hotels h ON h.id = $1 WHERE g.id = $2',
+          [hotelId, guestId]
+        );
+        const guest = guestData.rows[0];
+        if (guest?.phone) {
+          const phone = guest.phone.replace(/^\+/, '').replace(/\s/g, '');
+          await axios.post(BOT_URL + '/send-optin', {
+            phone,
+            guestName: guest.name,
+            hotelName: guest.hotel_name,
+            reservationId: reservation.id,
+            checkout: new Date(checkoutDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+            plan: plan || 'EP',
+            wifi: guest.wifi_name || process.env.WIFI_NAME || 'Ask reception'
+          });
+          console.log('Opt-in request sent to', phone);
+        }
+      }
+    } catch (optinErr) {
+      console.error('Opt-in send error:', optinErr.message);
+    }
 
     res.status(201).json({ success: true, data: reservation });
   } catch (err) {
