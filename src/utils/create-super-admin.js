@@ -1,6 +1,6 @@
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
-const db = require('../../config/database');
+const db = require('../config/database');
 
 async function createSuperAdmin() {
   const username = process.argv[2] || 'superadmin';

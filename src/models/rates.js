@@ -1,4 +1,4 @@
-const db = require('../../config/database');
+const db = require('../config/database');
 
 // ── Get current season for a date ─────────────────────────────
 async function getSeasonForDate(hotelId, date) {

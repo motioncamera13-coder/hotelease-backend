@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../../config/database');
+const db = require('../config/database');
 const Reservation = require('../models/reservation');
 const RatesModel = require('../models/rates');
 const axios = require('axios');

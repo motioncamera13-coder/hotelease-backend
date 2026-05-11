@@ -3,7 +3,7 @@ const { sendInstantCheckin, sendInstantCheckout } = require('../utils/whatsapp-s
 const router = express.Router();
 const Reservation = require('../models/reservation');
 const RatesModel = require('../models/rates');
-const db = require('../../config/database');
+const db = require('../config/database');
 
 // ── GET /api/reservations — get all reservations ──────────────
 router.get('/', async (req, res) => {

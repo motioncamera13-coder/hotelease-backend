@@ -1,5 +1,5 @@
 const axios = require('axios');
-const db = require('../../config/database');
+const db = require('../config/database');
 const Reservation = require('../models/reservation');
 
 const WA_URL = `https://graph.facebook.com/v25.0/${process.env.WA_PHONE_NUMBER_ID}/messages`;

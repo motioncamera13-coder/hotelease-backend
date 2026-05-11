@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../../config/database');
+const db = require('../config/database');
 
 // ── GET /api/rooms — get all rooms with live status ───────────
 router.get('/', async (req, res) => {
