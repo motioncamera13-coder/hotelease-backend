@@ -99,14 +99,30 @@ router.post('/login', async (req, res) => {
     }
 
     // Find user
+    // Get user first
     const result = await db.query(
-      `SELECT u.id, u.username, u.password_hash, u.name, u.role, u.hotel_id, u.email,
-              h.name as hotel_name, h.city
-       FROM users u
-       LEFT JOIN hotels h ON u.hotel_id = h.id
-       WHERE u.username = $1`,
+      "SELECT id, username, password_hash, name, role, hotel_id FROM users WHERE username = $1",
       [username]
     );
+    
+    // Get hotel details separately if needed
+    let hotelName = null, city = null;
+    if (result.rows[0]?.hotel_id) {
+      try {
+        const hotelResult = await db.query(
+          "SELECT name, city FROM hotels WHERE id = $1",
+          [result.rows[0].hotel_id]
+        );
+        hotelName = hotelResult.rows[0]?.name;
+        city = hotelResult.rows[0]?.city;
+      } catch(e) { console.log('Hotel lookup error:', e.message); }
+    }
+    
+    // Merge hotel data
+    if (result.rows[0]) {
+      result.rows[0].hotel_name = hotelName;
+      result.rows[0].city = city;
+    }
 
     if (!result.rows[0]) {
       return res.status(401).json({ error: 'Invalid username or password' });
