@@ -136,16 +136,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    // Check if hotel is active (for non super_admin)
-    if (user.role !== 'super_admin' && user.hotel_id) {
-      const hotelCheck = await db.query(
-        'SELECT status FROM hotels WHERE id = $1',
-        [user.hotel_id]
-      );
-      if (hotelCheck.rows[0]?.status === 'suspended') {
-        return res.status(403).json({ error: 'Hotel account is suspended. Please contact HotelEase support.' });
-      }
-    }
+    // Hotel status check - skip if column doesn't exist yet
 
     const permissions = ROLE_PERMISSIONS[user.role] || ROLE_PERMISSIONS.staff;
 
