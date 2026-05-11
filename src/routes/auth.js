@@ -100,7 +100,8 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const result = await db.query(
-      `SELECT u.*, h.name as hotel_name, h.city, h.wifi_name, h.google_review_link
+      `SELECT u.id, u.username, u.password_hash, u.name, u.role, u.hotel_id, u.email,
+              h.name as hotel_name, h.city
        FROM users u
        LEFT JOIN hotels h ON u.hotel_id = h.id
        WHERE u.username = $1`,
