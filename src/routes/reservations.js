@@ -267,6 +267,90 @@ router.get('/availability/check', async (req, res) => {
 
 module.exports = router;
 
+function withTimeout(promise, ms, message) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(message)), ms);
+    })
+  ]);
+}
+
+// ── POST /api/reservations/send-booking-email ─────────────────
+router.post('/send-booking-email', async (req, res) => {
+  try {
+    const {
+      to, confirmNo, agentName, agentPhone, guestName, guestMobile,
+      ciDate, coDate, nights, rooms, roomType, adults, kids,
+      kidAges, plan, rate, total
+    } = req.body;
+
+    const emailUser = process.env.EMAIL_USER;
+    const emailPass = process.env.EMAIL_PASS;
+    const bookingEmailTo = to || process.env.BOOKING_EMAIL_TO || 'sukhsagarregencysml@gmail.com';
+
+    console.log('Booking email API: preparing Gmail send', {
+      to: bookingEmailTo,
+      hasEmailUser: Boolean(emailUser),
+      hasEmailPass: Boolean(emailPass)
+    });
+
+    if (!emailUser || !emailPass) {
+      return res.status(500).json({ error: 'EMAIL_USER or EMAIL_PASS is missing on PMS backend' });
+    }
+
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      auth: {
+        user: emailUser,
+        pass: emailPass
+      }
+    });
+
+    const kidText = Array.isArray(kidAges) && kidAges.length ? ` (${kidAges.join(', ')} yrs)` : '';
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;color:#222">
+        <h2 style="margin:0 0 12px">New Booking Confirmed</h2>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Confirmation No</td><td style="padding:6px;border-bottom:1px solid #eee"><b>${confirmNo || ''}</b></td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Agent</td><td style="padding:6px;border-bottom:1px solid #eee">${agentName || ''} (${agentPhone || ''})</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Guest</td><td style="padding:6px;border-bottom:1px solid #eee">${guestName || ''} (${guestMobile || ''})</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Check-in</td><td style="padding:6px;border-bottom:1px solid #eee">${ciDate || ''}</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Check-out</td><td style="padding:6px;border-bottom:1px solid #eee">${coDate || ''}</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Nights</td><td style="padding:6px;border-bottom:1px solid #eee">${nights || ''}</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Rooms</td><td style="padding:6px;border-bottom:1px solid #eee">${rooms || ''} x ${roomType || ''}</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Adults / Kids</td><td style="padding:6px;border-bottom:1px solid #eee">${adults || 1} / ${kids || 0}${kidText}</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Plan</td><td style="padding:6px;border-bottom:1px solid #eee">${plan || ''}</td></tr>
+          <tr><td style="padding:6px;border-bottom:1px solid #eee">Rate</td><td style="padding:6px;border-bottom:1px solid #eee">Rs.${Number(rate || 0).toLocaleString('en-IN')}</td></tr>
+          <tr><td style="padding:8px;background:#f4f4f4"><b>Total</b></td><td style="padding:8px;background:#f4f4f4"><b>Rs.${Number(total || 0).toLocaleString('en-IN')}</b></td></tr>
+        </table>
+      </div>
+    `;
+
+    console.log('Booking email API: sending Gmail message', { to: bookingEmailTo });
+    const info = await withTimeout(
+      transporter.sendMail({
+        from: `"HotelEase PMS" <${emailUser}>`,
+        to: bookingEmailTo,
+        subject: `New Booking - ${guestName || 'Guest'} - ${ciDate || ''}`,
+        html
+      }),
+      20000,
+      'PMS Gmail send timed out after 20 seconds'
+    );
+
+    console.log('Booking email API: sent', { messageId: info.messageId, to: bookingEmailTo });
+    res.json({ success: true, messageId: info.messageId });
+  } catch (err) {
+    console.error('Booking email API error:', err.message, err.stack);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /api/reservations/:id/assign-room ────────────────────
 router.post('/:id/assign-room', async (req, res) => {
   try {
