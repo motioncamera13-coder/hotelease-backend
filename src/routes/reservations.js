@@ -285,29 +285,29 @@ router.post('/send-booking-email', async (req, res) => {
       kidAges, plan, rate, total
     } = req.body;
 
-    const emailUser = process.env.EMAIL_USER;
-    const emailPass = process.env.EMAIL_PASS;
+    const resendKey = process.env.RESEND_API_KEY;
     const bookingEmailTo = to || process.env.BOOKING_EMAIL_TO || 'sukhsagarregencysml@gmail.com';
 
-    console.log('Booking email API: preparing Gmail send', {
+    console.log('Booking email API: preparing Resend send', {
       to: bookingEmailTo,
-      hasEmailUser: Boolean(emailUser),
-      hasEmailPass: Boolean(emailPass)
+      hasResendKey: Boolean(resendKey)
     });
 
-    if (!emailUser || !emailPass) {
-      return res.status(500).json({ error: 'EMAIL_USER or EMAIL_PASS is missing on PMS backend' });
+    if (!resendKey) {
+      return res.status(500).json({ error: 'RESEND_API_KEY is missing on PMS backend' });
     }
 
     const nodemailer = require('nodemailer');
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.resend.com',
+      port: 587,
+      secure: false,
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 15000,
       auth: {
-        user: resend,
-        pass: re_dgQyRgvz_8qv4NxMWBTVjS2EnB8yjYSV4,
+        user: 'resend',
+        pass: re_dgQyRgvz_8qv4NxMWBTVjS2EnB8yjYSV4
       }
     });
 
