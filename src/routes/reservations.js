@@ -334,7 +334,7 @@ router.post('/send-booking-email', async (req, res) => {
     console.log('Booking email API: sending Gmail message', { to: bookingEmailTo });
     const info = await withTimeout(
       transporter.sendMail({
-        from: `"HotelEase PMS" <${emailUser}>`,
+from: `"HotelEase PMS" <onboarding@resend.dev>`,
         to: bookingEmailTo,
         subject: `New Booking - ${guestName || 'Guest'} - ${ciDate || ''}`,
         html
