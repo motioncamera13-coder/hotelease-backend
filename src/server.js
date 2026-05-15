@@ -85,3 +85,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 HotelEase PMS running on port ${PORT}`);
   console.log(`📊 API: http://localhost:${PORT}/api`);
 });
+
