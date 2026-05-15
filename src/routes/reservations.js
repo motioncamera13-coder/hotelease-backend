@@ -307,7 +307,7 @@ router.post('/send-booking-email', async (req, res) => {
       socketTimeout: 15000,
       auth: {
         user: 'resend',
-        pass: re_dgQyRgvz_8qv4NxMWBTVjS2EnB8yjYSV4
+        pass: resendKey
       }
     });
 
