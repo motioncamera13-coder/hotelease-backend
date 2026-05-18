@@ -33,6 +33,22 @@ npm run db:setup
 node src/utils/create-super-admin.js superadmin YourStrongPassword
 ```
 
+## Reset hotels to a fresh start
+
+This keeps registered hotels, users, rooms, room types, rates, and permissions. It deletes operational PMS data like guests, reservations, bills, payments, agents, cash book, requisitions, housekeeping rows, and WhatsApp sessions, then marks rooms available.
+
+Run from the existing Render service shell:
+
+```bash
+CONFIRM_RESET=YES_DELETE_OPERATIONAL_DATA npm run db:reset-data
+```
+
+For only one hotel, add the hotel UUID:
+
+```bash
+CONFIRM_RESET=YES_DELETE_OPERATIONAL_DATA npm run db:reset-data -- HOTEL_UUID_HERE
+```
+
 ## URLs
 
 - API health: `/`

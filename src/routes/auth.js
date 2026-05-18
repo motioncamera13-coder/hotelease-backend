@@ -6,6 +6,100 @@ const db = require('../config/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'hotelease_secret_2026';
 
+const operationalTablesToClear = [
+  'requisition_items',
+  'requisition_slips',
+  'vouchers',
+  'folio',
+  'c_forms',
+  'room_swaps',
+  'cash_book',
+  'bills',
+  'payments',
+  'extra_charges',
+  'reservation_rooms',
+  'reservations',
+  'whatsapp_sessions',
+  'activity_log',
+  'guests',
+  'agents',
+];
+
+function requireSuperAdmin(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'Not authenticated' });
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.role !== 'super_admin') return res.status(403).json({ error: 'Super admin only' });
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+async function tableExists(tableName) {
+  const result = await db.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = $1
+     ) AS exists`,
+    [tableName]
+  );
+  return result.rows[0]?.exists === true;
+}
+
+async function summarizeOperational(hotelId = null) {
+  const summary = {};
+  for (const table of ['hotels', 'users', 'rooms', 'room_types', 'rates', 'reservations', 'guests', 'agents']) {
+    if (!(await tableExists(table))) continue;
+    const result = hotelId && ['rooms', 'room_types', 'rates', 'reservations', 'guests', 'agents'].includes(table)
+      ? await db.query(`SELECT COUNT(*)::int AS count FROM ${table} WHERE hotel_id=$1`, [hotelId])
+      : await db.query(`SELECT COUNT(*)::int AS count FROM ${table}`);
+    summary[table] = result.rows[0].count;
+  }
+  return summary;
+}
+
+async function clearOperationalTable(client, tableName, hotelId = null) {
+  if (!(await tableExists(tableName))) return { table: tableName, skipped: true, reason: 'missing' };
+
+  if (hotelId) {
+    if (tableName === 'reservation_rooms') {
+      const result = await client.query(`
+        DELETE FROM reservation_rooms rr
+        USING reservations r
+        WHERE rr.reservation_id = r.id AND r.hotel_id = $1
+      `, [hotelId]);
+      return { table: tableName, deleted: result.rowCount };
+    }
+
+    if (['bills', 'payments', 'extra_charges'].includes(tableName)) {
+      const result = await client.query(`
+        DELETE FROM ${tableName} t
+        USING reservations r
+        WHERE t.reservation_id = r.id AND r.hotel_id = $1
+      `, [hotelId]);
+      return { table: tableName, deleted: result.rowCount };
+    }
+
+    if (tableName === 'requisition_items') {
+      const result = await client.query(`
+        DELETE FROM requisition_items ri
+        USING requisition_slips rs
+        WHERE ri.requisition_id = rs.id AND rs.hotel_id = $1
+      `, [hotelId]);
+      return { table: tableName, deleted: result.rowCount };
+    }
+
+    const result = await client.query(`DELETE FROM ${tableName} WHERE hotel_id = $1`, [hotelId]);
+    return { table: tableName, deleted: result.rowCount };
+  }
+
+  const result = await client.query(`DELETE FROM ${tableName}`);
+  return { table: tableName, deleted: result.rowCount };
+}
+
 // Role permissions matrix
 const ROLE_PERMISSIONS = {
   super_admin: {
@@ -493,6 +587,62 @@ router.get('/roles', async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/reset-operational-data — super-admin fresh start reset
+router.post('/reset-operational-data', requireSuperAdmin, async (req, res) => {
+  const client = await db.getClient();
+  try {
+    const { hotelId = null, confirmText } = req.body || {};
+    if (confirmText !== 'RESET PMS DATA') {
+      return res.status(400).json({ error: 'Type RESET PMS DATA to confirm this reset' });
+    }
+
+    if (hotelId) {
+      const hotel = await db.query('SELECT id, name FROM hotels WHERE id = $1', [hotelId]);
+      if (!hotel.rows[0]) return res.status(404).json({ error: 'Hotel not found' });
+    }
+
+    const before = await summarizeOperational(hotelId);
+    await client.query('BEGIN');
+
+    const deleted = [];
+    for (const table of operationalTablesToClear) {
+      deleted.push(await clearOperationalTable(client, table, hotelId));
+    }
+
+    let housekeeping = { skipped: true, reason: 'missing' };
+    if (await tableExists('housekeeping')) {
+      const result = hotelId
+        ? await client.query('DELETE FROM housekeeping WHERE hotel_id=$1', [hotelId])
+        : await client.query('DELETE FROM housekeeping');
+      housekeeping = { deleted: result.rowCount };
+    }
+
+    const rooms = hotelId
+      ? await client.query(`UPDATE rooms SET status='available' WHERE hotel_id=$1`, [hotelId])
+      : await client.query(`UPDATE rooms SET status='available'`);
+
+    await client.query('COMMIT');
+    const after = await summarizeOperational(hotelId);
+
+    res.json({
+      success: true,
+      scope: hotelId ? 'single_hotel' : 'all_hotels',
+      hotelId: hotelId || null,
+      before,
+      deleted,
+      housekeeping,
+      rooms: { updated: rooms.rowCount },
+      after,
+      message: 'Operational data reset complete. Hotels, users, rooms, rates, and permissions were kept.'
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 

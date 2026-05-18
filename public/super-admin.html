@@ -63,6 +63,15 @@ body { background:var(--dark); color:var(--cream); font-family:'DM Sans',sans-se
 .divider { height:0.5px; background:var(--border); margin:1.25rem 0; }
 .cred-section { background:var(--dark3); border-radius:6px; padding:1rem 1.25rem; margin-top:12px; border-left:2px solid var(--gold); }
 .cred-title { font-size:10px; color:var(--gold); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+.danger-panel {
+  background:rgba(226,75,74,0.06);
+  border:0.5px solid rgba(226,75,74,0.35);
+  border-radius:10px;
+  padding:1.5rem;
+  margin-bottom:2rem;
+}
+.danger-title { font-size:13px; font-weight:500; color:var(--red); margin-bottom:0.75rem; letter-spacing:0.04em; }
+.danger-copy { font-size:12px; color:var(--muted); line-height:1.7; margin-bottom:1rem; }
 
 /* Table */
 .data-table { width:100%; border-collapse:collapse; }
@@ -115,6 +124,30 @@ body { background:var(--dark); color:var(--cream); font-family:'DM Sans',sans-se
       <div class="stat-value" id="total-revenue" style="font-size:1.4rem">₹0</div>
       <div class="stat-sub">All hotels combined</div>
     </div>
+  </div>
+
+  <!-- Fresh start reset -->
+  <div class="danger-panel">
+    <div class="danger-title">Reset PMS Data Fresh Start</div>
+    <div class="danger-copy">
+      Keeps hotels, users, rooms, room types, rates and permissions. Deletes guests, reservations, bills, payments, agents, cash book, housekeeping and other operational entries.
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Reset scope</label>
+        <select class="form-select" id="reset-hotel">
+          <option value="">All registered hotels</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type confirmation</label>
+        <input class="form-input" id="reset-confirm" placeholder="RESET PMS DATA">
+      </div>
+      <div class="form-group" style="justify-content:flex-end">
+        <button class="btn-sm btn-red" onclick="resetOperationalData()" style="padding:10px 18px;font-size:13px">Reset Fresh Start</button>
+      </div>
+    </div>
+    <div id="reset-result" style="font-size:12px;color:var(--muted);margin-top:10px"></div>
   </div>
 
   <!-- Add new hotel -->
@@ -262,6 +295,8 @@ async function loadData() {
   const hotelsRes = await apiFetch('/api/auth/hotels');
   if (hotelsRes?.success) {
     const hotels = hotelsRes.data || [];
+    window.heHotels = hotels;
+    populateResetHotelOptions(hotels);
     document.getElementById('total-hotels').textContent = hotels.length;
     document.getElementById('total-rooms').textContent = hotels.reduce((s, h) => s + Number(h.total_rooms || 0), 0);
     document.getElementById('total-bookings').textContent = hotels.reduce((s, h) => s + Number(h.bookings || 0), 0);
@@ -278,6 +313,7 @@ async function loadData() {
         <td><span class="badge badge-active">Active</span></td>
         <td style="display:flex;gap:6px">
           <button class="btn-sm btn-gold" onclick="viewHotel('${h.id}')">View</button>
+          <button class="btn-sm btn-red" onclick="prepareSingleHotelReset('${h.id}')">Reset</button>
         </td>
       </tr>
     `).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No hotels found</td></tr>';
@@ -381,6 +417,59 @@ function viewHotel(id) { showToast('Opening hotel dashboard...'); }
 function toggleHotel(id) { if (confirm('Disable this hotel?')) showToast('Hotel disabled'); }
 function resetPassword(username) { const p = prompt(`New password for ${username}:`); if (p) showToast(`Password reset for ${username}`); }
 function logout() { localStorage.removeItem('he_token'); localStorage.removeItem('he_user'); window.location.href = 'login.html'; }
+
+function populateResetHotelOptions(hotels) {
+  const select = document.getElementById('reset-hotel');
+  if (!select) return;
+  const selected = select.value;
+  select.innerHTML = '<option value="">All registered hotels</option>' + hotels.map(h =>
+    `<option value="${h.id}">${h.name || h.id} (${h.city || 'No city'})</option>`
+  ).join('');
+  select.value = selected;
+}
+
+function prepareSingleHotelReset(id) {
+  const select = document.getElementById('reset-hotel');
+  if (select) select.value = id;
+  document.getElementById('reset-confirm')?.focus();
+  showToast('Type RESET PMS DATA and click Reset Fresh Start', 'red');
+}
+
+async function resetOperationalData() {
+  const hotelId = document.getElementById('reset-hotel')?.value || null;
+  const confirmText = document.getElementById('reset-confirm')?.value.trim();
+  const targetName = hotelId
+    ? (window.heHotels || []).find(h => h.id === hotelId)?.name || 'selected hotel'
+    : 'ALL registered hotels';
+
+  if (confirmText !== 'RESET PMS DATA') {
+    showToast('Type RESET PMS DATA exactly first', 'red');
+    return;
+  }
+  if (!confirm(`Reset operational PMS data for ${targetName}? Hotels/users/rooms will stay, but bookings and guest data will be cleared.`)) return;
+
+  const resultEl = document.getElementById('reset-result');
+  if (resultEl) resultEl.textContent = 'Reset running... please wait.';
+
+  const res = await apiFetch('/api/auth/reset-operational-data', {
+    method: 'POST',
+    body: JSON.stringify({ hotelId, confirmText })
+  });
+
+  if (res?.success) {
+    const before = res.before || {};
+    const after = res.after || {};
+    if (resultEl) {
+      resultEl.textContent = `Done. Reservations ${before.reservations || 0} -> ${after.reservations || 0}, guests ${before.guests || 0} -> ${after.guests || 0}, agents ${before.agents || 0} -> ${after.agents || 0}. Rooms marked available: ${res.rooms?.updated || 0}.`;
+    }
+    document.getElementById('reset-confirm').value = '';
+    showToast('Fresh start reset complete');
+    loadData();
+  } else {
+    if (resultEl) resultEl.textContent = 'Reset failed: ' + (res?.error || 'Unknown error');
+    showToast('Reset failed: ' + (res?.error || 'Unknown'), 'red');
+  }
+}
 
 function showToast(msg, color = 'teal') {
   const t = document.getElementById('toast');
