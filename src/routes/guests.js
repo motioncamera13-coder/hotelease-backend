@@ -12,8 +12,8 @@ router.post('/', async (req, res) => {
     // If forceNew - always create new guest record
     if (forceNew) {
       const result = await db.query(
-        `INSERT INTO guests (id, hotel_id, name, phone, email, created_at)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
+      `INSERT INTO guests (hotel_id, name, phone, email, created_at)
+         VALUES ($1, $2, $3, $4, NOW())
          RETURNING *`,
         [hotelId, name.trim(), phone || null, email || null]
       );
@@ -38,8 +38,8 @@ router.post('/', async (req, res) => {
 
     // Create new guest
     const result = await db.query(
-      `INSERT INTO guests (id, hotel_id, name, phone, email, created_at)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
+      `INSERT INTO guests (hotel_id, name, phone, email, created_at)
+       VALUES ($1, $2, $3, $4, NOW())
        RETURNING *`,
       [hotelId, name.trim(), phone || null, email || null]
     );

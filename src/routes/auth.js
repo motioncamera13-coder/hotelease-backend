@@ -72,6 +72,22 @@ const ROLE_PERMISSIONS = {
     canSeeSubscriptions: false,
     dashboard: 'staff'
   },
+  hotel_staff: {
+    canSeeAllHotels: false,
+    canManageHotels: false,
+    canSeeRevenue: false,
+    canManageStaff: false,
+    canCreateBookings: true,
+    canCheckInOut: true,
+    canSeeRates: false,
+    canManageRates: false,
+    canSeeReports: false,
+    canSeeAgents: false,
+    canManageAgents: false,
+    canSuspendHotels: false,
+    canSeeSubscriptions: false,
+    dashboard: 'staff'
+  },
   housekeeping: {
     canSeeAllHotels: false,
     canManageHotels: false,
@@ -90,6 +106,101 @@ const ROLE_PERMISSIONS = {
   }
 };
 
+function roomTypeForIndex(index, total) {
+  const third = Math.ceil(total / 3);
+  if (index < third) return 'Deluxe';
+  if (index < third * 2) return 'Super Deluxe';
+  return 'Honeymoon';
+}
+
+// POST /api/auth/register-hotel — create hotel, admin, room types and rooms
+router.post('/register-hotel', async (req, res) => {
+  const client = await db.getClient();
+  try {
+    const {
+      name, address, city, state, phone, email, gstin,
+      whatsappBotNumber, adminPhone, totalRooms, bufferRooms,
+      adminName, username, password
+    } = req.body;
+
+    if (!name || !city || !adminName || !username || !password) {
+      return res.status(400).json({ error: 'name, city, adminName, username and password are required' });
+    }
+    if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+
+    await client.query('BEGIN');
+
+    const hotelResult = await client.query(`
+      INSERT INTO hotels (name, address, city, state, phone, email, gstin,
+        whatsapp_bot_number, admin_phone, total_rooms, buffer_rooms)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+      RETURNING *
+    `, [
+      name, address || null, city, state || null, phone || null, email || null, gstin || null,
+      whatsappBotNumber || null, adminPhone || null,
+      parseInt(totalRooms || 0, 10) || 0,
+      parseInt(bufferRooms || 4, 10) || 4
+    ]);
+    const hotel = hotelResult.rows[0];
+
+    const typeRows = {};
+    for (const type of ['Deluxe', 'Super Deluxe', 'Honeymoon']) {
+      const rt = await client.query(`
+        INSERT INTO room_types (hotel_id, name, capacity)
+        VALUES ($1, $2, 2)
+        RETURNING *
+      `, [hotel.id, type]);
+      typeRows[type] = rt.rows[0];
+    }
+
+    const roomTotal = parseInt(totalRooms || 0, 10) || 0;
+    for (let i = 0; i < roomTotal; i++) {
+      const floor = Math.floor(i / 10) + 1;
+      const roomNumber = `${floor}${String((i % 10) + 1).padStart(2, '0')}`;
+      const type = roomTypeForIndex(i, roomTotal);
+      await client.query(`
+        INSERT INTO rooms (hotel_id, room_type_id, room_number, floor)
+        VALUES ($1,$2,$3,$4)
+      `, [hotel.id, typeRows[type].id, roomNumber, floor]);
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    const userResult = await client.query(`
+      INSERT INTO users (hotel_id, username, password_hash, name, role)
+      VALUES ($1,$2,$3,$4,'hotel_admin')
+      RETURNING id, username, name, role, hotel_id
+    `, [hotel.id, username, hash, adminName]);
+
+    await client.query('COMMIT');
+    res.status(201).json({ success: true, data: { hotel, admin: userResult.rows[0] } });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    if (err.code === '23505') return res.status(409).json({ error: 'Username, phone or another unique value already exists' });
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// GET /api/auth/hotels — super-admin hotel list
+router.get('/hotels', async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT h.*,
+        COALESCE(COUNT(DISTINCT r.id), 0) as bookings,
+        u.username as admin_username
+      FROM hotels h
+      LEFT JOIN reservations r ON r.hotel_id = h.id
+      LEFT JOIN users u ON u.hotel_id = h.id AND u.role IN ('hotel_admin', 'hotel_owner')
+      GROUP BY h.id, u.username
+      ORDER BY h.created_at DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
   try {
@@ -101,7 +212,7 @@ router.post('/login', async (req, res) => {
     // Find user
     // Get user first
     const result = await db.query(
-      "SELECT id, username, password_hash, name, role, hotel_id FROM users WHERE username = $1",
+      "SELECT id, username, password_hash, name, role, hotel_id FROM users WHERE username = $1 AND is_active = true",
       [username]
     );
     
@@ -181,7 +292,7 @@ router.post('/create-user', async (req, res) => {
     const { username, password, name, role, hotelId } = req.body;
 
     // Validate role
-    const allowedRoles = ['hotel_owner', 'hotel_admin', 'staff', 'housekeeping'];
+    const allowedRoles = ['hotel_owner', 'hotel_admin', 'hotel_staff', 'staff', 'housekeeping'];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: 'Invalid role' });
     }
@@ -189,8 +300,8 @@ router.post('/create-user', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     const result = await db.query(
-      `INSERT INTO users (id, username, password_hash, name, role, hotel_id, created_at)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW())
+      `INSERT INTO users (username, password_hash, name, role, hotel_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())
        RETURNING id, username, name, role, hotel_id`,
       [username, hash, name, role, hotelId]
     );
@@ -209,7 +320,7 @@ router.get('/users', async (req, res) => {
   try {
     const { hotelId } = req.query;
     const result = await db.query(
-      `SELECT id, username, name, role, created_at FROM users
+      `SELECT id, username, name, role, is_active, created_at FROM users
        WHERE hotel_id = $1 AND role != 'super_admin'
        ORDER BY role, name`,
       [hotelId]
@@ -223,13 +334,19 @@ router.get('/users', async (req, res) => {
 // PATCH /api/auth/users/:id — update user
 router.patch('/users/:id', async (req, res) => {
   try {
-    const { name, password, role } = req.body;
+    const { name, password, role, is_active, isActive } = req.body;
     if (password) {
       const hash = await bcrypt.hash(password, 10);
       await db.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hash, req.params.id]);
     }
     if (name) await db.query('UPDATE users SET name=$1 WHERE id=$2', [name, req.params.id]);
     if (role) await db.query('UPDATE users SET role=$1 WHERE id=$2', [role, req.params.id]);
+    if (typeof is_active === 'boolean' || typeof isActive === 'boolean') {
+      await db.query('UPDATE users SET is_active=$1 WHERE id=$2', [
+        typeof is_active === 'boolean' ? is_active : isActive,
+        req.params.id
+      ]);
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -277,19 +394,6 @@ router.post('/permissions', async (req, res) => {
   try {
     const { hotelId, role, pages, permissions } = req.body;
     if (!hotelId || !role) return res.status(400).json({ error: 'hotelId and role required' });
-
-    // Create table if not exists
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS role_permissions (
-        id SERIAL PRIMARY KEY,
-        hotel_id INTEGER NOT NULL,
-        role VARCHAR(50) NOT NULL,
-        pages JSONB NOT NULL DEFAULT '[]',
-        permissions JSONB NOT NULL DEFAULT '{}',
-        updated_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(hotel_id, role)
-      )
-    `);
 
     // Upsert permissions
     const result = await db.query(

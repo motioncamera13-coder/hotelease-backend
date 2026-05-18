@@ -157,7 +157,7 @@ CREATE TABLE payments (
 -- ── Bills ─────────────────────────────────────────────────────
 CREATE TABLE bills (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  reservation_id  UUID REFERENCES reservations(id) ON DELETE CASCADE,
+  reservation_id  UUID UNIQUE REFERENCES reservations(id) ON DELETE CASCADE,
   bill_no         VARCHAR(30) UNIQUE NOT NULL,
   room_charges    DECIMAL(10,2) DEFAULT 0,
   extra_charges   DECIMAL(10,2) DEFAULT 0,
@@ -211,7 +211,8 @@ CREATE INDEX idx_wa_sessions_phone      ON whatsapp_sessions(phone);
 -- ── Seed: Sukh Sagar Regency hotel ───────────────────────────
 INSERT INTO hotels (name, city, state, phone, gstin, admin_phone, total_rooms, buffer_rooms)
 VALUES ('Hotel Sukhsagar Regency', 'Shimla', 'Himachal Pradesh',
-        '9816003322', 'YOUR_GSTIN', '919816003322', 50, 4);
+        '9816003322', 'YOUR_GSTIN', '919816003322', 50, 4)
+ON CONFLICT DO NOTHING;
 
 -- ── Users (multi-hotel auth) ──────────────────────────────────
 CREATE TABLE users (
@@ -230,6 +231,17 @@ CREATE TABLE users (
 
 CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_users_hotel    ON users(hotel_id);
+
+-- ── Role permissions ──────────────────────────────────────────
+CREATE TABLE role_permissions (
+  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  hotel_id    UUID REFERENCES hotels(id) ON DELETE CASCADE,
+  role        VARCHAR(50) NOT NULL,
+  pages       JSONB NOT NULL DEFAULT '[]',
+  permissions JSONB NOT NULL DEFAULT '{}',
+  updated_at  TIMESTAMP DEFAULT NOW(),
+  UNIQUE(hotel_id, role)
+);
 
 -- ── Super admin (no hotel_id) ──────────────────────────────────
 -- INSERT INTO users (username, password_hash, name, role)
@@ -330,100 +342,6 @@ CREATE INDEX idx_cashbook_hotel     ON cash_book(hotel_id);
 CREATE INDEX idx_cashbook_date      ON cash_book(date);
 CREATE INDEX idx_cform_hotel        ON c_forms(hotel_id);
 CREATE INDEX idx_folio_res          ON folio(reservation_id);
-
--- ── Housekeeping ───────────────────────────────────────────────
-CREATE TABLE housekeeping (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  hotel_id        UUID REFERENCES hotels(id) ON DELETE CASCADE,
-  room_id         UUID REFERENCES rooms(id) ON DELETE CASCADE,
-  status          VARCHAR(30) DEFAULT 'dirty',
-  -- dirty, cleaning, clean, inspected, out_of_order
-  assigned_to     VARCHAR(100),
-  priority        VARCHAR(10) DEFAULT 'normal', -- high, normal, low
-  notes           TEXT,
-  last_cleaned    TIMESTAMP,
-  updated_at      TIMESTAMP DEFAULT NOW(),
-  updated_by      VARCHAR(100),
-  UNIQUE(room_id)
-);
-
--- ── Room swaps ─────────────────────────────────────────────────
-CREATE TABLE room_swaps (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  hotel_id        UUID REFERENCES hotels(id) ON DELETE CASCADE,
-  reservation_id  UUID REFERENCES reservations(id),
-  from_room_id    UUID REFERENCES rooms(id),
-  to_room_id      UUID REFERENCES rooms(id),
-  reason          TEXT,
-  swapped_by      VARCHAR(100),
-  swapped_at      TIMESTAMP DEFAULT NOW()
-);
-
--- ── Cash book ──────────────────────────────────────────────────
-CREATE TABLE cash_book (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  hotel_id        UUID REFERENCES hotels(id) ON DELETE CASCADE,
-  date            DATE DEFAULT CURRENT_DATE,
-  type            VARCHAR(10) NOT NULL, -- credit, debit
-  category        VARCHAR(50),
-  -- Room payment, Extra charge, Expense, Salary, Purchase, Other
-  description     TEXT NOT NULL,
-  amount          DECIMAL(10,2) NOT NULL,
-  payment_mode    VARCHAR(20), -- cash, upi, card, bank
-  reference_no    VARCHAR(100),
-  reservation_id  UUID REFERENCES reservations(id),
-  added_by        VARCHAR(100),
-  created_at      TIMESTAMP DEFAULT NOW()
-);
-
--- ── C-Form (guest ID for police reporting) ────────────────────
-CREATE TABLE c_forms (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  hotel_id        UUID REFERENCES hotels(id) ON DELETE CASCADE,
-  reservation_id  UUID REFERENCES reservations(id),
-  guest_id        UUID REFERENCES guests(id),
-  form_no         VARCHAR(30) UNIQUE,
-  guest_name      VARCHAR(200) NOT NULL,
-  father_name     VARCHAR(200),
-  nationality     VARCHAR(50) DEFAULT 'Indian',
-  id_type         VARCHAR(30), -- Aadhar, PAN, Passport, DL, VoterID
-  id_number       VARCHAR(50),
-  date_of_birth   DATE,
-  gender          VARCHAR(10),
-  address         TEXT,
-  city            VARCHAR(100),
-  state           VARCHAR(100),
-  mobile          VARCHAR(20),
-  purpose_of_visit VARCHAR(100), -- Tourism, Business, Medical, Other
-  checkin_date    DATE,
-  checkout_date   DATE,
-  room_no         VARCHAR(10),
-  submitted_to_police BOOLEAN DEFAULT false,
-  submitted_at    TIMESTAMP,
-  created_at      TIMESTAMP DEFAULT NOW()
-);
-
--- ── Folio (running guest account) ─────────────────────────────
-CREATE TABLE folio (
-  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  hotel_id        UUID REFERENCES hotels(id) ON DELETE CASCADE,
-  reservation_id  UUID REFERENCES reservations(id),
-  date            DATE DEFAULT CURRENT_DATE,
-  type            VARCHAR(10) NOT NULL, -- charge, payment
-  description     TEXT NOT NULL,
-  amount          DECIMAL(10,2) NOT NULL,
-  balance         DECIMAL(10,2) DEFAULT 0,
-  added_by        VARCHAR(100),
-  created_at      TIMESTAMP DEFAULT NOW()
-);
-
--- ── Indexes ────────────────────────────────────────────────────
-CREATE INDEX idx_housekeeping_hotel  ON housekeeping(hotel_id);
-CREATE INDEX idx_housekeeping_status ON housekeeping(status);
-CREATE INDEX idx_cash_book_hotel     ON cash_book(hotel_id);
-CREATE INDEX idx_cash_book_date      ON cash_book(date);
-CREATE INDEX idx_c_forms_hotel       ON c_forms(hotel_id);
-CREATE INDEX idx_folio_reservation   ON folio(reservation_id);
 
 -- ── Requisition slips ─────────────────────────────────────────
 CREATE TABLE requisition_slips (

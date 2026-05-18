@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelEase PMS — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #C9A84C; --gold-light: #E8C96A; --gold-dim: rgba(201,168,76,0.1);
+  --dark: #0A0908; --dark2: #121110; --dark3: #1C1A18; --dark4: #242220;
+  --cream: #F0EBE2; --cream2: #D8D2C8; --muted: #6E6860;
+  --teal: #1D9E75; --teal-dim: rgba(29,158,117,0.1);
+  --red: #E24B4A; --red-dim: rgba(226,75,74,0.1);
+  --purple: #8B5CF6; --purple-dim: rgba(139,92,246,0.1);
+  --border: rgba(201,168,76,0.1); --border2: rgba(255,255,255,0.05);
+  --sidebar-w: 220px;
+}
+html { height: 100%; }
+body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', sans-serif; font-weight: 300; display: flex; height: 100vh; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w); min-width: var(--sidebar-w);
+  background: var(--dark2); border-right: 0.5px solid var(--border);
+  display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+}
+.sidebar-logo { padding: 1.5rem 1.25rem 1rem; border-bottom: 0.5px solid var(--border); }
+.sidebar-logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--gold); }
+.sidebar-logo p { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+.nav-section { padding: 0.5rem 1.25rem 0.25rem; font-size: 9px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 1.25rem; font-size: 13px; color: var(--muted);
+  cursor: pointer; transition: all 0.15s; border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--cream); background: var(--dark3); }
+.nav-item.active { color: var(--gold); background: var(--gold-dim); border-left-color: var(--gold); }
+.nav-item .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-bottom { padding: 1rem 1.25rem; border-top: 0.5px solid var(--border); }
+.hotel-badge { background: var(--dark3); border-radius: 6px; padding: 10px 12px; }
+.hotel-badge-name { font-size: 12px; color: var(--cream2); font-weight: 400; }
+.hotel-badge-city { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.online-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); display: inline-block; margin-right: 5px; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── MAIN ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar {
+  padding: 0.9rem 2rem; border-bottom: 0.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--dark2); flex-shrink: 0;
+}
+.topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 400; color: #fff; }
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
+.date-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+.btn { padding: 8px 18px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; border: none; letter-spacing: 0.03em; }
+.btn-gold { background: var(--gold); color: var(--dark); }
+.btn-gold:hover { background: var(--gold-light); }
+.btn-outline { background: transparent; border: 0.5px solid var(--border2); color: var(--cream); }
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── CONTENT ── */
+.content { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── METRICS ROW ── */
+.metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+.metric-card { background: var(--dark2); border: 0.5px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+.metric-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+.metric-value { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: #fff; line-height: 1; margin-bottom: 4px; }
+.metric-sub { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+.metric-sub.up { color: var(--teal); }
+.metric-sub.down { color: var(--red); }
+.metric-sub.neutral { color: var(--muted); }
+
+/* ── GRID 2COL ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+/* ── PANELS ── */
+.panel { background: var(--dark2); border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
+.panel-header { padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.panel-title { font-size: 12px; font-weight: 500; color: var(--cream2); letter-spacing: 0.04em; }
+.panel-action { font-size: 11px; color: var(--gold); cursor: pointer; }
+.panel-body { padding: 1.25rem; }
+
+/* ── ROOM GRID ── */
+.room-floor { margin-bottom: 1rem; }
+.floor-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 6px; text-transform: uppercase; }
+.rooms-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.room-floor-col { min-width: 260px; flex: 1; }
+.floor-header { background: var(--dark3); border-radius: 8px 8px 0 0; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border: 0.5px solid var(--border); border-bottom: none; }
+.floor-header-title { font-size: 14px; font-weight: 500; color: var(--cream); }
+.floor-header-count { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; background: var(--dark4); padding: 2px 8px; border-radius: 10px; }
+.floor-rooms { background: var(--dark3); border: 0.5px solid var(--border); border-radius: 0 0 8px 8px; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.room-card { border-radius: 8px; padding: 8px 10px; cursor: pointer; transition: all 0.15s; position: relative; min-height: 80px; display: flex; flex-direction: column; justify-content: space-between; }
+.room-card:hover { transform: translateY(-1px); filter: brightness(1.1); }
+.room-card.available { background: #22C55E; }
+.room-card.occupied { background: #3B82F6; }
+.room-card.checkout { background: #F59E0B; }
+.room-card.maintenance { background: var(--red); }
+.room-card .plan-badge { position: absolute; top: 6px; right: 6px; font-size: 8px; font-weight: 700; background: rgba(255,255,255,0.25); color: #fff; padding: 1px 5px; border-radius: 3px; letter-spacing: 0.04em; }
+.room-card .room-top { display: flex; align-items: center; gap: 4px; }
+.room-card .room-num-big { font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
+.room-card .room-type-tag { font-size: 10px; color: rgba(255,255,255,0.8); font-weight: 500; align-self: flex-end; margin-bottom: 2px; }
+.room-card .room-info { font-size: 10px; color: rgba(255,255,255,0.9); line-height: 1.4; }
+.room-card .room-guest { font-size: 10px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+.room-card .room-agent { font-size: 9px; color: rgba(255,255,255,0.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+.room-card .room-rate { font-size: 9px; color: rgba(255,255,255,0.8); font-family: 'DM Mono', monospace; }
+.room-card .room-actions { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; }
+.room-card .room-action-btn { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; }
+.rooms-map-container { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+.room-filters { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+.room-legend { display: flex; gap: 1rem; margin-top: 8px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { font-size: 10px; color: var(--muted); padding: 8px 12px; text-align: left; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 0.5px solid var(--border); white-space: nowrap; }
+.data-table td { font-size: 12px; color: var(--cream2); padding: 10px 12px; border-bottom: 0.5px solid var(--border2); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--dark3); }
+.data-table .mono { font-family: 'DM Mono', monospace; font-size: 11px; }
+
+/* ── BADGES ── */
+.badge { font-size: 9px; padding: 2px 8px; border-radius: 100px; letter-spacing: 0.04em; text-transform: uppercase; display: inline-block; white-space: nowrap; }
+.badge-confirmed { background: var(--teal-dim); color: var(--teal); }
+.badge-checked_in { background: var(--gold-dim); color: var(--gold); }
+.badge-checked_out { background: rgba(255,255,255,0.06); color: var(--muted); }
+.badge-cancelled { background: var(--red-dim); color: var(--red); }
+.badge-a { background: var(--gold-dim); color: var(--gold); }
+.badge-b { background: var(--teal-dim); color: var(--teal); }
+.badge-c { background: rgba(255,255,255,0.06); color: var(--muted); }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--dark2); border: 0.5px solid var(--border); border-radius: 12px; width: 520px; max-height: 85vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+@keyframes modalIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
+.modal-header { padding: 1.25rem 1.5rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: #fff; font-weight: 400; }
+.modal-close { font-size: 20px; color: var(--muted); cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
+.modal-body { padding: 1.5rem; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 0.5px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── FORM ── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-row.full { grid-template-columns: 1fr; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
+.form-input, .form-select { padding: 9px 12px; background: var(--dark3); border: 0.5px solid var(--border); border-radius: 5px; color: var(--cream); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; width: 100%; }
+.form-input:focus, .form-select:focus { border-color: var(--gold); }
+.form-select option { background: var(--dark3); }
+.form-input::placeholder { color: var(--muted); }
+
+/* ── CHECKIN LIST ── */
+.checkin-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border2); }
+.checkin-item:last-child { border-bottom: none; }
+.checkin-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold-dim); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--gold); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+.checkin-info { flex: 1; }
+.checkin-name { font-size: 13px; color: var(--cream); font-weight: 400; }
+.checkin-detail { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.checkin-action { font-size: 11px; color: var(--gold); cursor: pointer; white-space: nowrap; }
+
+/* ── STAT BAR ── */
+.stat-bar { height: 4px; border-radius: 2px; background: var(--dark3); margin-top: 8px; overflow: hidden; }
+.stat-bar-fill { height: 100%; border-radius: 2px; background: var(--gold); transition: width 0.8s ease; }
+.stat-bar-fill.teal { background: var(--teal); }
+
+/* ── SEARCH ── */
+.search-box { display: flex; align-items: center; gap: 8px; background: var(--dark3); border: 0.5px solid var(--border); border-radius: 5px; padding: 8px 12px; }
+.search-input { background: none; border: none; color: var(--cream); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; flex: 1; }
+.search-input::placeholder { color: var(--muted); }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align: center; padding: 3rem 1rem; }
+.empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+.empty-title { font-size: 14px; color: var(--cream2); margin-bottom: 4px; }
+.empty-sub { font-size: 12px; color: var(--muted); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--dark4); border-radius: 2px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>HotelEase</h1>
+    <p>Property Management</p>
+  </div>
+  <nav class="sidebar-nav" id="sidebar-nav">
+    <!-- Rendered dynamically by buildNav() based on role -->
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="hotel-badge">
+      <div class="hotel-badge-name"><span class="online-dot"></span><span id="sb-hotel-name">Sukhsagar Regency</span></div>
+      <div class="hotel-badge-city" id="sb-user-name">Loading...</div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn btn-outline" style="flex:1;font-size:11px;padding:6px" onclick="showPage('changepassword')">🔑 Password</button>
+      <button class="btn btn-outline" style="flex:1;font-size:11px;padding:6px;color:var(--red);border-color:var(--red)" onclick="logout()">⏻ Logout</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <div class="date-badge" id="currentDate"></div>
+      <button class="btn btn-gold" onclick="showModal('newReservation')">+ New Booking</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD PAGE ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-label">Occupancy</div>
+          <div class="metric-value">78%</div>
+          <div class="metric-sub up">↑ 12% vs yesterday</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:78%"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Available rooms</div>
+          <div class="metric-value">8</div>
+          <div class="metric-sub neutral">of 46 total rooms</div>
+          <div class="stat-bar"><div class="stat-bar-fill teal" style="width:17%"></div></div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Revenue today</div>
+          <div class="metric-value">₹42,500</div>
+          <div class="metric-sub up">↑ 8% vs yesterday</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">WA enquiries</div>
+          <div class="metric-value">3</div>
+          <div class="metric-sub neutral">2 pending reply</div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <!-- Check-ins today -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Check-ins today</span>
+            <span class="panel-action" onclick="showPage('checkin')">View all →</span>
+          </div>
+          <div class="panel-body" id="checkin-list">
+            <div class="checkin-item">
+              <div class="checkin-avatar">RS</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Rahul Sharma</div>
+                <div class="checkin-detail">Deluxe × 2 · CP · HE20260515001</div>
+              </div>
+              <div class="checkin-action" onclick="doCheckin('HE20260515001')">Check in →</div>
+            </div>
+            <div class="checkin-item">
+              <div class="checkin-avatar">PK</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Priya Kaur</div>
+                <div class="checkin-detail">Honeymoon × 1 · MAP · HE20260515002</div>
+              </div>
+              <div class="checkin-action" onclick="doCheckin('HE20260515002')">Check in →</div>
+            </div>
+            <div class="checkin-item">
+              <div class="checkin-avatar">AM</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Arvind Mehta × 6</div>
+                <div class="checkin-detail">Deluxe × 3 · MAP · HE20260515003</div>
+              </div>
+              <div class="checkin-action" onclick="doCheckin('HE20260515003')">Check in →</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick stats -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Today's summary</span></div>
+            <div class="panel-body">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;font-size:12px">
+                  <span style="color:var(--muted)">Check-ins</span>
+                  <span style="color:var(--teal);font-family:'DM Mono',monospace">3</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px">
+                  <span style="color:var(--muted)">Check-outs</span>
+                  <span style="color:var(--gold);font-family:'DM Mono',monospace">2</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px">
+                  <span style="color:var(--muted)">In-house guests</span>
+                  <span style="color:var(--cream);font-family:'DM Mono',monospace">38</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px">
+                  <span style="color:var(--muted)">New bookings</span>
+                  <span style="color:var(--cream);font-family:'DM Mono',monospace">5</span>
+                </div>
+                <div style="height:0.5px;background:var(--border)"></div>
+                <div style="display:flex;justify-content:space-between;font-size:13px">
+                  <span style="color:var(--muted)">Total revenue</span>
+                  <span style="color:var(--gold);font-family:'DM Mono',monospace">₹42,500</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Room status</span></div>
+            <div class="panel-body">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:var(--gold)">● Occupied</span>
+                  <span style="font-size:12px;font-family:'DM Mono',monospace">38</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:var(--teal)">● Available</span>
+                  <span style="font-size:12px;font-family:'DM Mono',monospace">8</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:var(--red)">● Maintenance</span>
+                  <span style="font-size:12px;font-family:'DM Mono',monospace">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent bookings -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Recent bookings</span>
+          <span class="panel-action" onclick="showPage('reservations')">View all →</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Booking ID</th><th>Guest</th><th>Agent</th><th>Room</th>
+                <th>Check-in</th><th>Check-out</th><th>Plan</th><th>Rate</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recent-bookings">
+              <tr><td class="mono">HE20260515001</td><td>Rahul Sharma</td><td>Rahul Travels</td><td>Deluxe × 2</td><td>15 May</td><td>17 May</td><td>CP</td><td class="mono">₹4,100</td><td><span class="badge badge-confirmed">Confirmed</span></td></tr>
+              <tr><td class="mono">HE20260515002</td><td>Priya Kaur</td><td>Sharma Tours</td><td>Honeymoon × 1</td><td>15 May</td><td>18 May</td><td>MAP</td><td class="mono">₹5,600</td><td><span class="badge badge-checked_in">Checked in</span></td></tr>
+              <tr><td class="mono">HE20260515003</td><td>Arvind Mehta</td><td>Delhi Holidays</td><td>Deluxe × 3</td><td>15 May</td><td>17 May</td><td>MAP</td><td class="mono">₹4,700</td><td><span class="badge badge-confirmed">Confirmed</span></td></tr>
+              <tr><td class="mono">HE20260514009</td><td>Sonia Kumar</td><td>Rahul Travels</td><td>Super Deluxe × 1</td><td>14 May</td><td>16 May</td><td>CP</td><td class="mono">₹4,600</td><td><span class="badge badge-checked_in">Checked in</span></td></tr>
+              <tr><td class="mono">HE20260514007</td><td>Rajesh Singh</td><td>Meet India</td><td>Deluxe × 2</td><td>13 May</td><td>15 May</td><td>CP</td><td class="mono">₹4,100</td><td><span class="badge badge-checked_out">Checked out</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ROOMS PAGE ── -->
+    <div class="page" id="page-rooms">
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Total rooms</div><div class="metric-value">35</div><div class="metric-sub neutral">3 floors</div></div>
+        <div class="metric-card"><div class="metric-label">Occupied</div><div class="metric-value" style="color:#3B82F6">24</div><div class="metric-sub up" style="color:#3B82F6">69% occupancy</div></div>
+        <div class="metric-card"><div class="metric-label">Available</div><div class="metric-value" style="color:#22C55E">11</div><div class="metric-sub neutral">Ready to book</div></div>
+        <div class="metric-card"><div class="metric-label">Maintenance</div><div class="metric-value" style="color:var(--red)">0</div><div class="metric-sub neutral">All rooms operational</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Room map — Today</span>
+          <div style="display:flex;gap:8px">
+            <select class="form-select" style="width:auto;padding:4px 10px;font-size:11px" onchange="filterRooms(this.value)">
+              <option value="all">All rooms</option>
+              <option value="available">Available only</option>
+              <option value="occupied">Occupied only</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-body" id="room-map">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RESERVATIONS PAGE ── -->
+    <div class="page" id="page-reservations">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;align-items:center">
+        <div class="search-box" style="flex:1">
+          <span>🔍</span>
+          <input class="search-input" placeholder="Search by booking ID, guest name, agent..." oninput="filterReservations(this.value)">
+        </div>
+        <select class="form-select" style="width:auto" onchange="filterByStatus(this.value)">
+          <option value="">All status</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="checked_in">Checked in</option>
+          <option value="checked_out">Checked out</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-gold" onclick="showModal('newReservation')">+ New Booking</button>
+      </div>
+      <div class="panel">
+        <div style="overflow-x:auto">
+          <table class="data-table" id="reservations-table">
+            <thead>
+              <tr><th>Booking ID</th><th>Guest</th><th>Agent</th><th>Room type</th><th>Rooms</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Plan</th><th>Rate</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="reservations-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHECK-IN/OUT PAGE ── -->
+    <div class="page" id="page-checkin">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header" style="background:var(--teal-dim)">
+            <span class="panel-title" style="color:var(--teal)">✅ Check-ins today (3)</span>
+          </div>
+          <div class="panel-body">
+            <div class="checkin-item">
+              <div class="checkin-avatar">RS</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Rahul Sharma</div>
+                <div class="checkin-detail">Deluxe × 2 · CP · ₹4,100/night</div>
+                <div class="checkin-detail mono" style="color:var(--gold)">HE20260515001</div>
+              </div>
+              <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('HE20260515001')">Check in</button>
+            </div>
+            <div class="checkin-item">
+              <div class="checkin-avatar">PK</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Priya Kaur</div>
+                <div class="checkin-detail">Honeymoon × 1 · MAP · ₹5,600/night</div>
+                <div class="checkin-detail mono" style="color:var(--gold)">HE20260515002</div>
+              </div>
+              <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('HE20260515002')">Check in</button>
+            </div>
+            <div class="checkin-item">
+              <div class="checkin-avatar">AM</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Arvind Mehta × 6</div>
+                <div class="checkin-detail">Deluxe × 3 · MAP · ₹4,700/night</div>
+                <div class="checkin-detail mono" style="color:var(--gold)">HE20260515003</div>
+              </div>
+              <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('HE20260515003')">Check in</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header" style="background:var(--gold-dim)">
+            <span class="panel-title" style="color:var(--gold)">🚪 Check-outs today (2)</span>
+          </div>
+          <div class="panel-body">
+            <div class="checkin-item">
+              <div class="checkin-avatar" style="background:var(--gold-dim);color:var(--gold)">RJ</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Rajesh Singh</div>
+                <div class="checkin-detail">Deluxe × 2 · CP · 2 nights</div>
+                <div class="checkin-detail mono" style="color:var(--gold)">HE20260514007</div>
+              </div>
+              <button class="btn btn-outline" style="font-size:11px;padding:6px 14px" onclick="doCheckout('HE20260514007')">Checkout + Bill</button>
+            </div>
+            <div class="checkin-item">
+              <div class="checkin-avatar" style="background:var(--gold-dim);color:var(--gold)">SK</div>
+              <div class="checkin-info">
+                <div class="checkin-name">Sonia Kumar</div>
+                <div class="checkin-detail">Super Deluxe × 1 · CP · 2 nights</div>
+                <div class="checkin-detail mono" style="color:var(--gold)">HE20260514009</div>
+              </div>
+              <button class="btn btn-outline" style="font-size:11px;padding:6px 14px" onclick="doCheckout('HE20260514009')">Checkout + Bill</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AGENTS PAGE ── -->
+    <div class="page" id="page-agents">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <div class="search-box" style="flex:1"><span>🔍</span><input class="search-input" placeholder="Search agents..."></div>
+        <button class="btn btn-gold" onclick="showModal('newAgent')">+ Add Agent</button>
+      </div>
+      <div class="panel">
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Category</th><th>Discount</th><th>Bookings</th><th>Revenue</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td>Rahul Travels</td><td class="mono">919876543210</td><td>Rahul Tours Pvt</td><td><span class="badge badge-a">A</span></td><td class="mono" style="color:var(--teal)">10%</td><td class="mono">24</td><td class="mono">₹3,84,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+              <tr><td>Sharma Tours</td><td class="mono">918894888858</td><td>Sharma Holidays</td><td><span class="badge badge-b">B</span></td><td class="mono" style="color:var(--teal)">5%</td><td class="mono">18</td><td class="mono">₹2,16,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+              <tr><td>Delhi Holidays</td><td class="mono">919999999999</td><td>Delhi Holidays</td><td><span class="badge badge-c">C</span></td><td class="mono">0%</td><td class="mono">12</td><td class="mono">₹1,44,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+              <tr><td>Meet India Tour</td><td class="mono">917777777777</td><td>Meet India</td><td><span class="badge badge-b">B</span></td><td class="mono" style="color:var(--teal)">5%</td><td class="mono">8</td><td class="mono">₹96,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RATES PAGE ── -->
+    <div class="page" id="page-rates">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Peak Season — 15 Apr to 30 Jun 2026</span></div>
+          <div class="panel-body">
+            <table class="data-table">
+              <thead><tr><th>Room Type</th><th>CP Rate</th><th>MAP Rate</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Deluxe</td><td class="mono" style="color:var(--gold)">₹4,100</td><td class="mono" style="color:var(--gold)">₹4,900</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Super Deluxe</td><td class="mono" style="color:var(--gold)">₹4,600</td><td class="mono" style="color:var(--gold)">₹5,400</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Honeymoon</td><td class="mono" style="color:var(--gold)">₹5,100</td><td class="mono" style="color:var(--gold)">₹5,900</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Off Season — 1 Jul to 20 Dec 2026</span></div>
+          <div class="panel-body">
+            <table class="data-table">
+              <thead><tr><th>Room Type</th><th>CP Rate</th><th>MAP Rate</th><th></th></tr></thead>
+              <tbody>
+                <tr><td>Deluxe</td><td class="mono" style="color:var(--teal)">₹3,000</td><td class="mono" style="color:var(--teal)">₹3,600</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Super Deluxe</td><td class="mono" style="color:var(--teal)">₹3,500</td><td class="mono" style="color:var(--teal)">₹4,100</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Honeymoon</td><td class="mono" style="color:var(--teal)">₹4,000</td><td class="mono" style="color:var(--teal)">₹4,600</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Agent category discounts</span></div>
+        <div class="panel-body">
+          <table class="data-table">
+            <thead><tr><th>Category</th><th>Discount</th><th>Example — Deluxe CP Peak</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge badge-a">A</span></td><td class="mono" style="color:var(--teal)">10% off</td><td class="mono">₹4,100 → ₹3,690/night</td></tr>
+              <tr><td><span class="badge badge-b">B</span></td><td class="mono" style="color:var(--teal)">5% off</td><td class="mono">₹4,100 → ₹3,895/night</td></tr>
+              <tr><td><span class="badge badge-c">C</span></td><td class="mono">0% off</td><td class="mono">₹4,100 → ₹4,100/night</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPORTS PAGE ── -->
+    <div class="page" id="page-reports">
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">This month revenue</div><div class="metric-value">₹8.4L</div><div class="metric-sub up">↑ 18% vs last month</div></div>
+        <div class="metric-card"><div class="metric-label">Avg occupancy</div><div class="metric-value">72%</div><div class="metric-sub up">↑ 5% vs last month</div></div>
+        <div class="metric-card"><div class="metric-label">Total bookings</div><div class="metric-value">124</div><div class="metric-sub neutral">this month</div></div>
+        <div class="metric-card"><div class="metric-label">Top agent</div><div class="metric-value" style="font-size:1.2rem;margin-top:4px">Rahul Travels</div><div class="metric-sub neutral">₹3,84,000 revenue</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Revenue by room type</span></div>
+          <div class="panel-body">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Deluxe</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹4,20,000</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:72%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Super Deluxe</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹2,70,000</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:46%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Honeymoon</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹1,50,000</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:26%"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Agent performance</span></div>
+          <div class="panel-body">
+            <table class="data-table">
+              <thead><tr><th>Agent</th><th>Bookings</th><th>Revenue</th></tr></thead>
+              <tbody>
+                <tr><td>Rahul Travels</td><td class="mono">24</td><td class="mono" style="color:var(--gold)">₹3,84,000</td></tr>
+                <tr><td>Sharma Tours</td><td class="mono">18</td><td class="mono" style="color:var(--gold)">₹2,16,000</td></tr>
+                <tr><td>Delhi Holidays</td><td class="mono">12</td><td class="mono" style="color:var(--gold)">₹1,44,000</td></tr>
+                <tr><td>Meet India Tour</td><td class="mono">8</td><td class="mono" style="color:var(--gold)">₹96,000</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GUESTS PAGE ── -->
+    <div class="page" id="page-guests">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <div class="search-box" style="flex:1"><span>🔍</span><input class="search-input" placeholder="Search guests by name or phone..."></div>
+      </div>
+      <div class="panel">
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Phone</th><th>Total stays</th><th>Last stay</th><th>Revenue</th></tr></thead>
+            <tbody>
+              <tr><td>Rahul Sharma</td><td class="mono">9876543210</td><td class="mono">3</td><td>15 May 2026</td><td class="mono" style="color:var(--gold)">₹32,800</td></tr>
+              <tr><td>Priya Kaur</td><td class="mono">9812345678</td><td class="mono">1</td><td>15 May 2026</td><td class="mono" style="color:var(--gold)">₹16,800</td></tr>
+              <tr><td>Arvind Mehta</td><td class="mono">9898989898</td><td class="mono">2</td><td>15 May 2026</td><td class="mono" style="color:var(--gold)">₹56,400</td></tr>
+              <tr><td>Sonia Kumar</td><td class="mono">9111222333</td><td class="mono">4</td><td>14 May 2026</td><td class="mono" style="color:var(--gold)">₹41,200</td></tr>
+              <tr><td>Rajesh Singh</td><td class="mono">9444555666</td><td class="mono">1</td><td>13 May 2026</td><td class="mono" style="color:var(--gold)">₹16,400</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BILLING PAGE ── -->
+    <div class="page" id="page-billing">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <div class="search-box" style="flex:1"><span>🔍</span><input class="search-input" placeholder="Search by booking ID or guest..."></div>
+        <select class="form-select" style="width:auto"><option>All bills</option><option>Pending</option><option>Paid</option></select>
+      </div>
+      <div class="panel">
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Bill No</th><th>Booking ID</th><th>Guest</th><th>Room charges</th><th>Extras</th><th>GST</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">BILL001</td><td class="mono">HE20260514007</td><td>Rajesh Singh</td><td class="mono">₹16,400</td><td class="mono">₹0</td><td class="mono">₹1,968</td><td class="mono" style="color:var(--gold)">₹18,368</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">Paid</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">View</span></td></tr>
+              <tr><td class="mono">BILL002</td><td class="mono">HE20260514009</td><td>Sonia Kumar</td><td class="mono">₹9,200</td><td class="mono">₹1,600</td><td class="mono">₹1,296</td><td class="mono" style="color:var(--gold)">₹12,096</td><td><span class="badge badge-confirmed">Pending</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Collect</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHECKOUT PAGE ── -->
+    <div class="page" id="page-checkout">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;align-items:center">
+        <div class="search-box" style="flex:1"><span>🔍</span><input class="search-input" placeholder="Search by booking ID or guest name..." oninput="filterCheckouts(this.value)"></div>
+        <select class="form-select" style="width:auto" onchange="filterCheckoutDate(this.value)">
+          <option value="today">Today's Checkouts</option>
+          <option value="tomorrow">Tomorrow</option>
+          <option value="all">All Pending</option>
+        </select>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Due Today</div><div class="metric-value" style="color:var(--gold)">3</div><div class="metric-sub neutral">guests checking out</div></div>
+        <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--teal)">1</div><div class="metric-sub neutral">checked out today</div></div>
+        <div class="metric-card"><div class="metric-label">Revenue Collected</div><div class="metric-value">₹18,368</div><div class="metric-sub up">from checkouts today</div></div>
+        <div class="metric-card"><div class="metric-label">Pending Collection</div><div class="metric-value" style="color:var(--red)">₹42,600</div><div class="metric-sub neutral">3 bills pending</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Checkout Queue</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Booking ID</th><th>Guest</th><th>Room</th><th>Plan</th><th>Nights</th><th>Room Charges</th><th>Extras</th><th>GST</th><th>Total</th><th>Advance Paid</th><th>Balance</th><th>Action</th></tr></thead>
+            <tbody id="checkout-tbody">
+              <tr>
+                <td class="mono" style="color:var(--gold)">HE20260515001</td>
+                <td>Rahul Sharma</td><td>201, 202</td><td>CP</td><td class="mono">2</td>
+                <td class="mono">₹16,400</td><td class="mono">₹0</td><td class="mono">₹1,968</td>
+                <td class="mono" style="color:var(--gold)">₹18,368</td>
+                <td class="mono" style="color:var(--teal)">₹4,592</td>
+                <td class="mono" style="color:var(--red)">₹13,776</td>
+                <td><button class="btn btn-gold" style="font-size:11px;padding:5px 12px" onclick="openCheckoutBill('HE20260515001')">Checkout + Bill</button></td>
+              </tr>
+              <tr>
+                <td class="mono" style="color:var(--gold)">HE20260514009</td>
+                <td>Sonia Kumar</td><td>305</td><td>CP</td><td class="mono">2</td>
+                <td class="mono">₹9,200</td><td class="mono">₹1,600</td><td class="mono">₹1,296</td>
+                <td class="mono" style="color:var(--gold)">₹12,096</td>
+                <td class="mono" style="color:var(--teal)">₹3,024</td>
+                <td class="mono" style="color:var(--red)">₹9,072</td>
+                <td><button class="btn btn-gold" style="font-size:11px;padding:5px 12px" onclick="openCheckoutBill('HE20260514009')">Checkout + Bill</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SWAP ROOM PAGE ── -->
+    <div class="page" id="page-swaproom">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Swap Room</span></div>
+          <div class="panel-body">
+            <div class="form-group"><label class="form-label">From Room (Current)</label>
+              <select class="form-select" id="swap-from">
+                <option value="">Select current room</option>
+                <option>101 — Deluxe (Rahul Sharma)</option>
+                <option>201 — Super Deluxe (Priya Kaur)</option>
+                <option>304 — Honeymoon (Arvind Mehta)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top:1rem"><label class="form-label">To Room (New)</label>
+              <select class="form-select" id="swap-to">
+                <option value="">Select new room</option>
+                <option>103 — Deluxe (Available)</option>
+                <option>212 — Super Deluxe (Available)</option>
+                <option>311 — Deluxe (Available)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top:1rem"><label class="form-label">Reason for Swap</label>
+              <input class="form-input" placeholder="Guest request, maintenance, upgrade..."></div>
+            <button class="btn btn-gold" style="margin-top:1rem;width:100%" onclick="doSwapRoom()">Confirm Room Swap</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Swap History</span></div>
+          <div class="panel-body">
+            <table class="data-table">
+              <thead><tr><th>Date</th><th>Guest</th><th>From</th><th>To</th><th>Reason</th></tr></thead>
+              <tbody>
+                <tr><td>15 May</td><td>Rahul Sharma</td><td>101</td><td>103</td><td style="color:var(--muted)">Guest request</td></tr>
+                <tr><td>14 May</td><td>Sonia Kumar</td><td>212</td><td>305</td><td style="color:var(--muted)">Upgrade</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ROOM INVESTIGATION PAGE ── -->
+    <div class="page" id="page-roominvestigation">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <select class="form-select" style="width:auto" onchange="filterInvestigation(this.value)">
+          <option value="all">All Rooms</option>
+          <option value="occupied">Occupied</option>
+          <option value="available">Available</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+        <select class="form-select" style="width:auto">
+          <option>All Floors</option><option>Floor 1</option><option>Floor 2</option><option>Floor 3</option>
+        </select>
+        <button class="btn btn-gold" onclick="exportInvestigation()">Export Report</button>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Room Investigation Report — 18 May 2026</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Room</th><th>Floor</th><th>Type</th><th>Status</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Plan</th><th>Agent</th><th>Rate</th><th>Housekeeping</th></tr></thead>
+            <tbody id="investigation-tbody">
+              <tr><td class="mono">101</td><td>1</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td>Rahul Sharma</td><td>15 May</td><td>17 May</td><td class="mono">2</td><td>CP</td><td style="color:var(--muted)">Rahul Travels</td><td class="mono">₹4,100</td><td><span style="color:var(--teal)">Clean ✓</span></td></tr>
+              <tr><td class="mono">102</td><td>1</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td>Priya Kaur</td><td>15 May</td><td>18 May</td><td class="mono">3</td><td>MAP</td><td style="color:var(--muted)">Sharma Tours</td><td class="mono">₹5,600</td><td><span style="color:var(--red)">Pending</span></td></tr>
+              <tr><td class="mono">103</td><td>1</td><td>Deluxe</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">Available</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span style="color:var(--teal)">Clean ✓</span></td></tr>
+              <tr><td class="mono">201</td><td>2</td><td>Super Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td>Arvind Mehta</td><td>15 May</td><td>17 May</td><td class="mono">2</td><td>MAP</td><td style="color:var(--muted)">Delhi Holidays</td><td class="mono">₹4,700</td><td><span style="color:var(--gold)">In Progress</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RS UPDATE PAGE ── -->
+    <div class="page" id="page-rsupdate">
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Total Rooms</div><div class="metric-value">35</div></div>
+        <div class="metric-card"><div class="metric-label">Clean</div><div class="metric-value" style="color:var(--teal)">22</div></div>
+        <div class="metric-card"><div class="metric-label">Dirty</div><div class="metric-value" style="color:var(--red)">8</div></div>
+        <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-value" style="color:var(--gold)">5</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Room Status Update</span>
+          <span class="panel-action" onclick="markAllClean()">Mark All Clean</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Room</th><th>Type</th><th>Occupancy</th><th>Housekeeping Status</th><th>Updated By</th><th>Time</th><th>Update</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">101</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td><span style="color:var(--teal)">● Clean</span></td><td style="color:var(--muted)">Hansraj</td><td style="color:var(--muted)">09:30 AM</td><td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('101',this.value)"><option>Clean</option><option>Dirty</option><option>In Progress</option><option>Inspected</option></select></td></tr>
+              <tr><td class="mono">102</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td><span style="color:var(--red)">● Dirty</span></td><td style="color:var(--muted)">Anu</td><td style="color:var(--muted)">08:15 AM</td><td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('102',this.value)"><option>Clean</option><option selected>Dirty</option><option>In Progress</option><option>Inspected</option></select></td></tr>
+              <tr><td class="mono">103</td><td>Deluxe</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">Available</span></td><td><span style="color:var(--gold)">● In Progress</span></td><td style="color:var(--muted)">Pradeep HK</td><td style="color:var(--muted)">10:00 AM</td><td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('103',this.value)"><option>Clean</option><option>Dirty</option><option selected>In Progress</option><option>Inspected</option></select></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CASH BOOK PAGE ── -->
+    <div class="page" id="page-cashbook">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;align-items:center">
+        <input class="form-input" type="date" style="width:auto" value="2026-05-18">
+        <select class="form-select" style="width:auto">
+          <option>All Transactions</option><option>Cash In</option><option>Cash Out</option>
+        </select>
+        <button class="btn btn-gold" onclick="showModal('newCashEntry')">+ New Entry</button>
+        <button class="btn btn-outline" onclick="exportCashBook()">Export</button>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Opening Balance</div><div class="metric-value">₹12,500</div></div>
+        <div class="metric-card"><div class="metric-label">Cash In</div><div class="metric-value" style="color:var(--teal)">₹42,368</div></div>
+        <div class="metric-card"><div class="metric-label">Cash Out</div><div class="metric-value" style="color:var(--red)">₹8,200</div></div>
+        <div class="metric-card"><div class="metric-label">Closing Balance</div><div class="metric-value" style="color:var(--gold)">₹46,668</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Cash Book — 18 May 2026</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>S.No</th><th>Time</th><th>Description</th><th>Booking ID</th><th>Cash In</th><th>Cash Out</th><th>Balance</th><th>By</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td>09:00</td><td>Opening Balance</td><td>—</td><td class="mono" style="color:var(--teal)">₹12,500</td><td>—</td><td class="mono" style="color:var(--gold)">₹12,500</td><td style="color:var(--muted)">System</td></tr>
+              <tr><td class="mono">2</td><td>10:30</td><td>Room checkout — Rajesh Singh</td><td class="mono">HE20260514007</td><td class="mono" style="color:var(--teal)">₹18,368</td><td>—</td><td class="mono" style="color:var(--gold)">₹30,868</td><td style="color:var(--muted)">User</td></tr>
+              <tr><td class="mono">3</td><td>11:15</td><td>Laundry expense</td><td>—</td><td>—</td><td class="mono" style="color:var(--red)">₹3,200</td><td class="mono" style="color:var(--gold)">₹27,668</td><td style="color:var(--muted)">User</td></tr>
+              <tr><td class="mono">4</td><td>14:00</td><td>Room advance — Arvind Mehta</td><td class="mono">HE20260515003</td><td class="mono" style="color:var(--teal)">₹7,050</td><td>—</td><td class="mono" style="color:var(--gold)">₹34,718</td><td style="color:var(--muted)">Anu</td></tr>
+              <tr><td class="mono">5</td><td>15:30</td><td>Grocery purchase</td><td>—</td><td>—</td><td class="mono" style="color:var(--red)">₹5,000</td><td class="mono" style="color:var(--gold)">₹29,718</td><td style="color:var(--muted)">Hansraj</td></tr>
+              <tr><td class="mono">6</td><td>18:00</td><td>Room advance — Sonia Kumar</td><td class="mono">HE20260514009</td><td class="mono" style="color:var(--teal)">₹16,950</td><td>—</td><td class="mono" style="color:var(--gold)">₹46,668</td><td style="color:var(--muted)">User</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RECEIPT PAGE ── -->
+    <div class="page" id="page-receipt">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <div class="search-box" style="flex:1"><span>🔍</span><input class="search-input" placeholder="Search by receipt no, booking ID or guest..."></div>
+        <button class="btn btn-gold" onclick="showModal('newReceipt')">+ New Receipt</button>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Receipts</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Receipt No</th><th>Date</th><th>Booking ID</th><th>Guest</th><th>Amount</th><th>Mode</th><th>Narration</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td class="mono" style="color:var(--gold)">RCP001</td><td>18 May 2026</td><td class="mono">HE20260514007</td><td>Rajesh Singh</td><td class="mono" style="color:var(--teal)">₹18,368</td><td><span class="badge badge-confirmed">Cash</span></td><td style="color:var(--muted)">Full payment on checkout</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Print</span></td></tr>
+              <tr><td class="mono" style="color:var(--gold)">RCP002</td><td>18 May 2026</td><td class="mono">HE20260515003</td><td>Arvind Mehta</td><td class="mono" style="color:var(--teal)">₹7,050</td><td><span class="badge badge-checked_in">UPI</span></td><td style="color:var(--muted)">25% advance payment</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Print</span></td></tr>
+              <tr><td class="mono" style="color:var(--gold)">RCP003</td><td>18 May 2026</td><td class="mono">HE20260514009</td><td>Sonia Kumar</td><td class="mono" style="color:var(--teal)">₹3,024</td><td><span class="badge badge-confirmed">Card</span></td><td style="color:var(--muted)">25% advance payment</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Print</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GST PAYABLE PAGE ── -->
+    <div class="page" id="page-gst">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;align-items:center">
+        <select class="form-select" style="width:auto">
+          <option>April 2026</option><option>May 2026</option><option>June 2026</option>
+        </select>
+        <button class="btn btn-outline" onclick="exportGST()">Export for Filing</button>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Total Taxable Value</div><div class="metric-value">₹3,84,000</div></div>
+        <div class="metric-card"><div class="metric-label">GST @ 12% (< ₹7500)</div><div class="metric-value" style="color:var(--gold)">₹28,800</div></div>
+        <div class="metric-card"><div class="metric-label">GST @ 18% (≥ ₹7500)</div><div class="metric-value" style="color:var(--gold)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Total GST Payable</div><div class="metric-value" style="color:var(--red)">₹28,800</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">GST Report — May 2026</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Booking ID</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Room Type</th><th>Tariff</th><th>GST %</th><th>GST Amount</th><th>Total</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">HE20260515001</td><td>Rahul Sharma</td><td>15 May</td><td>17 May</td><td>Deluxe</td><td class="mono">₹16,400</td><td class="mono">12%</td><td class="mono" style="color:var(--gold)">₹1,968</td><td class="mono">₹18,368</td></tr>
+              <tr><td class="mono">HE20260515002</td><td>Priya Kaur</td><td>15 May</td><td>18 May</td><td>Honeymoon</td><td class="mono">₹16,800</td><td class="mono">12%</td><td class="mono" style="color:var(--gold)">₹2,016</td><td class="mono">₹18,816</td></tr>
+              <tr><td class="mono">HE20260515003</td><td>Arvind Mehta</td><td>15 May</td><td>17 May</td><td>Deluxe</td><td class="mono">₹28,200</td><td class="mono">12%</td><td class="mono" style="color:var(--gold)">₹3,384</td><td class="mono">₹31,584</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTLEMENT SUMMARY PAGE ── -->
+    <div class="page" id="page-settlement">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <input class="form-input" type="date" style="width:auto" value="2026-05-18">
+        <button class="btn btn-outline" onclick="exportSettlement()">Export</button>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Cash</div><div class="metric-value" style="color:var(--teal)">₹42,368</div></div>
+        <div class="metric-card"><div class="metric-label">Card</div><div class="metric-value" style="color:var(--teal)">₹12,096</div></div>
+        <div class="metric-card"><div class="metric-label">UPI</div><div class="metric-value" style="color:var(--teal)">₹7,050</div></div>
+        <div class="metric-card"><div class="metric-label">Total Settlement</div><div class="metric-value" style="color:var(--gold)">₹61,514</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Payment Mode Breakdown</span></div>
+          <div class="panel-body">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Cash</span><span style="color:var(--teal);font-family:'DM Mono',monospace">₹42,368 (68.9%)</span></div><div class="stat-bar"><div class="stat-bar-fill teal" style="width:69%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Card</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹12,096 (19.7%)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:20%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">UPI</span><span style="color:var(--purple);font-family:'DM Mono',monospace">₹7,050 (11.4%)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:11%;background:var(--purple)"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Department-wise</span></div>
+          <div class="panel-body">
+            <table class="data-table">
+              <thead><tr><th>Department</th><th>Amount</th></tr></thead>
+              <tbody>
+                <tr><td>Room Revenue</td><td class="mono" style="color:var(--gold)">₹54,800</td></tr>
+                <tr><td>F&B Revenue</td><td class="mono" style="color:var(--gold)">₹4,200</td></tr>
+                <tr><td>Laundry</td><td class="mono" style="color:var(--gold)">₹800</td></tr>
+                <tr><td>Miscellaneous</td><td class="mono" style="color:var(--gold)">₹1,714</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NIGHT AUDIT PAGE ── -->
+    <div class="page" id="page-nightaudit">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;align-items:center">
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">Night Audit — 18 May 2026</div>
+        <button class="btn btn-gold" onclick="runNightAudit()">Run Night Audit</button>
+        <button class="btn btn-outline" onclick="exportNightAudit()">Export Report</button>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Rooms Occupied</div><div class="metric-value">28</div></div>
+        <div class="metric-card"><div class="metric-label">Rooms Available</div><div class="metric-value" style="color:var(--teal)">7</div></div>
+        <div class="metric-card"><div class="metric-label">Total Room Revenue</div><div class="metric-value">₹54,800</div></div>
+        <div class="metric-card"><div class="metric-label">Audit Status</div><div class="metric-value" style="font-size:1.2rem;color:var(--teal)">Completed ✓</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Night Audit Summary</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Room</th><th>Guest</th><th>Nights</th><th>Plan</th><th>Rate</th><th>Charges Posted</th><th>Balance</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">101</td><td>Rahul Sharma</td><td class="mono">1 of 2</td><td>CP</td><td class="mono">₹4,100</td><td class="mono" style="color:var(--teal)">₹4,100</td><td class="mono" style="color:var(--red)">₹13,776</td><td><span class="badge badge-confirmed">Posted</span></td></tr>
+              <tr><td class="mono">102</td><td>Priya Kaur</td><td class="mono">1 of 3</td><td>MAP</td><td class="mono">₹5,600</td><td class="mono" style="color:var(--teal)">₹5,600</td><td class="mono" style="color:var(--red)">₹12,768</td><td><span class="badge badge-confirmed">Posted</span></td></tr>
+              <tr><td class="mono">201</td><td>Arvind Mehta</td><td class="mono">1 of 2</td><td>MAP</td><td class="mono">₹4,700</td><td class="mono" style="color:var(--teal)">₹4,700</td><td class="mono" style="color:var(--red)">₹21,150</td><td><span class="badge badge-confirmed">Posted</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RECAPITULATION PAGE ── -->
+    <div class="page" id="page-recapitulation">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <select class="form-select" style="width:auto"><option>May 2026</option><option>April 2026</option></select>
+        <button class="btn btn-outline" onclick="exportRecap()">Export</button>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Monthly Recapitulation — May 2026</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Rooms Occupied</th><th>Occupancy %</th><th>Room Revenue</th><th>F&B Revenue</th><th>Other</th><th>Total Revenue</th><th>GST</th><th>Net Revenue</th></tr></thead>
+            <tbody>
+              <tr><td>01 May</td><td class="mono">24</td><td class="mono">69%</td><td class="mono">₹48,400</td><td class="mono">₹3,200</td><td class="mono">₹800</td><td class="mono" style="color:var(--gold)">₹52,400</td><td class="mono">₹5,808</td><td class="mono">₹46,592</td></tr>
+              <tr><td>02 May</td><td class="mono">22</td><td class="mono">63%</td><td class="mono">₹44,200</td><td class="mono">₹2,800</td><td class="mono">₹400</td><td class="mono" style="color:var(--gold)">₹47,400</td><td class="mono">₹5,208</td><td class="mono">₹42,192</td></tr>
+              <tr><td>03 May</td><td class="mono">28</td><td class="mono">80%</td><td class="mono">₹57,400</td><td class="mono">₹4,100</td><td class="mono">₹1,200</td><td class="mono" style="color:var(--gold)">₹62,700</td><td class="mono">₹7,152</td><td class="mono">₹55,548</td></tr>
+              <tr style="font-weight:500;background:var(--dark3)"><td>TOTAL (May)</td><td class="mono">—</td><td class="mono">72%</td><td class="mono" style="color:var(--gold)">₹8,42,600</td><td class="mono" style="color:var(--gold)">₹58,400</td><td class="mono" style="color:var(--gold)">₹12,600</td><td class="mono" style="color:var(--gold)">₹9,13,600</td><td class="mono" style="color:var(--gold)">₹1,04,400</td><td class="mono" style="color:var(--gold)">₹8,09,200</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CARD PAYMENT PAGE ── -->
+    <div class="page" id="page-cardpayment">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <input class="form-input" type="date" style="width:auto" value="2026-05-18">
+        <button class="btn btn-outline" onclick="exportCardReport()">Export</button>
+      </div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="metric-label">Total Card Transactions</div><div class="metric-value">4</div></div>
+        <div class="metric-card"><div class="metric-label">Card Amount</div><div class="metric-value" style="color:var(--teal)">₹12,096</div></div>
+        <div class="metric-card"><div class="metric-label">UPI Amount</div><div class="metric-value" style="color:var(--teal)">₹7,050</div></div>
+        <div class="metric-card"><div class="metric-label">Net Digital</div><div class="metric-value" style="color:var(--gold)">₹19,146</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Card & Digital Payment Report — 18 May 2026</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>S.No</th><th>Time</th><th>Guest</th><th>Booking ID</th><th>Amount</th><th>Mode</th><th>Card Last 4</th><th>Bank</th><th>Reference</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td>10:30</td><td>Sonia Kumar</td><td class="mono">HE20260514009</td><td class="mono" style="color:var(--teal)">₹3,024</td><td><span class="badge badge-confirmed">Card</span></td><td class="mono">6411</td><td style="color:var(--muted)">HDFC</td><td class="mono" style="color:var(--muted)">TXN202605180001</td></tr>
+              <tr><td class="mono">2</td><td>11:45</td><td>Arvind Mehta</td><td class="mono">HE20260515003</td><td class="mono" style="color:var(--teal)">₹7,050</td><td><span class="badge badge-checked_in">UPI</span></td><td class="mono">—</td><td style="color:var(--muted)">PhonePe</td><td class="mono" style="color:var(--muted)">TXN202605180002</td></tr>
+              <tr><td class="mono">3</td><td>14:20</td><td>Priya Kaur</td><td class="mono">HE20260515002</td><td class="mono" style="color:var(--teal)">₹9,072</td><td><span class="badge badge-confirmed">Card</span></td><td class="mono">8823</td><td style="color:var(--muted)">SBI</td><td class="mono" style="color:var(--muted)">TXN202605180003</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USERS PAGE ── -->
+    <div class="page" id="page-users">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <div class="search-box" style="flex:1"><span>🔍</span><input class="search-input" placeholder="Search users..."></div>
+        <button class="btn btn-gold" onclick="showModal('newUser')">+ Add User</button>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">User List</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>S.No</th><th>Name</th><th>User ID</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td>USER</td><td class="mono">user</td><td>FRONT OFFICE</td><td><span style="color:var(--teal)">● Active</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Deactivate</span></td></tr>
+              <tr><td class="mono">2</td><td>ANU</td><td class="mono">anu</td><td>FRONT OFFICE</td><td><span style="color:var(--teal)">● Active</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Deactivate</span></td></tr>
+              <tr><td class="mono">3</td><td>HANSRAJ</td><td class="mono">hansraj</td><td>FRONT OFFICE</td><td><span style="color:var(--teal)">● Active</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Deactivate</span></td></tr>
+              <tr><td class="mono">4</td><td>STAFF</td><td class="mono">staff</td><td>FRONT OFFICE</td><td><span style="color:var(--teal)">● Active</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Deactivate</span></td></tr>
+              <tr><td class="mono">5</td><td>PRADEEP HK</td><td class="mono">pradeephk</td><td>GARDEN</td><td><span style="color:var(--teal)">● Active</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Deactivate</span></td></tr>
+              <tr><td class="mono">6</td><td>PK</td><td class="mono">pverma</td><td>GM</td><td><span style="color:var(--teal)">● Active</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Deactivate</span></td></tr>
+              <tr><td class="mono">7</td><td>PRADEEP VERMA</td><td class="mono">pradeep verma</td><td>GM</td><td><span style="color:var(--red)">● Inactive</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--teal);cursor:pointer;font-size:11px">Activate</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USER ROLES PAGE ── -->
+    <div class="page" id="page-userroles">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <button class="btn btn-gold" onclick="showModal('newRole')">+ Add Role</button>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Role List</span></div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead><tr><th>S.No</th><th>Role Name</th><th>Users</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td>CAPTAIN</td><td class="mono">1</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Delete</span></td></tr>
+              <tr><td class="mono">2</td><td>FRONT OFFICE</td><td class="mono">4</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Delete</span></td></tr>
+              <tr><td class="mono">3</td><td>GARDEN</td><td class="mono">1</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Delete</span></td></tr>
+              <tr><td class="mono">4</td><td>RESTAURANT</td><td class="mono">0</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Delete</span></td></tr>
+              <tr><td class="mono">5</td><td>GENERAL MANAGER</td><td class="mono">2</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Delete</span></td></tr>
+              <tr><td class="mono">6</td><td>STEWARD</td><td class="mono">0</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px">Edit</span><span style="color:var(--red);cursor:pointer;font-size:11px">Delete</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USER PERMISSIONS PAGE ── -->
+    <div class="page" id="page-userpermissions">
+      <div style="display:flex;gap:10px;margin-bottom:1.5rem;align-items:center;flex-wrap:wrap">
+        <label class="form-label" style="margin:0">Role:</label>
+        <select class="form-select" style="width:220px" id="perm-role-select" onchange="loadPermissions(this.value)">
+          <option value="">Select Role</option>
+          <option value="staff">FRONT OFFICE / STAFF</option>
+          <option value="hotel_admin">GENERAL MANAGER / ADMIN</option>
+          <option value="captain">CAPTAIN</option>
+          <option value="restaurant">RESTAURANT</option>
+          <option value="housekeeping">HOUSEKEEPING / GARDEN</option>
+          <option value="steward">STEWARD</option>
+        </select>
+        <div id="perm-status" style="font-size:12px;color:var(--muted)"></div>
+      </div>
+      <div class="panel" id="permissions-panel" style="display:none">
+        <div class="panel-header" style="background:var(--teal-dim);display:flex;justify-content:space-between;align-items:center">
+          <span class="panel-title" style="color:var(--teal)" id="perm-role-title">Role Permissions</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;color:var(--teal)">
+              <input type="checkbox" id="perm-check-all" onchange="toggleAllPermissions(this.checked)"> Enable All
+            </label>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:1rem">
+            ✅ Check the pages this role can access. Changes take effect when the user next logs in.
+          </div>
+          <table class="data-table" id="permissions-table">
+            <thead>
+              <tr>
+                <th style="width:35%">Module / Page</th>
+                <th style="text-align:center">Access</th>
+                <th style="width:50%">Description</th>
+              </tr>
+            </thead>
+            <tbody id="permissions-tbody"></tbody>
+          </table>
+          <div style="display:flex;gap:8px;margin-top:1.5rem">
+            <button class="btn btn-gold" onclick="savePermissions()">💾 Save Permissions</button>
+            <button class="btn btn-outline" onclick="resetToDefault()">↩ Reset to Default</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHANGE PASSWORD PAGE ── -->
+    <div class="page" id="page-changepassword">
+      <div style="max-width:480px">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Change Password</span></div>
+          <div class="panel-body">
+            <div class="form-group"><label class="form-label">Old Password *</label><input class="form-input" type="password" placeholder="Old Password" id="old-password"></div>
+            <div class="form-group" style="margin-top:1rem"><label class="form-label">New Password *</label><input class="form-input" type="password" placeholder="New Password" id="new-password"></div>
+            <div class="form-group" style="margin-top:1rem"><label class="form-label">Confirm Password *</label><input class="form-input" type="password" placeholder="Confirm Password" id="confirm-password"></div>
+            <button class="btn btn-gold" style="margin-top:1.5rem;width:100%" onclick="changePassword()">Change</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FINANCIAL YEAR PAGE ── -->
+    <div class="page" id="page-financialyear">
+      <div style="max-width:480px">
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Change Financial Year</span></div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label class="form-label">Select Financial Year *</label>
+              <select class="form-select" id="fy-select">
+                <option value="">-- Select Financial Year --</option>
+                <option value="2026-27">2026-27 (Current)</option>
+                <option value="2025-26">2025-26</option>
+                <option value="2024-25">2024-25</option>
+              </select>
+            </div>
+            <div style="margin-top:1rem;padding:12px;background:var(--dark3);border-radius:6px;border-left:2px solid var(--gold)">
+              <div style="font-size:12px;color:var(--gold);margin-bottom:4px">⚠️ Important</div>
+              <div style="font-size:11px;color:var(--muted)">Changing the financial year will switch the data view. Current year data will remain intact. Old year data will be available in read-only mode.</div>
+            </div>
+            <button class="btn btn-gold" style="margin-top:1.5rem;width:100%" onclick="changeFinancialYear()">Change</button>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:12px">
+          <div class="panel-header"><span class="panel-title">Current Financial Year</span></div>
+          <div class="panel-body">
+            <div style="font-size:2rem;font-family:'Cormorant Garamond',serif;color:var(--gold)">2026-27</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">1 April 2026 — 31 March 2027</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- New Reservation Modal -->
+<div class="modal-overlay" id="modal-newReservation">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Booking</div>
+      <button class="modal-close" onclick="closeModal('newReservation')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Guest name</label><input class="form-input" id="booking-guest-name" placeholder="Full name"></div>
+        <div class="form-group"><label class="form-label">Guest phone</label><input class="form-input" id="booking-guest-phone" placeholder="91XXXXXXXXXX"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Check-in date</label><input class="form-input" id="booking-checkin" type="date"></div>
+        <div class="form-group"><label class="form-label">Check-out date</label><input class="form-input" id="booking-checkout" type="date"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Room type</label>
+          <select class="form-select" id="booking-room-type"><option>Deluxe</option><option>Super Deluxe</option><option>Honeymoon</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Number of rooms</label><input class="form-input" id="booking-rooms-count" type="number" min="1" max="5" value="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Meal plan</label>
+          <select class="form-select" id="booking-plan"><option>CP</option><option>MAP</option><option>EP</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Source</label>
+          <select class="form-select" id="booking-source"><option value="walk_in">Walk-in</option><option value="whatsapp">WhatsApp</option><option value="phone">Phone</option><option value="online">Online</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Agent (optional)</label>
+          <select class="form-select" id="booking-agent"><option value="">No agent</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Rate per night (₹)</label><input class="form-input" placeholder="Auto-calculated" id="rate-preview"></div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group"><label class="form-label">Special requests</label><input class="form-input" id="booking-special-requests" placeholder="Any special requirements..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('newReservation')">Cancel</button>
+      <button class="btn btn-gold" onclick="createBooking()">Create Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Agent Modal -->
+<div class="modal-overlay" id="modal-newAgent">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Travel Agent</div>
+      <button class="modal-close" onclick="closeModal('newAgent')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Agent name</label><input class="form-input" id="agent-name" placeholder="Name or company"></div>
+        <div class="form-group"><label class="form-label">WhatsApp number</label><input class="form-input" id="agent-phone" placeholder="91XXXXXXXXXX"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Company</label><input class="form-input" id="agent-company" placeholder="Travel company name"></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" id="agent-category">
+            <option value="A">A — 10% discount (best agents)</option>
+            <option value="B">B — 5% discount (standard)</option>
+            <option value="C" selected>C — No discount (regular)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('newAgent')">Cancel</button>
+      <button class="btn btn-gold" onclick="addAgent()">Add Agent</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="modal-overlay" id="modal-checkout">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Checkout & Bill</div>
+      <button class="modal-close" onclick="closeModal('checkout')">×</button>
+    </div>
+    <div class="modal-body" id="checkout-body">
+      <div style="background:var(--dark3);border-radius:8px;padding:1.25rem;margin-bottom:1rem">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);margin-bottom:8px">HE20260514007</div>
+        <div style="font-size:16px;color:#fff;margin-bottom:4px">Rajesh Singh</div>
+        <div style="font-size:12px;color:var(--muted)">Deluxe × 2 rooms · CP · 2 nights</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:var(--muted)">Room charges (₹4,100 × 2 × 2)</span><span>₹16,400</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:var(--muted)">Extra charges</span><span>₹0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:var(--muted)">GST 12%</span><span>₹1,968</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;padding:10px 0;font-weight:500"><span style="color:var(--cream)">Grand Total</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹18,368</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('checkout')">Cancel</button>
+      <button class="btn btn-outline" onclick="alert('Bill sent on WhatsApp! 📱')">Send on WhatsApp</button>
+      <button class="btn btn-gold" onclick="completeCheckout()">Confirm Checkout</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function getApiBase() {
+  const params = new URLSearchParams(window.location.search);
+  const apiFromUrl = params.get('api');
+  if (apiFromUrl) localStorage.setItem('he_api', apiFromUrl.replace(/\/$/, ''));
+  return (localStorage.getItem('he_api') ||
+    (window.location.protocol === 'file:' ? 'http://localhost:3001' : window.location.origin)
+  ).replace(/\/$/, '');
+}
+const API = getApiBase();
+const user = JSON.parse(localStorage.getItem('he_user') || '{}');
+const hotelId = user.hotelId;
+
+// ── Auth helpers ───────────────────────────────────────────────
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('he_token') || '') };
+}
+
+async function apiFetch(path, opts = {}) {
+  try {
+    const res = await fetch(API + path, { ...opts, headers: { ...authHeaders(), ...(opts.headers || {}) } });
+    if (res.status === 401) { localStorage.clear(); window.location.href = 'login.html'; return null; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok && !data.error) data.error = `HTTP ${res.status}`;
+    return data;
+  } catch(e) {
+    console.error('API error:', path, e.message);
+    return null;
+  }
+}
+
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  const bg = type === 'success' ? '#1D9E75' : type === 'error' ? '#E24B4A' : '#C9A84C';
+  el.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:${bg};color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.3)`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  catch { return d; }
+}
+
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('he_token');
+    localStorage.removeItem('he_user');
+    window.location.href = 'login.html';
+  }
+}
+
+// ── Page navigation ────────────────────────────────────────────
+const pageTitles = {
+  dashboard:'Dashboard', reservations:'Reservations', rooms:'Room View',
+  checkin:'Check-in / Check-out', guests:'Guests', agents:'Travel Agents',
+  rates:'Rate Management', reports:'Reports & Analytics', billing:'Billing',
+  checkout:'Check Out', swaproom:'Swap Room', roominvestigation:'Room Investigation',
+  rsupdate:'R.S. Update', cashbook:'Cash Book', receipt:'Receipt',
+  gst:'GST Payable', settlement:'Settlement Summary', nightaudit:'Night Audit Report',
+  recapitulation:'Recapitulation Report', cardpayment:'Card Payment Report',
+  users:'Users', userroles:'User Roles', userpermissions:'User Permissions',
+  changepassword:'Change Password', financialyear:'Change Financial Year'
+};
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
+  if (pg) pg.classList.add('active');
+  document.querySelector(`[onclick="showPage('${name}')"]`)?.classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[name] || name;
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'rooms') renderRoomMap();
+  if (name === 'reservations') loadReservations();
+  if (name === 'checkin') loadCheckins();
+  if (name === 'checkout') loadCheckouts();
+  if (name === 'guests') loadGuests();
+  if (name === 'agents') loadAgents();
+  if (name === 'reports') loadReports();
+  if (name === 'cashbook') loadCashBook();
+  if (name === 'rsupdate') loadHousekeeping();
+  if (name === 'roominvestigation') loadRoomInvestigation();
+  if (name === 'swaproom') loadSwapRoom();
+  if (name === 'settlement') loadSettlement();
+  if (name === 'nightaudit') loadNightAudit();
+  if (name === 'recapitulation') loadRecapitulation();
+  if (name === 'users') loadUsers();
+  if (name === 'gst') loadGST();
+  if (name === 'cardpayment') loadCardPayments();
+}
+
+function updateDate() {
+  const now = new Date();
+  document.getElementById('currentDate').textContent = now.toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+}
+updateDate();
+
+// ── DASHBOARD ──────────────────────────────────────────────────
+async function loadDashboard() {
+  const today = new Date().toISOString().split('T')[0];
+  const data = await apiFetch(`/api/reports/daily?hotelId=${hotelId}&date=${today}`);
+  if (!data?.success) return;
+  const d = data.data;
+  const metrics = document.querySelectorAll('#page-dashboard .metric-value');
+  if (metrics[0]) metrics[0].textContent = Math.round(d.occupancy?.occupancyPct || 0) + '%';
+  if (metrics[1]) metrics[1].textContent = d.occupancy?.availableRooms ?? '—';
+  if (metrics[2]) metrics[2].textContent = '₹' + (d.revenue?.total || 0).toLocaleString();
+  if (metrics[3]) metrics[3].textContent = d.newBookings || 0;
+}
+
+// ── RESERVATIONS ───────────────────────────────────────────────
+async function loadReservations(status = '', q = '') {
+  const tbody = document.getElementById('reservations-body');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:2rem">Loading...</td></tr>`;
+  const params = new URLSearchParams({ hotelId });
+  if (status) params.append('status', status);
+  const data = await apiFetch(`/api/reservations?${params}`);
+  let rows = data?.data || [];
+  if (q) rows = rows.filter(r =>
+    (r.reservation_no||'').toLowerCase().includes(q.toLowerCase()) ||
+    (r.guest_name||'').toLowerCase().includes(q.toLowerCase()) ||
+    (r.agent_name||'').toLowerCase().includes(q.toLowerCase())
+  );
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:2rem">No reservations found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const nights = r.nights || Math.round((new Date(r.checkout_date) - new Date(r.checkin_date)) / 86400000) || 1;
+    const total = r.total_amount || (r.rate_per_night * r.rooms_count * nights);
+    return `<tr>
+      <td class="mono" style="color:var(--gold)">${r.reservation_no || r.id}</td>
+      <td>${r.guest_name || '—'}</td>
+      <td style="color:var(--muted)">${r.agent_name || 'Walk-in'}</td>
+      <td>${r.room_type_name || '—'}</td>
+      <td class="mono">${r.rooms_count || 1}</td>
+      <td>${fmtDate(r.checkin_date)}</td>
+      <td>${fmtDate(r.checkout_date)}</td>
+      <td class="mono">${nights}</td>
+      <td>${r.plan || '—'}</td>
+      <td class="mono">₹${(r.rate_per_night||0).toLocaleString()}</td>
+      <td class="mono" style="color:var(--gold)">₹${Math.round(total||0).toLocaleString()}</td>
+      <td><span class="badge badge-${r.status}">${(r.status||'').replace('_',' ')}</span></td>
+      <td>
+        <span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:6px" onclick="viewBooking('${r.id}')">View</span>
+        ${r.status === 'confirmed' ? `<span style="color:var(--teal);cursor:pointer;font-size:11px" onclick="quickCheckin('${r.id}')">Check In</span>` : ''}
+        ${r.status === 'checked_in' ? `<span style="color:var(--red);cursor:pointer;font-size:11px" onclick="quickCheckout('${r.id}','${r.guest_name}')">Check Out</span>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterReservations(q) { loadReservations('', q); }
+function filterByStatus(s) { loadReservations(s); }
+function viewBooking(id) { toast('Opening booking ' + id + '...', 'info'); }
+
+async function quickCheckin(id) {
+  if (!confirm('Confirm check-in for this booking?')) return;
+  const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_in' }) });
+  if (res?.success) { toast('Guest checked in! WhatsApp message sent.'); loadReservations(); }
+  else toast('Check-in failed: ' + (res?.error || 'Unknown'), 'error');
+}
+
+async function quickCheckout(id, name) {
+  if (!confirm(`Checkout ${name}?`)) return;
+  const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_out' }) });
+  if (res?.success) { toast('Checked out! Bill sent on WhatsApp.'); loadReservations(); }
+  else toast('Checkout failed: ' + (res?.error || 'Unknown'), 'error');
+}
+
+// ── CHECK-IN ───────────────────────────────────────────────────
+async function loadCheckins() {
+  const [ci, co] = await Promise.all([
+    apiFetch(`/api/reservations/checkins/today?hotelId=${hotelId}`),
+    apiFetch(`/api/reservations/checkouts/today?hotelId=${hotelId}`)
+  ]);
+
+  const ciPanel = document.querySelector('#page-checkin .grid-2 .panel:first-child .panel-header');
+  const coPanel = document.querySelector('#page-checkin .grid-2 .panel:last-child .panel-header');
+  if (ciPanel) ciPanel.querySelector('.panel-title').textContent = `✅ Check-ins today (${ci?.count || 0})`;
+  if (coPanel) coPanel.querySelector('.panel-title').textContent = `🚪 Check-outs today (${co?.count || 0})`;
+
+  const ciBody = document.querySelector('#page-checkin .grid-2 .panel:first-child .panel-body');
+  const coBody = document.querySelector('#page-checkin .grid-2 .panel:last-child .panel-body');
+
+  if (ciBody) ciBody.innerHTML = (ci?.data || []).length ? (ci.data).map(r => `
+    <div class="checkin-item">
+      <div class="checkin-avatar">${(r.guest_name||'?').slice(0,2).toUpperCase()}</div>
+      <div class="checkin-info">
+        <div class="checkin-name">${r.guest_name || 'Guest'}</div>
+        <div class="checkin-detail">${r.room_type_name} × ${r.rooms_count} · ${r.plan} · ₹${(r.rate_per_night||0).toLocaleString()}/night</div>
+        <div class="checkin-detail mono" style="color:var(--gold)">${r.reservation_no || r.id}</div>
+      </div>
+      <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('${r.id}')">Check in</button>
+    </div>
+  `).join('') : '<div class="empty-state"><span class="empty-icon">✅</span><div class="empty-title">No check-ins today</div></div>';
+
+  if (coBody) coBody.innerHTML = (co?.data || []).length ? (co.data).map(r => `
+    <div class="checkin-item">
+      <div class="checkin-avatar" style="background:var(--gold-dim);color:var(--gold)">${(r.guest_name||'?').slice(0,2).toUpperCase()}</div>
+      <div class="checkin-info">
+        <div class="checkin-name">${r.guest_name || 'Guest'}</div>
+        <div class="checkin-detail">${r.room_type_name} × ${r.rooms_count} · ${r.plan}</div>
+        <div class="checkin-detail mono" style="color:var(--gold)">${r.reservation_no || r.id}</div>
+      </div>
+      <button class="btn btn-outline" style="font-size:11px;padding:6px 14px" onclick="doCheckout('${r.id}')">Checkout + Bill</button>
+    </div>
+  `).join('') : '<div class="empty-state"><span class="empty-icon">🚪</span><div class="empty-title">No check-outs today</div></div>';
+}
+
+async function doCheckin(id) {
+  if (!confirm('Confirm check-in?')) return;
+  const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_in' }) });
+  if (res?.success) { toast('Guest checked in! WhatsApp message sent.'); loadCheckins(); }
+  else toast('Failed: ' + (res?.error||'Unknown'), 'error');
+}
+
+// ── CHECKOUT ───────────────────────────────────────────────────
+async function loadCheckouts() {
+  const tbody = document.getElementById('checkout-tbody');
+  if (!tbody) return;
+  const data = await apiFetch(`/api/reservations/checkouts/today?hotelId=${hotelId}`);
+  const rows = data?.data || [];
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:2rem">No checkouts today</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r => {
+    const nights = r.nights || 1;
+    const roomCharges = (r.rate_per_night||0) * (r.rooms_count||1) * nights;
+    const gst = Math.round(roomCharges * ((r.rate_per_night||0) >= 7500 ? 0.18 : 0.12));
+    const total = roomCharges + gst;
+    const advance = r.advance_paid || 0;
+    const balance = total - advance;
+    return `<tr>
+      <td class="mono" style="color:var(--gold)">${r.reservation_no || r.id}</td>
+      <td>${r.guest_name || '—'}</td>
+      <td>${r.room_type_name || '—'}</td>
+      <td>${r.plan || '—'}</td>
+      <td class="mono">${nights}</td>
+      <td class="mono">₹${Math.round(roomCharges).toLocaleString()}</td>
+      <td class="mono">₹0</td>
+      <td class="mono">₹${gst.toLocaleString()}</td>
+      <td class="mono" style="color:var(--gold)">₹${total.toLocaleString()}</td>
+      <td class="mono" style="color:var(--teal)">₹${advance.toLocaleString()}</td>
+      <td class="mono" style="color:var(--red)">₹${balance.toLocaleString()}</td>
+      <td><button class="btn btn-gold" style="font-size:11px;padding:5px 12px" onclick="openCheckoutBill('${r.id}','${r.guest_name}',${total},${balance})">Checkout + Bill</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function openCheckoutBill(id, guest, total, balance) {
+  if (!confirm(`Checkout ${guest}?\nBalance to collect: ₹${balance.toLocaleString()}`)) return;
+  const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_out' }) });
+  if (res?.success) { toast('Checkout complete! Bill sent on WhatsApp.'); loadCheckouts(); }
+  else toast('Failed: ' + (res?.error||'Unknown'), 'error');
+}
+function filterCheckouts(q) { loadCheckouts(); }
+function filterCheckoutDate(v) { loadCheckouts(); }
+function doCheckout(id) { showModal('checkout'); }
+
+// ── ROOMS ──────────────────────────────────────────────────────
+let currentStatusFilter = 'all', currentFloorFilter = 'all';
+
+async function renderRoomMap(statusFilter = 'all', floorFilter = 'all') {
+  const mapEl = document.getElementById('room-map');
+  if (!mapEl) return;
+  mapEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)">Loading rooms...</div>';
+  currentStatusFilter = statusFilter; currentFloorFilter = floorFilter;
+
+  const data = await apiFetch(`/api/rooms?hotelId=${hotelId}`);
+  const apiRooms = data?.data || [];
+
+  // Flatten from floor-grouped structure
+  let rooms = [];
+  if (Array.isArray(apiRooms) && apiRooms[0]?.rooms) {
+    // Grouped by floor
+    apiRooms.forEach(floorGroup => floorGroup.rooms?.forEach(r => rooms.push({...r, floor: floorGroup.floor})));
+  } else {
+    rooms = apiRooms;
+  }
+
+  if (!rooms.length) { mapEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)">No rooms found. Add rooms in settings.</div>'; return; }
+
+  const floors = [...new Set(rooms.map(r => r.floor || 1))].sort();
+  const floorNames = {1:'First Floor', 2:'Second Floor', 3:'Third Floor', 4:'Fourth Floor'};
+
+  let html = '<div class="room-filters">';
+  html += `<select class="form-select" style="width:auto" onchange="renderRoomMap(this.value,currentFloorFilter)">
+    <option value="all">All Status</option><option value="available">Available</option>
+    <option value="occupied">Occupied</option><option value="checkout">Checkout</option><option value="maintenance">Maintenance</option>
+  </select>
+  <select class="form-select" style="width:auto" onchange="renderRoomMap(currentStatusFilter,this.value)">
+    <option value="all">All Floors</option>${floors.map(f=>`<option value="${f}">${floorNames[f]||'Floor '+f}</option>`).join('')}
+  </select>`;
+
+  const filtered = rooms.filter(r =>
+    (statusFilter === 'all' || (r.live_status||r.status) === statusFilter) &&
+    (floorFilter === 'all' || String(r.floor) === String(floorFilter))
+  );
+
+  html += `<div style="font-size:12px;color:var(--muted)">Total: <span style="color:var(--gold);font-family:'DM Mono',monospace;margin-left:4px">${filtered.length}</span></div>`;
+  html += `<div style="display:flex;gap:8px;margin-left:auto;font-size:11px">
+    <span><span style="width:10px;height:10px;background:#22C55E;border-radius:2px;display:inline-block;margin-right:3px"></span>Available</span>
+    <span><span style="width:10px;height:10px;background:#3B82F6;border-radius:2px;display:inline-block;margin-right:3px"></span>Occupied</span>
+    <span><span style="width:10px;height:10px;background:#F59E0B;border-radius:2px;display:inline-block;margin-right:3px"></span>Checkout</span>
+    <span><span style="width:10px;height:10px;background:var(--red);border-radius:2px;display:inline-block;margin-right:3px"></span>Maintenance</span>
+  </div></div>`;
+
+  html += '<div class="rooms-map-container">';
+  for (const floor of floors) {
+    if (floorFilter !== 'all' && String(floor) !== String(floorFilter)) continue;
+    let floorRooms = rooms.filter(r => String(r.floor||1) === String(floor));
+    if (statusFilter !== 'all') floorRooms = floorRooms.filter(r => (r.live_status||r.status) === statusFilter);
+    html += `<div class="room-floor-col">
+      <div class="floor-header"><span class="floor-header-title">${floorNames[floor]||'Floor '+floor}</span><span class="floor-header-count">(${floorRooms.length})</span></div>
+      <div class="floor-rooms">${floorRooms.map(r => {
+        const st = r.live_status || r.status || 'available';
+        const plan = r.current_plan || r.plan || '';
+        const guest = r.current_guest_name || r.current_guest || '';
+        const type = (r.room_type_name||'').slice(0,3).toUpperCase() || 'DLX';
+        return st === 'available'
+          ? `<div class="room-card available" onclick="roomClick('${r.room_number}','available')"><div class="room-top"><span class="room-num-big">${r.room_number}</span></div><div class="room-type-tag">${type}</div></div>`
+          : `<div class="room-card ${st}" onclick="roomClick('${r.room_number}','${st}')">
+              ${plan ? `<span class="plan-badge">${plan}</span>` : ''}
+              <div><div style="font-size:11px;font-weight:600;color:#fff">${r.room_number} | ${type}</div>
+              <div class="room-guest">${guest}</div></div>
+              <div class="room-actions">
+                <div class="room-action-btn" onclick="event.stopPropagation();addExtra('${r.room_number}')">+</div>
+              </div></div>`;
+      }).join('')}</div></div>`;
+  }
+  html += '</div>';
+  mapEl.innerHTML = html;
+}
+
+function roomClick(num, status) {
+  const msgs = { available:`Room ${num} is available.`, occupied:`Room ${num} is occupied.`, checkout:`Room ${num} — checking out today.`, maintenance:`Room ${num} — under maintenance.` };
+  alert(msgs[status] || `Room ${num}`);
+}
+function addExtra(num) { alert(`Add extra charge for Room ${num}`); }
+function editRoom(num) { alert(`Edit Room ${num}`); }
+function filterRooms(val) { renderRoomMap(); }
+
+// ── GUESTS ─────────────────────────────────────────────────────
+async function loadGuests() {
+  const data = await apiFetch(`/api/guests?hotelId=${hotelId}`);
+  const tbody = document.querySelector('#page-guests .data-table tbody');
+  if (!tbody) return;
+  const rows = data?.data || [];
+  tbody.innerHTML = rows.length ? rows.map(g => `
+    <tr>
+      <td>${g.name || '—'}</td>
+      <td class="mono">${g.phone || '—'}</td>
+      <td class="mono">${g.total_stays || 0}</td>
+      <td>${g.last_checkin ? fmtDate(g.last_checkin) : '—'}</td>
+      <td class="mono" style="color:var(--gold)">₹${(g.total_revenue||0).toLocaleString()}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">No guests found</td></tr>';
+}
+
+// ── AGENTS ─────────────────────────────────────────────────────
+async function loadAgents() {
+  const data = await apiFetch(`/api/agents?hotelId=${hotelId}`);
+  const tbody = document.querySelector('#page-agents .data-table tbody');
+  if (!tbody) return;
+  const rows = data?.data || [];
+  tbody.innerHTML = rows.length ? rows.map(a => `
+    <tr>
+      <td>${a.name || '—'}</td>
+      <td class="mono">${a.phone || '—'}</td>
+      <td style="color:var(--muted)">${a.company || '—'}</td>
+      <td><span class="badge badge-${(a.category||'c').toLowerCase()}">${a.category || 'C'}</span></td>
+      <td class="mono" style="color:var(--teal)">${a.discount_pct || a.discount || 0}%</td>
+      <td class="mono">${a.total_bookings || 0}</td>
+      <td class="mono" style="color:var(--gold)">₹${(a.total_revenue||0).toLocaleString()}</td>
+      <td><span style="color:var(--gold);cursor:pointer;font-size:11px" onclick="editAgent('${a.id}')">Edit</span></td>
+    </tr>
+  `).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No agents found</td></tr>';
+}
+function editAgent(id) { toast('Edit agent ' + id, 'info'); }
+async function addAgent() {
+  const name = document.getElementById('agent-name')?.value.trim();
+  const phone = document.getElementById('agent-phone')?.value.trim();
+  const company = document.getElementById('agent-company')?.value.trim();
+  const category = document.getElementById('agent-category')?.value || 'C';
+  if (!name || !phone) { toast('Agent name and phone are required', 'error'); return; }
+
+  const res = await apiFetch('/api/agents', {
+    method: 'POST',
+    body: JSON.stringify({ hotelId, name, phone, company, category })
+  });
+  if (res?.success) {
+    toast('Agent added');
+    ['agent-name','agent-phone','agent-company'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    closeModal('newAgent');
+    loadAgents();
+    populateBookingAgents();
+  } else {
+    toast('Agent failed: ' + (res?.error || 'Unknown'), 'error');
+  }
+}
+
+// ── REPORTS ────────────────────────────────────────────────────
+async function loadReports() {
+  const today = new Date().toISOString().split('T')[0];
+  const firstDay = today.slice(0,7) + '-01';
+  const [daily, agentRpt] = await Promise.all([
+    apiFetch(`/api/reports/daily?hotelId=${hotelId}&date=${today}`),
+    apiFetch(`/api/reports/agents?hotelId=${hotelId}&startDate=${firstDay}&endDate=${today}`)
+  ]);
+  if (daily?.success) {
+    const d = daily.data;
+    const metrics = document.querySelectorAll('#page-reports .metric-value');
+    if (metrics[0]) metrics[0].textContent = '₹' + ((d.revenue?.total||0)/100000).toFixed(1) + 'L';
+    if (metrics[1]) metrics[1].textContent = Math.round(d.occupancy?.occupancyPct||0) + '%';
+    if (metrics[2]) metrics[2].textContent = d.newBookings || 0;
+  }
+  if (agentRpt?.success) {
+    const tbody = document.querySelector('#page-reports .panel:last-child .data-table tbody');
+    if (tbody) tbody.innerHTML = (agentRpt.data||[]).slice(0,5).map(a => `
+      <tr><td>${a.name}</td><td class="mono">${a.total_bookings}</td><td class="mono" style="color:var(--gold)">₹${(a.total_revenue||0).toLocaleString()}</td></tr>
+    `).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">No data</td></tr>';
+  }
+}
+
+// ── CASH BOOK ──────────────────────────────────────────────────
+async function loadCashBook() {
+  const today = new Date().toISOString().split('T')[0];
+  const data = await apiFetch(`/api/cashbook?hotelId=${hotelId}&date=${today}`);
+  const tbody = document.querySelector('#page-cashbook .data-table tbody');
+  if (!tbody) return;
+  const rows = data?.data || [];
+  const summary = data?.summary || {};
+
+  // Update metrics
+  const metrics = document.querySelectorAll('#page-cashbook .metric-value');
+  if (metrics[1]) metrics[1].textContent = '₹' + (summary.totalIn||0).toLocaleString();
+  if (metrics[2]) metrics[2].textContent = '₹' + (summary.totalOut||0).toLocaleString();
+  if (metrics[3]) metrics[3].textContent = '₹' + (summary.balance||0).toLocaleString();
+
+  let balance = 0;
+  tbody.innerHTML = rows.length ? rows.map((e, i) => {
+    if (e.type === 'in') balance += parseFloat(e.amount||0);
+    else balance -= parseFloat(e.amount||0);
+    const time = e.transaction_at ? new Date(e.transaction_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<tr>
+      <td class="mono">${i+1}</td>
+      <td style="color:var(--muted)">${time}</td>
+      <td>${e.description || '—'}</td>
+      <td class="mono" style="color:var(--muted)">${e.reservation_id || '—'}</td>
+      <td class="mono" style="color:var(--teal)">${e.type==='in'?'₹'+Number(e.amount).toLocaleString():'—'}</td>
+      <td class="mono" style="color:var(--red)">${e.type==='out'?'₹'+Number(e.amount).toLocaleString():'—'}</td>
+      <td class="mono" style="color:var(--gold)">₹${Math.round(balance).toLocaleString()}</td>
+      <td style="color:var(--muted)">${e.created_by || '—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No entries today</td></tr>';
+}
+function exportCashBook() { toast('Exporting cash book...', 'info'); }
+
+// ── HOUSEKEEPING / RS UPDATE ────────────────────────────────────
+async function loadHousekeeping() {
+  const data = await apiFetch(`/api/housekeeping?hotelId=${hotelId}`);
+  const tbody = document.querySelector('#page-rsupdate .data-table tbody');
+  if (!tbody) return;
+  const rows = data?.data || [];
+  const summary = data?.summary || {};
+
+  // Update metrics
+  const metrics = document.querySelectorAll('#page-rsupdate .metric-value');
+  if (metrics[1]) metrics[1].textContent = summary.clean || 0;
+  if (metrics[2]) metrics[2].textContent = summary.dirty || 0;
+  if (metrics[3]) metrics[3].textContent = summary.cleaning || 0;
+
+  tbody.innerHTML = rows.length ? rows.map(r => {
+    const st = r.hk_status || 'dirty';
+    const stColor = st==='clean'?'var(--teal)':st==='dirty'?'var(--red)':'var(--gold)';
+    const roomSt = r.checkout_today ? 'Checkout' : (r.is_occupied ? 'Occupied' : 'Available');
+    const time = r.last_cleaned ? new Date(r.last_cleaned).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<tr>
+      <td class="mono">${r.room_number}</td>
+      <td>${r.room_type || '—'}</td>
+      <td><span class="badge badge-${r.is_occupied?'checked_in':'confirmed'}">${roomSt}</span></td>
+      <td><span style="color:${stColor}">● ${st}</span></td>
+      <td style="color:var(--muted)">${r.assigned_to || '—'}</td>
+      <td style="color:var(--muted)">${time}</td>
+      <td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('${r.room_id}',this.value)">
+        <option ${st==='clean'?'selected':''} value="clean">Clean</option>
+        <option ${st==='dirty'?'selected':''} value="dirty">Dirty</option>
+        <option ${st==='cleaning'?'selected':''} value="cleaning">In Progress</option>
+        <option ${st==='inspected'?'selected':''} value="inspected">Inspected</option>
+        <option ${st==='out_of_order'?'selected':''} value="out_of_order">Out of Order</option>
+      </select></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">No rooms found</td></tr>';
+}
+
+async function updateRoomStatus(roomId, status) {
+  const res = await apiFetch(`/api/housekeeping/${roomId}`, { method:'PATCH', body: JSON.stringify({ status, hotelId }) });
+  if (res?.success) toast('Room status updated to ' + status);
+  else toast('Failed to update', 'error');
+}
+async function markAllClean() {
+  if (!confirm('Mark all rooms as clean?')) return;
+  toast('Updating all rooms...');
+  setTimeout(() => loadHousekeeping(), 1500);
+}
+
+// ── ROOM INVESTIGATION ─────────────────────────────────────────
+async function loadRoomInvestigation() {
+  const [rooms, hk] = await Promise.all([
+    apiFetch(`/api/rooms?hotelId=${hotelId}`),
+    apiFetch(`/api/housekeeping?hotelId=${hotelId}`)
+  ]);
+  const tbody = document.getElementById('investigation-tbody');
+  if (!tbody) return;
+
+  let allRooms = [];
+  const apiRooms = rooms?.data || [];
+  if (apiRooms[0]?.rooms) apiRooms.forEach(f => f.rooms?.forEach(r => allRooms.push({...r, floor: f.floor})));
+  else allRooms = apiRooms;
+
+  const hkMap = {};
+  (hk?.data||[]).forEach(h => hkMap[h.room_id] = h);
+
+  tbody.innerHTML = allRooms.length ? allRooms.map(r => {
+    const h = hkMap[r.id] || {};
+    const st = r.live_status || r.status || 'available';
+    const hkSt = h.hk_status || 'dirty';
+    const hkColor = hkSt==='clean'?'var(--teal)':hkSt==='dirty'?'var(--red)':'var(--gold)';
+    return `<tr>
+      <td class="mono">${r.room_number}</td>
+      <td>${r.floor||1}</td>
+      <td>${r.room_type_name||'—'}</td>
+      <td><span class="badge badge-${st==='occupied'?'checked_in':'confirmed'}">${st}</span></td>
+      <td>${r.current_guest_name||'—'}</td>
+      <td>${r.checkin_date?fmtDate(r.checkin_date):'—'}</td>
+      <td>${r.checkout_date?fmtDate(r.checkout_date):'—'}</td>
+      <td class="mono">${r.nights||'—'}</td>
+      <td>${r.current_plan||'—'}</td>
+      <td style="color:var(--muted)">${r.current_agent||'—'}</td>
+      <td class="mono">₹${(r.rate||0).toLocaleString()}</td>
+      <td><span style="color:${hkColor}">${hkSt} ${hkSt==='clean'?'✓':''}</span></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:2rem">No rooms found</td></tr>';
+}
+function filterInvestigation(v) { loadRoomInvestigation(); }
+function exportInvestigation() { toast('Exporting...', 'info'); }
+
+// ── SWAP ROOM ──────────────────────────────────────────────────
+async function loadSwapRoom() {
+  const data = await apiFetch(`/api/operations/swaps?hotelId=${hotelId}`);
+  const tbody = document.querySelector('#page-swaproom .data-table tbody');
+  if (!tbody) return;
+  const rows = data?.data || [];
+  tbody.innerHTML = rows.length ? rows.map(s => `
+    <tr>
+      <td>${s.swapped_at ? fmtDate(s.swapped_at) : '—'}</td>
+      <td>${s.guest_name || '—'}</td>
+      <td class="mono">${s.from_room_number || s.from_room || '—'}</td>
+      <td class="mono">${s.to_room_number || s.to_room || '—'}</td>
+      <td style="color:var(--muted)">${s.reason || '—'}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">No swaps recorded</td></tr>';
+}
+
+async function doSwapRoom() {
+  const from = document.getElementById('swap-from')?.value;
+  const to = document.getElementById('swap-to')?.value;
+  const reason = document.querySelector('#page-swaproom .form-input[placeholder]')?.value || '';
+  if (!from || !to) { toast('Please select both rooms', 'error'); return; }
+  const res = await apiFetch('/api/operations/swap', { method:'POST', body: JSON.stringify({ hotelId, fromRoom:from, toRoom:to, reason }) });
+  if (res?.success) { toast('Room swapped successfully!'); loadSwapRoom(); }
+  else toast('Swap failed: ' + (res?.error||'Unknown'), 'error');
+}
+
+// ── SETTLEMENT ─────────────────────────────────────────────────
+async function loadSettlement() {
+  const today = new Date().toISOString().split('T')[0];
+  const data = await apiFetch(`/api/cashbook/daily-summary?hotelId=${hotelId}&date=${today}`);
+  if (!data?.success) return;
+  const rows = data.data || [];
+  let cash=0, card=0, upi=0;
+  rows.forEach(r => {
+    if (r.payment_mode === 'cash') cash += parseFloat(r.total||0);
+    else if (r.payment_mode === 'card') card += parseFloat(r.total||0);
+    else if (r.payment_mode === 'upi') upi += parseFloat(r.total||0);
+  });
+  const metrics = document.querySelectorAll('#page-settlement .metric-value');
+  if (metrics[0]) metrics[0].textContent = '₹' + Math.round(cash).toLocaleString();
+  if (metrics[1]) metrics[1].textContent = '₹' + Math.round(card).toLocaleString();
+  if (metrics[2]) metrics[2].textContent = '₹' + Math.round(upi).toLocaleString();
+  if (metrics[3]) metrics[3].textContent = '₹' + Math.round(cash+card+upi).toLocaleString();
+}
+function exportSettlement() { toast('Exporting...', 'info'); }
+
+// ── NIGHT AUDIT ────────────────────────────────────────────────
+async function loadNightAudit() {
+  const today = new Date().toISOString().split('T')[0];
+  const data = await apiFetch(`/api/reports/daily?hotelId=${hotelId}&date=${today}`);
+  if (!data?.success) return;
+  const d = data.data;
+  const metrics = document.querySelectorAll('#page-nightaudit .metric-value');
+  if (metrics[0]) metrics[0].textContent = d.occupancy?.occupiedRooms || 0;
+  if (metrics[1]) metrics[1].textContent = d.occupancy?.availableRooms || 0;
+  if (metrics[2]) metrics[2].textContent = '₹' + (d.revenue?.room||0).toLocaleString();
+  // Populate table
+  const tbody = document.querySelector('#page-nightaudit .data-table tbody');
+  if (tbody && d.inHouseGuests) {
+    tbody.innerHTML = (d.inHouseGuests||[]).map(r => `
+      <tr>
+        <td class="mono">${r.room_number||'—'}</td>
+        <td>${r.guest_name||'—'}</td>
+        <td class="mono">${r.night_number||1} of ${r.nights||1}</td>
+        <td>${r.plan||'—'}</td>
+        <td class="mono">₹${(r.rate_per_night||0).toLocaleString()}</td>
+        <td class="mono" style="color:var(--teal)">₹${(r.rate_per_night||0).toLocaleString()}</td>
+        <td class="mono" style="color:var(--red)">₹${(r.balance||0).toLocaleString()}</td>
+        <td><span class="badge badge-confirmed">Posted</span></td>
+      </tr>
+    `).join('');
+  }
+}
+async function runNightAudit() { toast('Night audit running...', 'info'); setTimeout(() => toast('Night audit complete!'), 2000); }
+function exportNightAudit() { toast('Exporting night audit...', 'info'); }
+
+// ── RECAPITULATION ─────────────────────────────────────────────
+async function loadRecapitulation() {
+  const now = new Date();
+  const data = await apiFetch(`/api/reports/monthly?hotelId=${hotelId}&year=${now.getFullYear()}&month=${now.getMonth()+1}`);
+  const tbody = document.querySelector('#page-recapitulation .data-table tbody');
+  if (!tbody) return;
+  const rows = data?.data?.daily || [];
+  tbody.innerHTML = rows.length ? rows.map(r => `
+    <tr>
+      <td>${fmtDate(r.date)}</td>
+      <td class="mono">${r.occupied_rooms||0}</td>
+      <td class="mono">${r.occupancy_rate||0}%</td>
+      <td class="mono">₹${(r.room_revenue||0).toLocaleString()}</td>
+      <td class="mono">₹${(r.fb_revenue||0).toLocaleString()}</td>
+      <td class="mono">₹${(r.other_revenue||0).toLocaleString()}</td>
+      <td class="mono" style="color:var(--gold)">₹${(r.total_revenue||0).toLocaleString()}</td>
+      <td class="mono">₹${(r.total_gst||0).toLocaleString()}</td>
+      <td class="mono">₹${((r.total_revenue||0)-(r.total_gst||0)).toLocaleString()}</td>
+    </tr>
+  `).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">No data for this month</td></tr>';
+}
+function exportRecap() { toast('Exporting...', 'info'); }
+
+// ── GST ────────────────────────────────────────────────────────
+async function loadGST() {
+  const now = new Date();
+  const firstDay = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const today = now.toISOString().split('T')[0];
+  const data = await apiFetch(`/api/reservations?hotelId=${hotelId}&status=checked_out&startDate=${firstDay}&endDate=${today}`);
+  const tbody = document.querySelector('#page-gst .data-table tbody');
+  if (!tbody) return;
+  const rows = (data?.data||[]).slice(0,30);
+  tbody.innerHTML = rows.length ? rows.map(r => {
+    const nights = r.nights || 1;
+    const roomCharges = (r.rate_per_night||0)*(r.rooms_count||1)*nights;
+    const gstPct = (r.rate_per_night||0)>=7500?18:12;
+    const gst = Math.round(roomCharges*gstPct/100);
+    return `<tr>
+      <td class="mono">${r.reservation_no||r.id}</td>
+      <td>${r.guest_name||'—'}</td>
+      <td>${fmtDate(r.checkin_date)}</td>
+      <td>${fmtDate(r.checkout_date)}</td>
+      <td>${r.room_type_name||'—'}</td>
+      <td class="mono">₹${Math.round(roomCharges).toLocaleString()}</td>
+      <td class="mono">${gstPct}%</td>
+      <td class="mono" style="color:var(--gold)">₹${gst.toLocaleString()}</td>
+      <td class="mono">₹${(Math.round(roomCharges)+gst).toLocaleString()}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">No checkouts this month</td></tr>';
+}
+function exportGST() { toast('Exporting GST report...', 'info'); }
+
+// ── CARD PAYMENTS ──────────────────────────────────────────────
+async function loadCardPayments() {
+  const today = new Date().toISOString().split('T')[0];
+  const data = await apiFetch(`/api/cashbook?hotelId=${hotelId}&date=${today}`);
+  const rows = (data?.data||[]).filter(r => r.payment_mode === 'card' || r.payment_mode === 'upi');
+  const tbody = document.querySelector('#page-cardpayment .data-table tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map((r,i) => {
+    const time = r.transaction_at ? new Date(r.transaction_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
+    return `<tr>
+      <td class="mono">${i+1}</td>
+      <td style="color:var(--muted)">${time}</td>
+      <td>${r.guest_name||'—'}</td>
+      <td class="mono">${r.reservation_id||'—'}</td>
+      <td class="mono" style="color:var(--teal)">₹${(r.amount||0).toLocaleString()}</td>
+      <td><span class="badge badge-confirmed">${(r.payment_mode||'card').toUpperCase()}</span></td>
+      <td class="mono">${r.card_last4||'—'}</td>
+      <td style="color:var(--muted)">${r.bank||'—'}</td>
+      <td class="mono" style="color:var(--muted)">${r.reference_no||'—'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">No card/UPI payments today</td></tr>';
+}
+function exportCardReport() { toast('Exporting...', 'info'); }
+
+// ── USERS ──────────────────────────────────────────────────────
+async function loadUsers() {
+  const data = await apiFetch(`/api/auth/users?hotelId=${hotelId}`);
+  const tbody = document.querySelector('#page-users .data-table tbody');
+  if (!tbody) return;
+  const rows = data?.data || [];
+  tbody.innerHTML = rows.length ? rows.map((u,i) => `
+    <tr>
+      <td class="mono">${i+1}</td>
+      <td>${(u.name||'').toUpperCase()}</td>
+      <td class="mono">${u.username||'—'}</td>
+      <td>${(u.role||'').toUpperCase().replace('_',' ')}</td>
+      <td><span style="color:${u.is_active!==false?'var(--teal)':'var(--red)'}">● ${u.is_active!==false?'Active':'Inactive'}</span></td>
+      <td>
+        <span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px" onclick="editUser('${u.id}')">Edit</span>
+        <span style="color:var(--red);cursor:pointer;font-size:11px" onclick="toggleUser('${u.id}',${u.is_active!==false})">${u.is_active!==false?'Deactivate':'Activate'}</span>
+      </td>
+    </tr>
+  `).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">No users found</td></tr>';
+}
+
+async function toggleUser(id, isActive) {
+  const res = await apiFetch(`/api/auth/users/${id}`, { method:'PATCH', body: JSON.stringify({ is_active: !isActive }) });
+  if (res?.success) { toast(`User ${isActive?'deactivated':'activated'}!`); loadUsers(); }
+  else toast('Failed: ' + (res?.error||'Unknown'), 'error');
+}
+function editUser(id) { toast('Edit user ' + id, 'info'); }
+// ── PERMISSIONS SYSTEM ────────────────────────────────────────
+const ALL_PAGES = [
+  { page:'dashboard',       label:'Dashboard',            desc:'Main overview with occupancy and revenue stats' },
+  { page:'reservations',    label:'Reservations',         desc:'View, create and manage bookings' },
+  { page:'rooms',           label:'Room View',            desc:'Visual room map showing occupancy status' },
+  { page:'guests',          label:'Guest View',           desc:'Guest profiles and stay history' },
+  { page:'checkin',         label:'Check In',             desc:'Process guest check-ins' },
+  { page:'checkout',        label:'Check Out',            desc:'Process guest check-outs and generate bills' },
+  { page:'swaproom',        label:'Swap Room',            desc:'Move guests between rooms' },
+  { page:'rsupdate',        label:'R.S. Update',          desc:'Update room housekeeping status' },
+  { page:'roominvestigation',label:'Room Investigation',  desc:'Detailed room-by-room report' },
+  { page:'cashbook',        label:'Cash Book',            desc:'Daily cash transactions' },
+  { page:'receipt',         label:'Receipt',              desc:'Payment receipts' },
+  { page:'billing',         label:'Billing',              desc:'Guest bills and invoices' },
+  { page:'reports',         label:'Admin Report',         desc:'Hotel performance reports' },
+  { page:'gst',             label:'GST Payable',          desc:'GST calculations and filing report' },
+  { page:'settlement',      label:'Settlement Summary',   desc:'Daily settlement by payment mode' },
+  { page:'nightaudit',      label:'Night Audit Report',   desc:'End-of-day audit report' },
+  { page:'recapitulation',  label:'Recapitulation',       desc:'Monthly revenue recapitulation' },
+  { page:'cardpayment',     label:'Card Payment Report',  desc:'Card and UPI transaction report' },
+  { page:'agents',          label:'Agents',               desc:'Travel agent management' },
+  { page:'rates',           label:'Rate Management',      desc:'Room rates and seasonal pricing' },
+  { page:'users',           label:'User Settings',        desc:'Staff user management' },
+  { page:'userroles',       label:'User Roles',           desc:'Define and manage roles' },
+  { page:'userpermissions', label:'User Permissions',     desc:'Control page access per role' },
+  { page:'changepassword',  label:'Change Password',      desc:'Change login password' },
+  { page:'financialyear',   label:'Financial Year',       desc:'Switch financial year' },
+];
+
+const DEFAULT_PERMISSIONS = {
+  staff:        ['dashboard','reservations','rooms','guests','checkin','checkout','swaproom','rsupdate','cashbook','receipt','billing','changepassword'],
+  hotel_admin:  ['dashboard','reservations','rooms','guests','checkin','checkout','swaproom','rsupdate','roominvestigation','cashbook','receipt','billing','reports','settlement','nightaudit','agents','rates','users','changepassword'],
+  captain:      ['dashboard','rooms','rsupdate','checkin','checkout'],
+  restaurant:   ['dashboard','rooms','rsupdate'],
+  housekeeping: ['rooms','rsupdate','roominvestigation','changepassword'],
+  steward:      ['dashboard','rooms','rsupdate'],
+};
+
+let currentPermRole = '';
+let currentPermPages = [];
+
+async function loadPermissions(role) {
+  if (!role) return;
+  currentPermRole = role;
+  const panel = document.getElementById('permissions-panel');
+  const status = document.getElementById('perm-status');
+  const title = document.getElementById('perm-role-title');
+  if (panel) panel.style.display = 'block';
+  if (status) status.textContent = 'Loading...';
+  if (title) title.textContent = role.replace('_',' ').toUpperCase() + ' — Permissions';
+
+  // Load from API
+  const data = await apiFetch(`/api/auth/permissions?hotelId=${hotelId}&role=${role}`);
+
+  if (data?.success && data.data && !data.isDefault) {
+    currentPermPages = data.data.pages || [];
+    if (status) status.textContent = '✅ Custom permissions loaded';
+  } else {
+    // Use defaults
+    currentPermPages = DEFAULT_PERMISSIONS[role] || DEFAULT_PERMISSIONS.staff;
+    if (status) status.textContent = '📋 Using default permissions';
+  }
+
+  renderPermissionsTable();
+}
+
+function renderPermissionsTable() {
+  const tbody = document.getElementById('permissions-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = ALL_PAGES.map(p => {
+    const hasAccess = currentPermPages.includes(p.page);
+    return `<tr>
+      <td style="font-weight:${hasAccess?'500':'300'};color:${hasAccess?'var(--cream)':'var(--muted)'}">
+        ${p.label}
+      </td>
+      <td style="text-align:center">
+        <label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          <input type="checkbox" ${hasAccess?'checked':''} 
+            onchange="togglePage('${p.page}',this.checked)"
+            style="width:16px;height:16px;cursor:pointer">
+        </label>
+      </td>
+      <td style="font-size:11px;color:var(--muted)">${p.desc}</td>
+    </tr>`;
+  }).join('');
+
+  // Update "enable all" checkbox
+  const allCheck = document.getElementById('perm-check-all');
+  if (allCheck) allCheck.checked = currentPermPages.length === ALL_PAGES.length;
+}
+
+function togglePage(page, enabled) {
+  if (enabled && !currentPermPages.includes(page)) {
+    currentPermPages.push(page);
+  } else if (!enabled) {
+    currentPermPages = currentPermPages.filter(p => p !== page);
+  }
+}
+
+function toggleAllPermissions(checked) {
+  currentPermPages = checked ? ALL_PAGES.map(p => p.page) : ['dashboard','changepassword'];
+  renderPermissionsTable();
+}
+
+async function savePermissions() {
+  if (!currentPermRole) { toast('Please select a role first', 'error'); return; }
+
+  const res = await apiFetch('/api/auth/permissions', {
+    method: 'POST',
+    body: JSON.stringify({
+      hotelId,
+      role: currentPermRole,
+      pages: currentPermPages,
+      permissions: {}
+    })
+  });
+
+  if (res?.success) {
+    toast(`✅ Permissions saved for ${currentPermRole.replace('_',' ').toUpperCase()}! Takes effect on next login.`);
+    document.getElementById('perm-status').textContent = '✅ Saved successfully';
+    // Update local nav if editing own role
+    if (currentPermRole === user.role) buildNav();
+  } else {
+    toast('Failed to save: ' + (res?.error || 'Unknown'), 'error');
+  }
+}
+
+async function resetToDefault() {
+  if (!currentPermRole) return;
+  if (!confirm(`Reset ${currentPermRole} to default permissions?`)) return;
+  currentPermPages = [...(DEFAULT_PERMISSIONS[currentPermRole] || DEFAULT_PERMISSIONS.staff)];
+  renderPermissionsTable();
+  toast('Reset to default permissions. Click Save to apply.', 'info');
+}
+
+// ── CHANGE PASSWORD ────────────────────────────────────────────
+async function changePassword() {
+  const oldPw = document.getElementById('old-password')?.value;
+  const newPw = document.getElementById('new-password')?.value;
+  const confirmPw = document.getElementById('confirm-password')?.value;
+  if (!oldPw||!newPw||!confirmPw) { toast('Please fill all fields', 'error'); return; }
+  if (newPw !== confirmPw) { toast('Passwords do not match', 'error'); return; }
+  const res = await apiFetch('/api/auth/change-password', { method:'POST', body: JSON.stringify({ oldPassword:oldPw, newPassword:newPw }) });
+  if (res?.success) { toast('Password changed!'); document.getElementById('old-password').value=''; document.getElementById('new-password').value=''; document.getElementById('confirm-password').value=''; }
+  else toast('Failed: ' + (res?.error||'Wrong password'), 'error');
+}
+
+// ── FINANCIAL YEAR ─────────────────────────────────────────────
+function changeFinancialYear() {
+  const fy = document.getElementById('fy-select')?.value;
+  if (!fy) { toast('Please select a financial year', 'error'); return; }
+  if (confirm(`Switch to Financial Year ${fy}?`)) { localStorage.setItem('he_fy', fy); toast(`Financial Year changed to ${fy}`); }
+}
+
+// ── MODALS ─────────────────────────────────────────────────────
+async function populateBookingAgents() {
+  const select = document.getElementById('booking-agent');
+  if (!select || !hotelId) return;
+  const data = await apiFetch(`/api/agents?hotelId=${hotelId}`);
+  const agents = (data?.data || []).filter(a => a.is_active !== false);
+  select.innerHTML = '<option value="">No agent</option>' + agents.map(a =>
+    `<option value="${a.id}">${a.name}${a.company ? ' - ' + a.company : ''}</option>`
+  ).join('');
+}
+
+function setDefaultBookingDates() {
+  const ci = document.getElementById('booking-checkin');
+  const co = document.getElementById('booking-checkout');
+  if (!ci || !co) return;
+  const today = new Date();
+  const tomorrow = new Date(today.getTime() + 86400000);
+  if (!ci.value) ci.value = today.toISOString().split('T')[0];
+  if (!co.value) co.value = tomorrow.toISOString().split('T')[0];
+}
+
+function showModal(name) {
+  document.getElementById('modal-'+name)?.classList.add('show');
+  if (name === 'newReservation') {
+    setDefaultBookingDates();
+    populateBookingAgents();
+  }
+}
+function closeModal(name) { document.getElementById('modal-'+name)?.classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('show'); }));
+
+async function findRoomTypeId(roomTypeName) {
+  const data = await apiFetch(`/api/rooms/types?hotelId=${hotelId}`);
+  const roomTypes = data?.data || [];
+  return roomTypes.find(rt => (rt.name || '').toLowerCase() === roomTypeName.toLowerCase())?.id ||
+    roomTypes.find(rt => (rt.name || '').toLowerCase().includes(roomTypeName.toLowerCase()))?.id;
+}
+
+async function createBooking() {
+  const guestName = document.getElementById('booking-guest-name')?.value.trim();
+  const guestPhone = document.getElementById('booking-guest-phone')?.value.trim();
+  const checkinDate = document.getElementById('booking-checkin')?.value;
+  const checkoutDate = document.getElementById('booking-checkout')?.value;
+  const roomTypeName = document.getElementById('booking-room-type')?.value;
+  const roomsCount = parseInt(document.getElementById('booking-rooms-count')?.value || '1', 10);
+  const plan = document.getElementById('booking-plan')?.value || 'EP';
+  const source = document.getElementById('booking-source')?.value || 'walk_in';
+  const agentId = document.getElementById('booking-agent')?.value || null;
+  const ratePerNight = parseFloat(document.getElementById('rate-preview')?.value || '0');
+  const specialRequests = document.getElementById('booking-special-requests')?.value.trim();
+
+  if (!hotelId) { toast('Please login again. Hotel ID is missing.', 'error'); return; }
+  if (!guestName || !checkinDate || !checkoutDate || !roomTypeName) {
+    toast('Guest, dates and room type are required', 'error');
+    return;
+  }
+  if (new Date(checkoutDate) <= new Date(checkinDate)) {
+    toast('Checkout date must be after check-in date', 'error');
+    return;
+  }
+
+  const guestRes = await apiFetch('/api/guests', {
+    method: 'POST',
+    body: JSON.stringify({ hotelId, name: guestName, phone: guestPhone })
+  });
+  if (!guestRes?.success) { toast('Guest save failed: ' + (guestRes?.error || 'Unknown'), 'error'); return; }
+
+  const roomTypeId = await findRoomTypeId(roomTypeName);
+  if (!roomTypeId) { toast('Room type not found. Add room types first.', 'error'); return; }
+
+  const res = await apiFetch('/api/reservations/direct', {
+    method: 'POST',
+    body: JSON.stringify({
+      hotelId,
+      guestId: guestRes.data.id,
+      agentId,
+      roomTypeId,
+      checkinDate,
+      checkoutDate,
+      roomsCount,
+      plan,
+      ratePerNight,
+      source,
+      specialRequests
+    })
+  });
+
+  if (res?.success) {
+    toast('Booking created');
+    closeModal('newReservation');
+    loadReservations();
+    loadDashboard();
+  } else {
+    toast('Booking failed: ' + (res?.error || 'Unknown'), 'error');
+  }
+}
+async function completeCheckout() { toast('Guest checked out!'); closeModal('checkout'); }
+
+// ── INIT ───────────────────────────────────────────────────────
+// Check login
+if (!localStorage.getItem('he_token')) { window.location.href = 'login.html'; }
+if (localStorage.getItem('he_token') && !hotelId && user.role !== 'super_admin') {
+  localStorage.clear();
+  window.location.href = 'login.html';
+}
+
+// Set user info in sidebar
+const sbUser = document.getElementById('sb-user-name');
+const sbHotel = document.getElementById('sb-hotel-name');
+if (sbUser) sbUser.textContent = (user.name||user.username||'Admin').toUpperCase() + ' — ' + (user.role||'Staff').replace('_',' ').toUpperCase();
+if (sbHotel) sbHotel.textContent = user.hotelName || 'Sukhsagar Regency';
+
+function logout() {
+  if (confirm('Are you sure you want to logout?')) {
+    localStorage.removeItem('he_token');
+    localStorage.removeItem('he_user');
+    window.location.href = 'login.html';
+  }
+}
+
+// ── ROLE-BASED NAVIGATION ──────────────────────────────────────
+const NAV_MENUS = {
+  // Owner / Super Admin — sees everything
+  owner: [
+    { section: 'Main' },
+    { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
+    { page:'rooms', icon:'🏨', label:'Room View' },
+    { page:'guests', icon:'👤', label:'Guest View' },
+    { page:'requisitions', icon:'📝', label:'Requisition Slip' },
+    { section: 'Operations' },
+    { page:'checkin', icon:'✅', label:'Check In' },
+    { page:'checkout', icon:'🚪', label:'Check Out' },
+    { page:'swaproom', icon:'🔄', label:'Swap Room' },
+    { page:'rsupdate', icon:'🔔', label:'R.S. Update' },
+    { page:'roominvestigation', icon:'🔍', label:'Room Investigation' },
+    { section: 'Finance' },
+    { page:'cashbook', icon:'💵', label:'Cash Book' },
+    { page:'receipt', icon:'🧾', label:'Receipt' },
+    { page:'billing', icon:'📄', label:'Billing' },
+    { section: 'Owner Reports' },
+    { page:'reports', icon:'📈', label:'Admin Report' },
+    { page:'gst', icon:'🏛', label:'GST Payable' },
+    { page:'settlement', icon:'📊', label:'Settlement Summary' },
+    { page:'recapitulation', icon:'📋', label:'Recapitulation Report' },
+    { page:'nightaudit', icon:'🌙', label:'Night Audit Report' },
+    { page:'cardpayment', icon:'💳', label:'Card Payment Report' },
+    { section: 'Settings' },
+    { page:'users', icon:'👥', label:'User Setting' },
+    { page:'financialyear', icon:'📅', label:'Old Year Data' },
+    { page:'changepassword', icon:'🔑', label:'Change Password' },
+    { page:'agents', icon:'🤝', label:'Agents' },
+    { page:'rates', icon:'💰', label:'Rate Management' },
+  ],
+  // Admin / General Manager
+  hotel_admin: [
+    { section: 'Main' },
+    { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
+    { page:'rooms', icon:'🏨', label:'Room View' },
+    { page:'guests', icon:'👤', label:'Guest View' },
+    { page:'requisitions', icon:'📝', label:'Requisition Slip' },
+    { section: 'Operations' },
+    { page:'checkin', icon:'✅', label:'Check In' },
+    { page:'checkout', icon:'🚪', label:'Check Out' },
+    { page:'swaproom', icon:'🔄', label:'Swap Room' },
+    { page:'rsupdate', icon:'🔔', label:'R.S. Update' },
+    { page:'roominvestigation', icon:'🔍', label:'Room Investigation' },
+    { section: 'Finance' },
+    { page:'cashbook', icon:'💵', label:'Cash Book' },
+    { page:'receipt', icon:'🧾', label:'Receipt' },
+    { page:'billing', icon:'📄', label:'Billing' },
+    { section: 'Analytics' },
+    { page:'reports', icon:'📈', label:'Reports' },
+    { page:'settlement', icon:'📊', label:'Settlement Summary' },
+    { page:'nightaudit', icon:'🌙', label:'Night Audit' },
+    { section: 'Settings' },
+    { page:'changepassword', icon:'🔑', label:'Change Password' },
+    { page:'agents', icon:'🤝', label:'Agents' },
+    { page:'rates', icon:'💰', label:'Rates' },
+  ],
+  // Front Office / Staff
+  hotel_staff: [
+    { section: 'Main' },
+    { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
+    { page:'rooms', icon:'🏨', label:'Room View' },
+    { page:'guests', icon:'👤', label:'Guest View' },
+    { section: 'Operations' },
+    { page:'checkin', icon:'✅', label:'Check In' },
+    { page:'checkout', icon:'🚪', label:'Check Out' },
+    { page:'swaproom', icon:'🔄', label:'Swap Room' },
+    { page:'rsupdate', icon:'🔔', label:'R.S. Update' },
+    { section: 'Finance' },
+    { page:'cashbook', icon:'💵', label:'Cash Book' },
+    { page:'receipt', icon:'🧾', label:'Receipt' },
+    { page:'billing', icon:'📄', label:'Billing' },
+    { section: 'Settings' },
+    { page:'changepassword', icon:'🔑', label:'Change Password' },
+  ],
+  // Housekeeping
+  housekeeping: [
+    { section: 'Main' },
+    { page:'rooms', icon:'🏨', label:'Room View' },
+    { page:'rsupdate', icon:'🔔', label:'R.S. Update' },
+    { page:'roominvestigation', icon:'🔍', label:'Room Investigation' },
+    { section: 'Settings' },
+    { page:'changepassword', icon:'🔑', label:'Change Password' },
+  ],
+};
+
+async function buildNav() {
+  const role = user.role || 'hotel_staff';
+  const nav = document.getElementById('sidebar-nav');
+  if (!nav) return;
+
+  // Try loading custom permissions from API
+  let allowedPages = null;
+  try {
+    const data = await apiFetch(`/api/auth/permissions?hotelId=${hotelId}&role=${role}`);
+    if (data?.success && data.data && !data.isDefault) {
+      allowedPages = data.data.pages || [];
+    }
+  } catch(e) { console.log('Permissions load error:', e.message); }
+
+  // Owner/super_admin always see everything
+  const isOwner = role === 'owner' || role === 'super_admin' || role === 'hotel_owner';
+
+  // Map role to default menu
+  const menuKey = isOwner ? 'owner'
+    : role === 'hotel_admin' || role === 'gm' || role === 'general_manager' ? 'hotel_admin'
+    : role === 'housekeeping' || role === 'garden' ? 'housekeeping'
+    : 'hotel_staff';
+
+  let items = NAV_MENUS[menuKey] || NAV_MENUS.hotel_staff;
+
+  // If custom permissions exist (and not owner), filter menu
+  if (allowedPages && !isOwner) {
+    items = items.filter(item => item.section || allowedPages.includes(item.page));
+    // Remove orphan sections (sections with no items after them)
+    items = items.filter((item, i) => {
+      if (!item.section) return true;
+      const next = items[i+1];
+      return next && !next.section;
+    });
+  }
+
+  nav.innerHTML = items.map(item => {
+    if (item.section) return `<div class="nav-section">${item.section}</div>`;
+    return `<div class="nav-item" onclick="showPage('${item.page}')"><span class="icon">${item.icon}</span> ${item.label}</div>`;
+  }).join('');
+
+  // Set first page as active
+  const firstPage = items.find(i => i.page);
+  if (firstPage) {
+    const el = nav.querySelector(`[onclick="showPage('${firstPage.page}')"]`);
+    if (el) el.classList.add('active');
+  }
+}
+
+buildNav();
+showPage('dashboard');
+</script>
+</body>
+</html>

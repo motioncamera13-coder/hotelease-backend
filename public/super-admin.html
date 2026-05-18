@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelEase — Super Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold:#C9A84C; --gold-dim:rgba(201,168,76,0.1);
+  --dark:#0A0908; --dark2:#141210; --dark3:#1C1A18;
+  --cream:#F0EBE2; --muted:#6E6860;
+  --teal:#1D9E75; --teal-dim:rgba(29,158,117,0.1);
+  --red:#E24B4A; --border:rgba(201,168,76,0.1); --border2:rgba(255,255,255,0.05);
+}
+body { background:var(--dark); color:var(--cream); font-family:'DM Sans',sans-serif; font-weight:300; min-height:100vh; }
+.topbar { background:var(--dark2); border-bottom:0.5px solid var(--border); padding:1rem 2rem; display:flex; align-items:center; justify-content:space-between; }
+.logo { font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:var(--gold); }
+.super-badge { font-size:10px; background:var(--gold); color:var(--dark); padding:3px 10px; border-radius:100px; letter-spacing:0.06em; font-weight:500; }
+.logout-btn { font-size:12px; color:var(--muted); cursor:pointer; background:none; border:none; font-family:'DM Sans',sans-serif; }
+.logout-btn:hover { color:var(--red); }
+.content { max-width:1100px; margin:0 auto; padding:2rem; }
+.section-title { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300; color:#fff; margin-bottom:1.5rem; }
+
+/* Stats row */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:2rem; }
+.stat-card { background:var(--dark2); border:0.5px solid var(--border); border-radius:8px; padding:1.25rem; }
+.stat-label { font-size:10px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px; }
+.stat-value { font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); }
+.stat-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+
+/* Hotels grid */
+.hotels-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:12px; margin-bottom:2rem; }
+.hotel-card { background:var(--dark2); border:0.5px solid var(--border); border-radius:10px; overflow:hidden; }
+.hotel-card-header { padding:1rem 1.25rem; border-bottom:0.5px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.hotel-card-name { font-size:14px; font-weight:500; color:#fff; }
+.hotel-card-city { font-size:11px; color:var(--muted); margin-top:2px; }
+.online-dot { width:6px; height:6px; border-radius:50%; background:var(--teal); display:inline-block; margin-right:5px; }
+.hotel-card-body { padding:1rem 1.25rem; }
+.hotel-stat-row { display:flex; justify-content:space-between; font-size:12px; padding:4px 0; border-bottom:0.5px solid var(--border2); }
+.hotel-stat-row:last-child { border-bottom:none; }
+.hotel-stat-label { color:var(--muted); }
+.hotel-stat-val { color:var(--cream); font-family:'DM Mono',monospace; }
+.hotel-card-footer { padding:0.75rem 1.25rem; background:var(--dark3); display:flex; gap:8px; }
+.btn-sm { padding:6px 14px; border-radius:4px; font-size:11px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; border:none; transition:all 0.15s; }
+.btn-gold { background:var(--gold); color:var(--dark); }
+.btn-gold:hover { opacity:0.9; }
+.btn-outline { background:transparent; border:0.5px solid var(--border2); color:var(--muted); }
+.btn-outline:hover { border-color:var(--gold); color:var(--gold); }
+.btn-red { background:transparent; border:0.5px solid var(--red); color:var(--red); }
+
+/* Add hotel panel */
+.add-hotel-panel { background:var(--dark2); border:0.5px solid var(--border); border-radius:10px; padding:1.5rem; margin-bottom:2rem; }
+.panel-title { font-size:13px; font-weight:500; color:var(--cream); margin-bottom:1.25rem; letter-spacing:0.04em; }
+.form-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px; }
+.form-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-label { font-size:10px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+.form-input, .form-select { padding:9px 12px; background:var(--dark3); border:0.5px solid var(--border); border-radius:5px; color:var(--cream); font-size:13px; font-family:'DM Sans',sans-serif; outline:none; }
+.form-input:focus, .form-select:focus { border-color:var(--gold); }
+.form-input::placeholder { color:var(--muted); }
+.divider { height:0.5px; background:var(--border); margin:1.25rem 0; }
+.cred-section { background:var(--dark3); border-radius:6px; padding:1rem 1.25rem; margin-top:12px; border-left:2px solid var(--gold); }
+.cred-title { font-size:10px; color:var(--gold); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+
+/* Table */
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th { font-size:10px; color:var(--muted); padding:8px 12px; text-align:left; letter-spacing:0.06em; text-transform:uppercase; border-bottom:0.5px solid var(--border); }
+.data-table td { font-size:12px; color:var(--cream); padding:10px 12px; border-bottom:0.5px solid var(--border2); }
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tr:hover td { background:var(--dark3); }
+.mono { font-family:'DM Mono',monospace; font-size:11px; }
+.panel { background:var(--dark2); border:0.5px solid var(--border); border-radius:8px; overflow:hidden; margin-bottom:1.5rem; }
+.panel-header { padding:1rem 1.25rem; border-bottom:0.5px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.badge { font-size:9px; padding:2px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:0.04em; }
+.badge-active { background:var(--teal-dim); color:var(--teal); }
+.badge-inactive { background:rgba(255,255,255,0.06); color:var(--muted); }
+.toast { position:fixed; bottom:2rem; right:2rem; background:var(--teal); color:#fff; padding:10px 20px; border-radius:6px; font-size:13px; display:none; z-index:999; }
+.toast.show { display:block; animation:slideIn 0.3s ease; }
+@keyframes slideIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">HotelEase <span style="font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:300"> / Super Admin</span></div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="super-badge">SUPER ADMIN</span>
+    <button class="logout-btn" onclick="logout()">Logout →</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total hotels</div>
+      <div class="stat-value" id="total-hotels">0</div>
+      <div class="stat-sub">Active properties</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total rooms</div>
+      <div class="stat-value" id="total-rooms">0</div>
+      <div class="stat-sub">Across all hotels</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total bookings</div>
+      <div class="stat-value" id="total-bookings">0</div>
+      <div class="stat-sub">This month</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Monthly revenue</div>
+      <div class="stat-value" id="total-revenue" style="font-size:1.4rem">₹0</div>
+      <div class="stat-sub">All hotels combined</div>
+    </div>
+  </div>
+
+  <!-- Add new hotel -->
+  <div class="add-hotel-panel">
+    <div class="panel-title">+ Register New Hotel</div>
+
+    <div style="font-size:11px;color:var(--muted);margin-bottom:1rem;letter-spacing:0.04em">HOTEL DETAILS</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Hotel name *</label><input class="form-input" id="h-name" placeholder="Hotel Sukhsagar Regency"></div>
+      <div class="form-group"><label class="form-label">City *</label><input class="form-input" id="h-city" placeholder="Shimla"></div>
+      <div class="form-group"><label class="form-label">State</label><input class="form-input" id="h-state" placeholder="Himachal Pradesh"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="h-phone" placeholder="9816003322"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="h-email" placeholder="hotel@example.com"></div>
+      <div class="form-group"><label class="form-label">GSTIN</label><input class="form-input" id="h-gstin" placeholder="27AABCU9603R1ZX"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Total rooms</label><input class="form-input" id="h-rooms" type="number" placeholder="50" value="50"></div>
+      <div class="form-group"><label class="form-label">Buffer rooms</label><input class="form-input" id="h-buffer" type="number" placeholder="4" value="4"></div>
+      <div class="form-group"><label class="form-label">WhatsApp bot number</label><input class="form-input" id="h-wa" placeholder="919816003322"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="font-size:11px;color:var(--muted);margin-bottom:1rem;letter-spacing:0.04em">ADMIN LOGIN CREDENTIALS</div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Admin name *</label><input class="form-input" id="h-admin-name" placeholder="Hotel Admin"></div>
+      <div class="form-group"><label class="form-label">Username *</label><input class="form-input" id="h-username" placeholder="sukhsagar_admin"></div>
+      <div class="form-group"><label class="form-label">Password *</label><input class="form-input" id="h-password" type="password" placeholder="Min 8 characters"></div>
+    </div>
+
+    <div class="cred-section">
+      <div class="cred-title">What happens after registration</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7">
+        ✅ Hotel account created with unique Hotel ID<br>
+        ✅ Admin login credentials set (username + password)<br>
+        ✅ Default room types created (Deluxe, Super Deluxe, Honeymoon)<br>
+        ✅ Hotel can login at: <span style="color:var(--gold)">hotelease.in/login</span><br>
+        ✅ All data completely separate from other hotels
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;display:flex;gap:10px">
+      <button class="btn-sm btn-gold" onclick="registerHotel()" style="padding:10px 24px;font-size:13px">Register Hotel</button>
+      <button class="btn-sm btn-outline" onclick="clearForm()" style="padding:10px 18px;font-size:13px">Clear</button>
+    </div>
+  </div>
+
+  <!-- All hotels -->
+  <div class="panel">
+    <div class="panel-header">
+      <span style="font-size:13px;font-weight:500;color:var(--cream)">All Hotels</span>
+      <span style="font-size:11px;color:var(--muted)" id="hotels-count">0 hotels</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table" id="hotels-table">
+        <thead>
+          <tr>
+            <th>Hotel ID</th><th>Hotel name</th><th>City</th>
+            <th>Admin username</th><th>Total rooms</th>
+            <th>Bookings</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="hotels-tbody">
+          <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">Loading hotels...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Users table -->
+  <div class="panel">
+    <div class="panel-header">
+      <span style="font-size:13px;font-weight:500;color:var(--cream)">All Users</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr><th>Username</th><th>Name</th><th>Hotel</th><th>Role</th><th>Last login</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="users-tbody">
+          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function getApiBase() {
+  const params = new URLSearchParams(window.location.search);
+  const apiFromUrl = params.get('api');
+  if (apiFromUrl) localStorage.setItem('he_api', apiFromUrl.replace(/\/$/, ''));
+  return (localStorage.getItem('he_api') ||
+    (window.location.protocol === 'file:' ? 'http://localhost:3001' : window.location.origin)
+  ).replace(/\/$/, '');
+}
+const API = getApiBase();
+const token = localStorage.getItem('he_token');
+const user = JSON.parse(localStorage.getItem('he_user') || '{}');
+
+// Redirect if not super admin
+if (!token || user.role !== 'super_admin') {
+  window.location.href = 'login.html';
+}
+
+// ── Mock data for demo ─────────────────────────────────────────
+const MOCK_HOTELS = [
+  { id: 'uuid-001', name: 'Hotel Sukhsagar Regency', city: 'Shimla', username: 'sukhsagar_admin', rooms: 50, bookings: 124, active: true },
+  { id: 'uuid-002', name: 'The Pine Resort', city: 'Manali', username: 'pineresort_admin', rooms: 32, bookings: 86, active: true },
+  { id: 'uuid-003', name: 'Mountain View Hotel', city: 'Dharamshala', username: 'mtnview_admin', rooms: 28, bookings: 54, active: true },
+  { id: 'uuid-004', name: 'Kasauli Hills Resort', city: 'Kasauli', username: 'kasauli_admin', rooms: 20, bookings: 31, active: false },
+];
+
+const MOCK_USERS = [
+  { username: 'sukhsagar_admin', name: 'Harmeet Singh', hotel: 'Hotel Sukhsagar Regency', role: 'hotel_admin', lastLogin: '04 May 2026, 4:30 PM', active: true },
+  { username: 'sukhsagar_staff', name: 'Front Desk Staff', hotel: 'Hotel Sukhsagar Regency', role: 'hotel_staff', lastLogin: '04 May 2026, 9:00 AM', active: true },
+  { username: 'pineresort_admin', name: 'Rajesh Kumar', hotel: 'The Pine Resort', role: 'hotel_admin', lastLogin: '03 May 2026, 6:00 PM', active: true },
+  { username: 'mtnview_admin', name: 'Priya Sharma', hotel: 'Mountain View Hotel', role: 'hotel_admin', lastLogin: '02 May 2026, 11:00 AM', active: true },
+  { username: 'kasauli_admin', name: 'Vikram Nair', hotel: 'Kasauli Hills Resort', role: 'hotel_admin', lastLogin: '01 Apr 2026, 3:00 PM', active: false },
+];
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('he_token') || '') };
+}
+
+async function apiFetch(path, opts = {}) {
+  try {
+    const res = await fetch(API + path, { ...opts, headers: { ...authHeaders(), ...(opts.headers || {}) } });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok && !data.error) data.error = `HTTP ${res.status}`;
+    return data;
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// ── Load data ──────────────────────────────────────────────────
+async function loadData() {
+  const hotelsRes = await apiFetch('/api/auth/hotels');
+  if (hotelsRes?.success) {
+    const hotels = hotelsRes.data || [];
+    document.getElementById('total-hotels').textContent = hotels.length;
+    document.getElementById('total-rooms').textContent = hotels.reduce((s, h) => s + Number(h.total_rooms || 0), 0);
+    document.getElementById('total-bookings').textContent = hotels.reduce((s, h) => s + Number(h.bookings || 0), 0);
+    document.getElementById('total-revenue').textContent = 'Live';
+    document.getElementById('hotels-count').textContent = hotels.length + ' hotels';
+    document.getElementById('hotels-tbody').innerHTML = hotels.length ? hotels.map(h => `
+      <tr>
+        <td class="mono" style="color:var(--muted)">${h.id}</td>
+        <td style="font-weight:400">${h.name}</td>
+        <td style="color:var(--muted)">${h.city || '—'}</td>
+        <td class="mono">${h.admin_username || '—'}</td>
+        <td class="mono">${h.total_rooms || 0}</td>
+        <td class="mono">${h.bookings || 0}</td>
+        <td><span class="badge badge-active">Active</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn-sm btn-gold" onclick="viewHotel('${h.id}')">View</button>
+        </td>
+      </tr>
+    `).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No hotels found</td></tr>';
+    document.getElementById('users-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">Open a hotel to manage users</td></tr>';
+    return;
+  }
+
+  // Stats
+  document.getElementById('total-hotels').textContent = MOCK_HOTELS.filter(h => h.active).length;
+  document.getElementById('total-rooms').textContent = MOCK_HOTELS.reduce((s, h) => s + h.rooms, 0);
+  document.getElementById('total-bookings').textContent = MOCK_HOTELS.reduce((s, h) => s + h.bookings, 0);
+  document.getElementById('total-revenue').textContent = '₹8.4L';
+
+  // Hotels table
+  document.getElementById('hotels-count').textContent = MOCK_HOTELS.length + ' hotels';
+  document.getElementById('hotels-tbody').innerHTML = MOCK_HOTELS.map(h => `
+    <tr>
+      <td class="mono" style="color:var(--muted)">${h.id}</td>
+      <td style="font-weight:400">${h.name}</td>
+      <td style="color:var(--muted)">${h.city}</td>
+      <td class="mono">${h.username}</td>
+      <td class="mono">${h.rooms}</td>
+      <td class="mono">${h.bookings}</td>
+      <td><span class="badge ${h.active ? 'badge-active' : 'badge-inactive'}">${h.active ? 'Active' : 'Inactive'}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn-sm btn-outline" onclick="loginAs('${h.username}')">Login as</button>
+        <button class="btn-sm btn-gold" onclick="viewHotel('${h.id}')">View</button>
+        <button class="btn-sm btn-red" onclick="toggleHotel('${h.id}')">Disable</button>
+      </td>
+    </tr>
+  `).join('');
+
+  // Users table
+  document.getElementById('users-tbody').innerHTML = MOCK_USERS.map(u => `
+    <tr>
+      <td class="mono">${u.username}</td>
+      <td>${u.name}</td>
+      <td style="color:var(--muted)">${u.hotel}</td>
+      <td><span class="badge ${u.role === 'hotel_admin' ? 'badge-active' : ''}" style="${u.role === 'hotel_staff' ? 'background:var(--gold-dim);color:var(--gold)' : ''}">${u.role.replace('_',' ')}</span></td>
+      <td style="color:var(--muted);font-size:11px">${u.lastLogin}</td>
+      <td><span class="badge ${u.active ? 'badge-active' : 'badge-inactive'}">${u.active ? 'Active' : 'Inactive'}</span></td>
+      <td><span style="color:var(--gold);cursor:pointer;font-size:11px" onclick="resetPassword('${u.username}')">Reset pwd</span></td>
+    </tr>
+  `).join('');
+}
+
+// ── Register hotel ─────────────────────────────────────────────
+async function registerHotel() {
+  const name = document.getElementById('h-name').value.trim();
+  const city = document.getElementById('h-city').value.trim();
+  const username = document.getElementById('h-username').value.trim();
+  const password = document.getElementById('h-password').value;
+  const adminName = document.getElementById('h-admin-name').value.trim();
+
+  if (!name || !city || !username || !password || !adminName) {
+    showToast('Please fill all required fields (*)', 'red');
+    return;
+  }
+  if (password.length < 8) {
+    showToast('Password must be at least 8 characters', 'red');
+    return;
+  }
+
+  const res = await apiFetch('/api/auth/register-hotel', {
+    method: 'POST',
+    body: JSON.stringify({
+      name,
+      city,
+      state: document.getElementById('h-state').value.trim(),
+      phone: document.getElementById('h-phone').value.trim(),
+      email: document.getElementById('h-email').value.trim(),
+      gstin: document.getElementById('h-gstin').value.trim(),
+      totalRooms: document.getElementById('h-rooms').value,
+      bufferRooms: document.getElementById('h-buffer').value,
+      whatsappBotNumber: document.getElementById('h-wa').value.trim(),
+      adminName,
+      username,
+      password
+    })
+  });
+
+  if (res?.success) {
+    showToast(`Hotel "${name}" registered. Login: ${username}`, 'green');
+    clearForm();
+    loadData();
+  } else {
+    showToast('Registration failed: ' + (res?.error || 'Unknown'), 'red');
+  }
+}
+
+function clearForm() {
+  ['h-name','h-city','h-state','h-phone','h-email','h-gstin','h-admin-name','h-username','h-password'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('h-rooms').value = '50';
+  document.getElementById('h-buffer').value = '4';
+}
+
+function loginAs(username) { showToast(`Logging in as ${username}...`); }
+function viewHotel(id) { showToast('Opening hotel dashboard...'); }
+function toggleHotel(id) { if (confirm('Disable this hotel?')) showToast('Hotel disabled'); }
+function resetPassword(username) { const p = prompt(`New password for ${username}:`); if (p) showToast(`Password reset for ${username}`); }
+function logout() { localStorage.removeItem('he_token'); localStorage.removeItem('he_user'); window.location.href = 'login.html'; }
+
+function showToast(msg, color = 'teal') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color === 'red' ? 'var(--red)' : 'var(--teal)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadData();
+</script>
+</body>
+</html>

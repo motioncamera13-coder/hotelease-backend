@@ -17,6 +17,44 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Fixed paths must be registered before /:id.
+router.get('/checkins/today', async (req, res) => {
+  try {
+    const { hotelId } = req.query;
+    if (!hotelId) return res.status(400).json({ error: 'hotelId required' });
+    const checkins = await Reservation.getTodayCheckins(hotelId);
+    res.json({ success: true, data: checkins, count: checkins.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/checkouts/today', async (req, res) => {
+  try {
+    const { hotelId } = req.query;
+    if (!hotelId) return res.status(400).json({ error: 'hotelId required' });
+    const checkouts = await Reservation.getTodayCheckouts(hotelId);
+    res.json({ success: true, data: checkouts, count: checkouts.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/availability/check', async (req, res) => {
+  try {
+    const { hotelId, roomTypeId, checkinDate, checkoutDate, roomsNeeded } = req.query;
+    if (!hotelId || !roomTypeId || !checkinDate || !checkoutDate) {
+      return res.status(400).json({ error: 'hotelId, roomTypeId, checkinDate and checkoutDate required' });
+    }
+    const result = await Reservation.checkAvailability(
+      hotelId, roomTypeId, checkinDate, checkoutDate, parseInt(roomsNeeded || '1', 10)
+    );
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/reservations/:id — get single reservation ────────
 router.get('/:id', async (req, res) => {
   try {

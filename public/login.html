@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HotelEase — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold:#C9A84C; --gold-light:#E8C96A; --gold-dim:rgba(201,168,76,0.1);
+  --dark:#0A0908; --dark2:#141210; --dark3:#1C1A18;
+  --cream:#F0EBE2; --muted:#6E6860;
+  --teal:#1D9E75; --red:#E24B4A;
+  --border:rgba(201,168,76,0.12); --border2:rgba(255,255,255,0.05);
+}
+body {
+  background: var(--dark); color: var(--cream);
+  font-family: 'DM Sans', sans-serif; font-weight: 300;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-box {
+  width: 400px; background: var(--dark2);
+  border: 0.5px solid var(--border); border-radius: 16px;
+  overflow: hidden; position: relative; z-index: 1;
+}
+.login-header {
+  padding: 2rem 2rem 1.5rem; text-align: center;
+  border-bottom: 0.5px solid var(--border);
+}
+.login-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem; font-weight: 600; color: var(--gold);
+  display: block; margin-bottom: 6px;
+}
+.login-tagline { font-size: 12px; color: var(--muted); }
+.login-body { padding: 2rem; }
+.form-group { margin-bottom: 1rem; }
+.form-label {
+  font-size: 10px; color: var(--muted);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  display: block; margin-bottom: 6px;
+}
+.form-input {
+  width: 100%; padding: 11px 14px;
+  background: var(--dark3); border: 0.5px solid var(--border);
+  border-radius: 6px; color: var(--cream); font-size: 14px;
+  font-family: 'DM Sans', sans-serif; outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--gold); }
+.form-input::placeholder { color: var(--muted); }
+.form-input.error { border-color: var(--red); }
+.error-msg {
+  font-size: 12px; color: var(--red);
+  margin-top: 8px; display: none; text-align: center;
+}
+.error-msg.show { display: block; }
+.login-btn {
+  width: 100%; padding: 12px;
+  background: var(--gold); color: var(--dark);
+  border: none; border-radius: 6px;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s; margin-top: 0.5rem; letter-spacing: 0.03em;
+}
+.login-btn:hover { background: var(--gold-light); }
+.login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.login-footer {
+  padding: 1rem 2rem; border-top: 0.5px solid var(--border);
+  text-align: center; font-size: 11px; color: var(--muted);
+}
+.login-footer a { color: var(--gold); text-decoration: none; }
+.hotel-info {
+  background: var(--dark3); border-radius: 6px;
+  padding: 10px 14px; margin-bottom: 1.25rem;
+  display: none; animation: fadeIn 0.3s ease;
+}
+.hotel-info.show { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+.hotel-info-name { font-size: 13px; color: #fff; font-weight: 400; }
+.hotel-info-city { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.spinner { display: none; }
+.login-btn.loading .spinner { display: inline-block; }
+.spinner { width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.3); border-top-color: var(--dark); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="login-box">
+  <div class="login-header">
+    <span class="login-logo">HotelEase</span>
+    <div class="login-tagline">Property Management System</div>
+  </div>
+
+  <div class="login-body">
+    <div class="hotel-info" id="hotelInfo">
+      <div class="hotel-info-name" id="hotelInfoName">Hotel Sukhsagar Regency</div>
+      <div class="hotel-info-city" id="hotelInfoCity">Shimla, Himachal Pradesh</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" type="text" id="username"
+        placeholder="your_hotel_username" autocomplete="username"
+        oninput="checkUsername(this.value)">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" type="password" id="password"
+        placeholder="••••••••" autocomplete="current-password"
+        onkeypress="if(event.key==='Enter')login()">
+    </div>
+
+    <div class="error-msg" id="errorMsg">Invalid username or password</div>
+
+    <button class="login-btn" id="loginBtn" onclick="login()">
+      <span class="spinner"></span>
+      Sign in
+    </button>
+  </div>
+
+  <div class="login-footer">
+    Forgot password? Contact <a href="tel:+918894888885">+91 88948 88885</a>
+  </div>
+</div>
+
+<script>
+function getApiBase() {
+  const params = new URLSearchParams(window.location.search);
+  const apiFromUrl = params.get('api');
+  if (apiFromUrl) localStorage.setItem('he_api', apiFromUrl.replace(/\/$/, ''));
+  return (localStorage.getItem('he_api') ||
+    (window.location.protocol === 'file:' ? 'http://localhost:3001' : window.location.origin)
+  ).replace(/\/$/, '');
+}
+const API = getApiBase();
+
+// Mock hotel info from username
+const HOTEL_MAP = {
+  'sukhsagar_admin': { name: 'Hotel Sukhsagar Regency', city: 'Shimla, HP' },
+  'sukhsagar_staff': { name: 'Hotel Sukhsagar Regency', city: 'Shimla, HP' },
+  'pineresort_admin': { name: 'The Pine Resort', city: 'Manali, HP' },
+  'mtnview_admin': { name: 'Mountain View Hotel', city: 'Dharamshala, HP' },
+  'superadmin': { name: 'HotelEase — Super Admin', city: 'All properties' },
+};
+
+let checkTimer;
+function checkUsername(val) {
+  clearTimeout(checkTimer);
+  checkTimer = setTimeout(() => {
+    const hotel = HOTEL_MAP[val.trim().toLowerCase()];
+    const infoEl = document.getElementById('hotelInfo');
+    if (hotel) {
+      document.getElementById('hotelInfoName').textContent = hotel.name;
+      document.getElementById('hotelInfoCity').textContent = hotel.city;
+      infoEl.classList.add('show');
+    } else {
+      infoEl.classList.remove('show');
+    }
+  }, 400);
+}
+
+async function login() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('errorMsg');
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter username and password';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner"></span> Signing in...';
+  errEl.classList.remove('show');
+
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Invalid credentials');
+
+    localStorage.setItem('he_token', data.token);
+    localStorage.setItem('he_user', JSON.stringify(data.user));
+
+    // Redirect based on role
+    if (data.user?.role === 'super_admin') {
+      window.location.href = 'super-admin.html';
+    } else {
+      window.location.href = 'index.html';
+    }
+
+  } catch (err) {
+    errEl.textContent = err.message || 'Invalid username or password';
+    errEl.classList.add('show');
+    document.getElementById('password').classList.add('error');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.innerHTML = 'Sign in';
+  }
+}
+
+// Check if already logged in
+const token = localStorage.getItem('he_token');
+const user = JSON.parse(localStorage.getItem('he_user') || '{}');
+if (token) {
+  if (user.role === 'super_admin') window.location.href = 'super-admin.html';
+  else window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>

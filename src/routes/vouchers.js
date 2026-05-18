@@ -37,6 +37,25 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Fixed paths must be registered before /:id.
+router.get('/summary/by-type', async (req, res) => {
+  try {
+    const { hotelId, startDate, endDate } = req.query;
+    if (!hotelId || !startDate || !endDate) {
+      return res.status(400).json({ error: 'hotelId, startDate and endDate required' });
+    }
+    const result = await db.query(`
+      SELECT voucher_type, COUNT(*) as count, SUM(amount) as total
+      FROM vouchers
+      WHERE hotel_id=$1 AND date BETWEEN $2 AND $3 AND status != 'draft'
+      GROUP BY voucher_type ORDER BY total DESC
+    `, [hotelId, startDate, endDate]);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/vouchers/:id ─────────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {

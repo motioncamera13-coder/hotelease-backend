@@ -23,6 +23,20 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Fixed paths must be registered before /:id.
+router.get('/phone/:phone', async (req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT * FROM agents WHERE phone = $1 AND is_active = true',
+      [req.params.phone]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Agent not found' });
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/agents/:id ────────────────────────────────────────
 router.get('/:id', async (req, res) => {
   try {

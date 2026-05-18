@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const cron = require('node-cron');
@@ -14,6 +15,11 @@ app.use(cors({
 app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ── Dashboard static hosting ──────────────────────────────────
+const dashboardDir = path.join(__dirname, '..', 'public');
+app.use('/dashboard', express.static(dashboardDir));
+app.get('/dashboard', (req, res) => res.redirect('/dashboard/login.html'));
 
 // ── Routes ────────────────────────────────────────────────────
 app.use('/api/reservations', require('./routes/reservations'));
@@ -85,4 +91,3 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 HotelEase PMS running on port ${PORT}`);
   console.log(`📊 API: http://localhost:${PORT}/api`);
 });
-
