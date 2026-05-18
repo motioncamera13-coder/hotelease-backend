@@ -246,4 +246,120 @@ router.delete('/users/:id', async (req, res) => {
   }
 });
 
+// GET /api/auth/permissions — get permissions for a role
+router.get('/permissions', async (req, res) => {
+  try {
+    const { hotelId, role } = req.query;
+    if (!hotelId || !role) return res.status(400).json({ error: 'hotelId and role required' });
+
+    const result = await db.query(
+      `SELECT * FROM role_permissions WHERE hotel_id = $1 AND role = $2`,
+      [hotelId, role]
+    );
+
+    if (result.rows.length === 0) {
+      // Return default permissions if none saved
+      return res.json({ success: true, data: null, isDefault: true });
+    }
+
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    // Table might not exist yet
+    if (err.code === '42P01') {
+      return res.json({ success: true, data: null, isDefault: true });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/permissions — save permissions for a role
+router.post('/permissions', async (req, res) => {
+  try {
+    const { hotelId, role, pages, permissions } = req.body;
+    if (!hotelId || !role) return res.status(400).json({ error: 'hotelId and role required' });
+
+    // Create table if not exists
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS role_permissions (
+        id SERIAL PRIMARY KEY,
+        hotel_id INTEGER NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        pages JSONB NOT NULL DEFAULT '[]',
+        permissions JSONB NOT NULL DEFAULT '{}',
+        updated_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(hotel_id, role)
+      )
+    `);
+
+    // Upsert permissions
+    const result = await db.query(
+      `INSERT INTO role_permissions (hotel_id, role, pages, permissions, updated_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       ON CONFLICT (hotel_id, role)
+       DO UPDATE SET pages = $3, permissions = $4, updated_at = NOW()
+       RETURNING *`,
+      [hotelId, role, JSON.stringify(pages || []), JSON.stringify(permissions || {})]
+    );
+
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/all-permissions — get permissions for all roles of a hotel
+router.get('/all-permissions', async (req, res) => {
+  try {
+    const { hotelId } = req.query;
+    const result = await db.query(
+      `SELECT * FROM role_permissions WHERE hotel_id = $1 ORDER BY role`,
+      [hotelId]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    if (err.code === '42P01') return res.json({ success: true, data: [] });
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/change-password
+router.post('/change-password', async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ error: 'Not authenticated' });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const result = await db.query('SELECT * FROM users WHERE id = $1', [decoded.userId]);
+    if (!result.rows[0]) return res.status(404).json({ error: 'User not found' });
+
+    const valid = await bcrypt.compare(oldPassword, result.rows[0].password_hash);
+    if (!valid) return res.status(401).json({ error: 'Old password is incorrect' });
+
+    const hash = await bcrypt.hash(newPassword, 10);
+    await db.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, decoded.userId]);
+
+    res.json({ success: true, message: 'Password changed successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/auth/roles — get all roles for a hotel
+router.get('/roles', async (req, res) => {
+  try {
+    const { hotelId } = req.query;
+    const result = await db.query(
+      `SELECT DISTINCT role FROM users WHERE hotel_id = $1 AND role != 'super_admin' ORDER BY role`,
+      [hotelId]
+    );
+    const defaultRoles = ['hotel_owner', 'hotel_admin', 'staff', 'housekeeping', 'captain', 'restaurant', 'garden', 'steward'];
+    const dbRoles = result.rows.map(r => r.role);
+    const allRoles = [...new Set([...dbRoles, ...defaultRoles])];
+    res.json({ success: true, data: allRoles.map(r => ({ role: r, label: r.replace('_',' ').toUpperCase() })) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
