@@ -29,9 +29,9 @@ router.get('/daily', async (req, res) => {
     // Occupancy
     const occupancy = await db.query(`
       SELECT
-        COUNT(DISTINCT r.id) as occupied_rooms,
+        COUNT(DISTINCT CASE WHEN res.id IS NOT NULL THEN r.id END) as occupied_rooms,
         h.total_rooms,
-        ROUND(COUNT(DISTINCT r.id)::decimal / NULLIF(h.total_rooms, 0) * 100, 1) as occupancy_pct
+        ROUND(COUNT(DISTINCT CASE WHEN res.id IS NOT NULL THEN r.id END)::decimal / NULLIF(h.total_rooms, 0) * 100, 1) as occupancy_pct
       FROM hotels h
       LEFT JOIN rooms r ON h.id = r.hotel_id
       LEFT JOIN reservation_rooms rr ON r.id = rr.room_id

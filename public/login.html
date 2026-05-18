@@ -138,6 +138,9 @@ function getApiBase() {
   const params = new URLSearchParams(window.location.search);
   const apiFromUrl = params.get('api');
   if (apiFromUrl) localStorage.setItem('he_api', apiFromUrl.replace(/\/$/, ''));
+  if (window.location.hostname === 'optisetup.in' || window.location.hostname === 'www.optisetup.in') {
+    localStorage.setItem('he_api', 'https://hotelease-pms.onrender.com');
+  }
   return (localStorage.getItem('he_api') ||
     (window.location.protocol === 'file:' ? 'http://localhost:3001' : window.location.origin)
   ).replace(/\/$/, '');
