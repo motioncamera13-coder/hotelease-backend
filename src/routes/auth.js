@@ -292,7 +292,10 @@ router.post('/create-user', async (req, res) => {
     const { username, password, name, role, hotelId } = req.body;
 
     // Validate role
-    const allowedRoles = ['hotel_owner', 'hotel_admin', 'hotel_staff', 'staff', 'housekeeping'];
+    const allowedRoles = [
+      'hotel_owner', 'hotel_admin', 'hotel_staff', 'staff', 'housekeeping',
+      'captain', 'restaurant', 'garden', 'steward', 'general_manager', 'gm', 'front_office'
+    ];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ error: 'Invalid role' });
     }
@@ -453,14 +456,41 @@ router.post('/change-password', async (req, res) => {
 router.get('/roles', async (req, res) => {
   try {
     const { hotelId } = req.query;
-    const result = await db.query(
+    const userRoles = await db.query(
       `SELECT DISTINCT role FROM users WHERE hotel_id = $1 AND role != 'super_admin' ORDER BY role`,
       [hotelId]
     );
-    const defaultRoles = ['hotel_owner', 'hotel_admin', 'staff', 'housekeeping', 'captain', 'restaurant', 'garden', 'steward'];
-    const dbRoles = result.rows.map(r => r.role);
+    let permissionRoles = [];
+    try {
+      const permResult = await db.query(
+        `SELECT DISTINCT role FROM role_permissions WHERE hotel_id = $1 ORDER BY role`,
+        [hotelId]
+      );
+      permissionRoles = permResult.rows.map(r => r.role);
+    } catch (err) {
+      if (err.code !== '42P01') throw err;
+    }
+    const defaultRoles = ['captain', 'staff', 'garden', 'restaurant', 'general_manager', 'gm', 'steward', 'hotel_admin', 'housekeeping'];
+    const dbRoles = userRoles.rows.map(r => r.role);
     const allRoles = [...new Set([...dbRoles, ...defaultRoles])];
-    res.json({ success: true, data: allRoles.map(r => ({ role: r, label: r.replace('_',' ').toUpperCase() })) });
+    const labels = {
+      hotel_owner: 'OWNER',
+      hotel_admin: 'ADMIN',
+      hotel_staff: 'FRONT OFFICE',
+      staff: 'FRONT OFFICE',
+      housekeeping: 'HOUSEKEEPING',
+      captain: 'CAPTAIN',
+      restaurant: 'RESTAURANT',
+      garden: 'GARDEN',
+      steward: 'STEWARD',
+      general_manager: 'GENERAL MANAGER',
+      gm: 'GM',
+      front_office: 'FRONT OFFICE'
+    };
+    res.json({
+      success: true,
+      data: [...new Set([...allRoles, ...permissionRoles])].map(r => ({ role: r, label: labels[r] || r.replace(/_/g,' ').toUpperCase() }))
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
