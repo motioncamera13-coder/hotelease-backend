@@ -2627,12 +2627,6 @@ async function createBooking() {
     return;
   }
 
-  const guestRes = await apiFetch('/api/guests', {
-    method: 'POST',
-    body: JSON.stringify({ hotelId, name: guestName, phone: guestPhone })
-  });
-  if (!guestRes?.success) { toast('Guest save failed: ' + (guestRes?.error || 'Unknown'), 'error'); return; }
-
   const roomTypeId = await findRoomTypeId(roomTypeName);
   if (!roomTypeId) { toast('Room type not found. Add room types first.', 'error'); return; }
 
@@ -2640,7 +2634,8 @@ async function createBooking() {
     method: 'POST',
     body: JSON.stringify({
       hotelId,
-      guestId: guestRes.data.id,
+      guestName,
+      guestPhone,
       agentId,
       roomTypeId,
       checkinDate,

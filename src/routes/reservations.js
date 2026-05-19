@@ -55,6 +55,95 @@ router.get('/availability/check', async (req, res) => {
   }
 });
 
+// -- POST /api/reservations/direct - create from dashboard -------
+router.post('/direct', async (req, res) => {
+  try {
+    const {
+      hotelId, guestId, guestName, guestPhone, guestEmail, agentId, roomTypeId,
+      seasonId, checkinDate, checkoutDate, roomsCount, plan,
+      ratePerNight, source, specialRequests
+    } = req.body;
+
+    if (!hotelId) return res.status(400).json({ error: 'hotelId required' });
+    if (!roomTypeId) return res.status(400).json({ error: 'roomTypeId required' });
+    if (!checkinDate || !checkoutDate) return res.status(400).json({ error: 'Check-in and checkout dates are required' });
+
+    let resolvedGuestId = guestId || null;
+    if (!resolvedGuestId && (guestName || guestPhone)) {
+      const existingGuest = guestPhone
+        ? await db.query(
+            'SELECT id FROM guests WHERE hotel_id = $1 AND phone = $2 LIMIT 1',
+            [hotelId, guestPhone]
+          )
+        : { rows: [] };
+
+      if (existingGuest.rows[0]) {
+        resolvedGuestId = existingGuest.rows[0].id;
+        if (guestName) {
+          await db.query(
+            'UPDATE guests SET name = $1, email = COALESCE($2, email) WHERE id = $3',
+            [guestName.trim(), guestEmail || null, resolvedGuestId]
+          );
+        }
+      } else if (guestName) {
+        const newGuest = await db.query(
+          'INSERT INTO guests (hotel_id, name, phone, email, created_at) VALUES ($1,$2,$3,$4,NOW()) RETURNING id',
+          [hotelId, guestName.trim(), guestPhone || null, guestEmail || null]
+        );
+        resolvedGuestId = newGuest.rows[0].id;
+      }
+    }
+
+    const reservation = await Reservation.createReservation({
+      hotelId,
+      agentId: agentId || null,
+      guestId: resolvedGuestId,
+      roomTypeId,
+      seasonId: seasonId || null,
+      checkinDate,
+      checkoutDate,
+      roomsCount: parseInt(roomsCount, 10) || 1,
+      plan: plan || 'EP',
+      ratePerNight: parseFloat(ratePerNight) || 0,
+      source: source || 'walk_in',
+      specialRequests
+    });
+
+    try {
+      const BOT_URL = process.env.BOT_URL || 'https://hotelease-pms.onrender.com/api/reservations';
+      const axios = require('axios');
+
+      if (resolvedGuestId) {
+        const guestData = await db.query(
+          'SELECT g.phone, g.name, h.name as hotel_name, h.wifi_name FROM guests g JOIN hotels h ON h.id = $1 WHERE g.id = $2',
+          [hotelId, resolvedGuestId]
+        );
+        const guest = guestData.rows[0];
+        if (guest?.phone) {
+          const phone = guest.phone.replace(/^\+/, '').replace(/\s/g, '');
+          await axios.post(BOT_URL + '/send-optin', {
+            phone,
+            guestName: guest.name,
+            hotelName: guest.hotel_name,
+            reservationId: reservation.id,
+            checkout: new Date(checkoutDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+            plan: plan || 'EP',
+            wifi: guest.wifi_name || process.env.WIFI_NAME || 'Ask reception'
+          });
+          console.log('Opt-in request sent to', phone);
+        }
+      }
+    } catch (optinErr) {
+      console.error('Opt-in send error:', optinErr.message);
+    }
+
+    res.status(201).json({ success: true, data: reservation });
+  } catch (err) {
+    console.error('Direct booking error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/reservations/:id — get single reservation ────────
 router.get('/:id', async (req, res) => {
   try {
@@ -416,64 +505,6 @@ router.post('/:id/assign-room', async (req, res) => {
 
     res.json({ success: true, message: 'Room assigned successfully' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── POST /api/reservations/direct — create from dashboard ─────
-router.post('/direct', async (req, res) => {
-  try {
-    const {
-      hotelId, guestId, agentId, roomTypeId, seasonId,
-      checkinDate, checkoutDate, roomsCount, plan,
-      ratePerNight, source, specialRequests
-    } = req.body;
-
-    const { createReservation } = require('../models/reservation');
-    const reservation = await createReservation({
-      hotelId, agentId: agentId || null, guestId: guestId || null,
-      roomTypeId, seasonId: seasonId || null,
-      checkinDate, checkoutDate,
-      roomsCount: parseInt(roomsCount) || 1,
-      plan: plan || 'EP',
-      ratePerNight: parseFloat(ratePerNight) || 0,
-      source: source || 'walk_in',
-      specialRequests
-    });
-
-    // Send opt-in request to guest via bot
-    try {
-      const BOT_URL = process.env.BOT_URL || 'https://hotelease-pms.onrender.com/api/reservations';
-      const axios = require('axios');
-
-      // Get guest phone and hotel details
-      if (guestId) {
-        const guestData = await db.query(
-          'SELECT g.phone, g.name, h.name as hotel_name, h.wifi_name FROM guests g JOIN hotels h ON h.id = $1 WHERE g.id = $2',
-          [hotelId, guestId]
-        );
-        const guest = guestData.rows[0];
-        if (guest?.phone) {
-          const phone = guest.phone.replace(/^\+/, '').replace(/\s/g, '');
-          await axios.post(BOT_URL + '/send-optin', {
-            phone,
-            guestName: guest.name,
-            hotelName: guest.hotel_name,
-            reservationId: reservation.id,
-            checkout: new Date(checkoutDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-            plan: plan || 'EP',
-            wifi: guest.wifi_name || process.env.WIFI_NAME || 'Ask reception'
-          });
-          console.log('Opt-in request sent to', phone);
-        }
-      }
-    } catch (optinErr) {
-      console.error('Opt-in send error:', optinErr.message);
-    }
-
-    res.status(201).json({ success: true, data: reservation });
-  } catch (err) {
-    console.error('Direct booking error:', err);
     res.status(500).json({ error: err.message });
   }
 });
