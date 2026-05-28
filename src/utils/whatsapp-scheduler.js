@@ -8,10 +8,26 @@ const HEADERS = {
   'Content-Type': 'application/json',
 };
 
+function normalizePhone(to) {
+  return String(to || '').replace(/^\+/, '').replace(/\s/g, '');
+}
+
+function whatsappError(err) {
+  const meta = err.response?.data;
+  if (meta?.error?.message) return meta.error.message;
+  if (meta) return JSON.stringify(meta);
+  return err.message;
+}
+
 async function sendWAMessage(to, text) {
-  const phone = to.replace(/^\+/, '').replace(/\s/g, '');
+  const phone = normalizePhone(to);
+  if (!phone) throw new Error('Guest phone is missing');
+  if (!process.env.WA_PHONE_NUMBER_ID || !process.env.WA_ACCESS_TOKEN) {
+    throw new Error('WhatsApp credentials are missing');
+  }
+
   try {
-    await axios.post(WA_URL, {
+    const result = await axios.post(WA_URL, {
       messaging_product: 'whatsapp',
       recipient_type: 'individual',
       to: phone,
@@ -19,14 +35,23 @@ async function sendWAMessage(to, text) {
       text: { body: text, preview_url: false },
     }, { headers: HEADERS });
     console.log(`OK WA sent to ${phone}`);
+    return result.data;
   } catch (err) {
-    console.error(`FAIL WA failed to ${phone}:`, err.response?.data || err.message);
+    const message = whatsappError(err);
+    console.error(`FAIL WA failed to ${phone}:`, message);
+    throw new Error(message);
   }
 }
 
 // -- Send using approved Meta template -------------------------
 async function sendWATemplate(to, templateName, components) {
-  const phone = to.replace(/^\+/, '').replace(/\s/g, '');
+  const phone = normalizePhone(to);
+  if (!phone) throw new Error('Guest phone is missing');
+  if (!templateName) throw new Error('WhatsApp template name is missing');
+  if (!process.env.WA_PHONE_NUMBER_ID || !process.env.WA_ACCESS_TOKEN) {
+    throw new Error('WhatsApp credentials are missing');
+  }
+
   try {
     const payload = {
       messaging_product: 'whatsapp',
@@ -41,11 +66,38 @@ async function sendWATemplate(to, templateName, components) {
     };
     const res = await axios.post(WA_URL, payload, { headers: HEADERS });
     console.log('OK Template sent to ' + phone + ':', res.data?.messages?.[0]?.id);
-    return true;
+    return res.data;
   } catch (err) {
-    console.error('FAIL Template failed to ' + phone + ':', JSON.stringify(err.response?.data || err.message));
-    return false;
+    const message = whatsappError(err);
+    console.error('FAIL Template failed to ' + phone + ':', message);
+    throw new Error(message);
   }
+}
+
+function templateComponents(values, order) {
+  return [{
+    type: 'body',
+    parameters: order.map(key => ({ type: 'text', text: String(values[key] ?? '') }))
+  }];
+}
+
+function templateOrder(envName, defaults) {
+  return (process.env[envName] || defaults.join(','))
+    .split(',')
+    .map(key => key.trim())
+    .filter(Boolean);
+}
+
+function formatDate(date) {
+  return new Date(date).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
+}
+
+function formatPlan(plan) {
+  return plan === 'CP' ? 'CP - With Breakfast' :
+         plan === 'MAP' ? 'MAP - Breakfast and Dinner' :
+         'EP - Room Only';
 }
 
 // ── Send check-in messages ────────────────────────────────────
@@ -61,24 +113,13 @@ async function sendCheckinMessages() {
         continue;
       }
 
-      const msg =
-        `Welcome to ${hotel.name}! 🏨\n\n` +
-        `Dear ${res.guest_name || 'Guest'},\n\n` +
-        `Your check-in details:\n` +
-        `🛏 Room type: ${res.room_type_name}\n` +
-        `📅 Check-out: ${new Date(res.checkout_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}\n` +
-        `🍽 Meal plan: ${res.plan}\n\n` +
-        `Hotel info:\n` +
-        `📶 WiFi: ${process.env.WIFI_NAME || 'Ask reception'}\n` +
-        `🍳 Breakfast: 7:30 AM – 10:00 AM\n` +
-        `🍽 Restaurant: 12:00 PM – 10:30 PM\n` +
-        `📞 Reception: Dial 0 from room\n\n` +
-        `We hope you have a wonderful stay! 🙏`;
-
-      await sendWAMessage(res.guest_phone, msg);
-
-      // Update status to checked_in
-      await Reservation.updateStatus(res.id, 'checked_in');
+      try {
+        await sendInstantCheckin(res.id);
+        // Update status to checked_in only after WhatsApp succeeds.
+        await Reservation.updateStatus(res.id, 'checked_in');
+      } catch (err) {
+        console.error(`Check-in send failed for ${res.reservation_no}:`, err.message);
+      }
     }
   }
 }
@@ -93,22 +134,11 @@ async function sendCheckoutMessages() {
     for (const res of checkouts) {
       if (!res.guest_phone) continue;
 
-      // Generate bill
-      const bill = await Reservation.generateBill(res.id);
-
-      const msg =
-        `Dear ${res.guest_name || 'Guest'},\n\n` +
-        `Thank you for staying at ${hotel.name}! 🙏\n\n` +
-        `Bill summary:\n` +
-        `🛏 ${res.room_type_name} × ${res.rooms_count} room${res.rooms_count > 1 ? 's' : ''} × ${res.nights} nights\n` +
-        `💰 Room charges: ₹${bill.room_charges.toLocaleString()}\n` +
-        (bill.extra_charges > 0 ? `➕ Extra charges: ₹${bill.extra_charges.toLocaleString()}\n` : '') +
-        `📊 GST (${bill.gst_rate}%): ₹${Math.round(bill.gst_amount).toLocaleString()}\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `💳 Total: ₹${Math.round(bill.total).toLocaleString()}\n\n` +
-        `We hope to see you again soon! 😊`;
-
-      await sendWAMessage(res.guest_phone, msg);
+      try {
+        await sendInstantCheckout(res.id);
+      } catch (err) {
+        console.error(`Check-out send failed for ${res.reservation_no}:`, err.message);
+      }
     }
   }
 }
@@ -139,7 +169,11 @@ async function sendReviewRequests() {
         `⭐ Google Review:\n${process.env.GOOGLE_REVIEW_LINK || 'https://g.page/r/review'}\n\n` +
         `Thank you for choosing us! We look forward to welcoming you again. 🙏`;
 
-      await sendWAMessage(res.guest_phone, msg);
+      try {
+        await sendWAMessage(res.guest_phone, msg);
+      } catch (err) {
+        console.error(`Review request send failed for ${res.id}:`, err.message);
+      }
     }
   }
 }
@@ -164,48 +198,38 @@ async function sendInstantCheckin(reservationId) {
     GROUP BY r.id, g.name, g.phone, rt.name, h.name, h.phone, h.city, h.wifi_name, h.breakfast_time, h.checkout_time
   `, [reservationId]);
 
-  if (!res.rows[0]) return;
+  if (!res.rows[0]) throw new Error('Reservation not found');
   const booking = res.rows[0];
 
   if (!booking.guest_phone) {
-    console.log(`No guest phone for reservation ${reservationId}`);
-    return;
+    throw new Error(`No guest phone for reservation ${reservationId}`);
   }
 
-  const checkoutDate = new Date(booking.checkout_date).toLocaleDateString('en-IN', {
-    day: 'numeric', month: 'short', year: 'numeric'
-  });
+  const checkoutDate = formatDate(booking.checkout_date);
 
   const rooms = booking.room_numbers ? `Room ${booking.room_numbers}` : booking.room_type_name;
 
-  // Use approved template: hotel_checkin
-  // Variables: {{1}}=hotel name, {{2}}=guest name, {{3}}=room,
-  //            {{4}}=checkout date, {{5}}=plan, {{6}}=wifi
   const wifi = booking.wifi_name || process.env.WIFI_NAME || 'Ask reception';
-  const plan = booking.plan === 'CP' ? 'CP - With Breakfast' :
-               booking.plan === 'MAP' ? 'MAP - Breakfast and Dinner' :
-               'EP - Room Only';
+  const plan = formatPlan(booking.plan);
 
-  const components = [{
-    type: 'body',
-    parameters: [
-      { type: 'text', text: booking.hotel_name || 'Hotel' },
-      { type: 'text', text: booking.guest_name || 'Guest' },
-      { type: 'text', text: rooms },
-      { type: 'text', text: checkoutDate },
-      { type: 'text', text: plan },
-      { type: 'text', text: wifi }
-    ]
-  }];
+  const values = {
+    hotelName: booking.hotel_name || 'Hotel',
+    guestName: booking.guest_name || 'Guest',
+    room: rooms,
+    checkoutDate,
+    plan,
+    wifi
+  };
 
-  const sent = await sendWATemplate(booking.guest_phone, 'hotel_checkin', components);
-  if (sent) {
-    console.log('Instant check-in template sent to ' + booking.guest_phone);
-  } else {
-    // Fallback to text message
-    const msg = 'Welcome to ' + booking.hotel_name + '!\n\nDear ' + (booking.guest_name || 'Guest') + ',\n\nYou are now checked in.\nRoom: ' + rooms + '\nCheck-out: ' + checkoutDate + '\nPlan: ' + booking.plan + '\nWiFi: ' + wifi + '\n\nEnjoy your stay!';
-    await sendWAMessage(booking.guest_phone, msg);
-  }
+  const templateName = process.env.WA_CHECKIN_TEMPLATE || process.env.CHECKIN_TEMPLATE_NAME || 'hotel_checkin';
+  const components = templateComponents(
+    values,
+    templateOrder('WA_CHECKIN_TEMPLATE_PARAMS', ['hotelName', 'guestName', 'room', 'checkoutDate', 'plan', 'wifi'])
+  );
+
+  const result = await sendWATemplate(booking.guest_phone, templateName, components);
+  console.log('Instant check-in template sent to ' + booking.guest_phone);
+  return { success: true, phone: normalizePhone(booking.guest_phone), template: templateName, meta: result };
 }
 
 // ── Instant checkout message (fires immediately) ──────────────
@@ -221,27 +245,32 @@ async function sendInstantCheckout(reservationId) {
     WHERE r.id = $1
   `, [reservationId]);
 
-  if (!res.rows[0]) return;
+  if (!res.rows[0]) throw new Error('Reservation not found');
   const booking = res.rows[0];
-  if (!booking.guest_phone) return;
+  if (!booking.guest_phone) throw new Error(`No guest phone for reservation ${reservationId}`);
 
   const bill = await require('../models/reservation').generateBill(reservationId);
 
-  const msg =
-    `Dear ${booking.guest_name || 'Guest'},\n\n` +
-    `Thank you for staying at ${booking.hotel_name}! 🙏\n\n` +
-    `Your bill summary:\n` +
-    `🛏 ${booking.room_type_name} x ${booking.rooms_count} x ${booking.nights} nights\n` +
-    `💰 Room charges: Rs.${Math.round(bill.room_charges).toLocaleString()}\n` +
-    (bill.extra_charges > 0 ? `➕ Extra charges: Rs.${Math.round(bill.extra_charges).toLocaleString()}\n` : '') +
-    `🧾 GST (${bill.gst_rate}%): Rs.${Math.round(bill.gst_amount).toLocaleString()}\n` +
-    `━━━━━━━━━━━━━━━\n` +
-    `Total: Rs.${Math.round(bill.total).toLocaleString()}\n\n` +
-    `We hope to see you again! 😊\n` +
-    (booking.google_review_link ? `\nPlease share your experience:\n${booking.google_review_link}` : '');
+  const values = {
+    guestName: booking.guest_name || 'Guest',
+    hotelName: booking.hotel_name || 'Hotel',
+    roomType: booking.room_type_name || 'Room',
+    roomCharges: Math.round(bill.room_charges).toLocaleString('en-IN'),
+    extraCharges: Math.round(bill.extra_charges || 0).toLocaleString('en-IN'),
+    gst: Math.round(bill.gst_amount).toLocaleString('en-IN'),
+    total: Math.round(bill.total).toLocaleString('en-IN'),
+    reviewLink: booking.google_review_link || process.env.GOOGLE_REVIEW_LINK || 'Not available'
+  };
 
-  await sendWAMessage(booking.guest_phone, msg);
-  console.log(`✓ Instant checkout message sent to ${booking.guest_phone}`);
+  const templateName = process.env.WA_CHECKOUT_TEMPLATE || process.env.CHECKOUT_TEMPLATE_NAME || 'hotel_checkout';
+  const components = templateComponents(
+    values,
+    templateOrder('WA_CHECKOUT_TEMPLATE_PARAMS', ['guestName', 'hotelName', 'roomCharges', 'gst', 'total', 'reviewLink'])
+  );
+
+  const result = await sendWATemplate(booking.guest_phone, templateName, components);
+  console.log(`✓ Instant checkout template sent to ${booking.guest_phone}`);
+  return { success: true, phone: normalizePhone(booking.guest_phone), template: templateName, meta: result };
 }
 
 module.exports = {
@@ -250,5 +279,6 @@ module.exports = {
   sendReviewRequests,
   sendInstantCheckin,
   sendInstantCheckout,
-  sendWAMessage
+  sendWAMessage,
+  sendWATemplate
 };

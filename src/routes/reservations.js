@@ -1,9 +1,21 @@
 const express = require('express');
-const { sendInstantCheckin, sendInstantCheckout } = require('../utils/whatsapp-scheduler');
+const { sendInstantCheckin, sendInstantCheckout, sendWATemplate } = require('../utils/whatsapp-scheduler');
 const router = express.Router();
 const Reservation = require('../models/reservation');
 const RatesModel = require('../models/rates');
 const db = require('../config/database');
+
+function templateComponents(values, envName, defaults) {
+  const order = (process.env[envName] || defaults.join(','))
+    .split(',')
+    .map(key => key.trim())
+    .filter(Boolean);
+
+  return [{
+    type: 'body',
+    parameters: order.map(key => ({ type: 'text', text: String(values[key] ?? '') }))
+  }];
+}
 
 // ── GET /api/reservations — get all reservations ──────────────
 router.get('/', async (req, res) => {
@@ -255,74 +267,29 @@ router.patch('/:id/status', async (req, res) => {
     }
     const reservation = await Reservation.updateStatus(req.params.id, status);
 
-    // Send WhatsApp via bot service
+    // Send WhatsApp through approved Meta templates.
     let waStatus = null;
-    const BOT_URL = process.env.BOT_URL || 'https://hotelease-pms.onrender.com/api/reservations';
 
     if (status === 'checked_in' || status === 'checked_out') {
       try {
-        // Get reservation details
-        const resDetails = await db.query(`
-          SELECT r.*, g.name as guest_name, g.phone as guest_phone,
-                 rt.name as room_type_name, h.name as hotel_name,
-                 h.wifi_name, h.google_review_link,
-                 STRING_AGG(rm.room_number, ', ' ORDER BY rm.room_number) as room_numbers
-          FROM reservations r
-          LEFT JOIN guests g ON r.guest_id = g.id
-          LEFT JOIN room_types rt ON r.room_type_id = rt.id
-          LEFT JOIN hotels h ON r.hotel_id = h.id
-          LEFT JOIN reservation_rooms rr ON r.id = rr.reservation_id
-          LEFT JOIN rooms rm ON rr.room_id = rm.id
-          WHERE r.id = $1
-          GROUP BY r.id, g.name, g.phone, rt.name, h.name, h.wifi_name, h.google_review_link
-        `, [req.params.id]);
+        const waResult = status === 'checked_in'
+          ? await sendInstantCheckin(req.params.id)
+          : await sendInstantCheckout(req.params.id);
 
-        const res2 = resDetails.rows[0];
-        if (res2?.guest_phone) {
-          const phone = res2.guest_phone.replace(/^\+/, '').replace(/\s/g, '');
-          const nights = res2.nights || 1;
-          const rooms = res2.rooms_count || 1;
-          const rate = parseFloat(res2.rate_per_night || 0);
-          const roomCharges = Math.round(rate * rooms * nights);
-          const gstRate = rate >= 7500 ? 18 : 12;
-          const gstAmount = Math.round(roomCharges * gstRate / 100);
-          const total = roomCharges + gstAmount;
-
-          const checkoutDate = new Date(res2.checkout_date).toLocaleDateString('en-IN', {
-            day: 'numeric', month: 'short', year: 'numeric'
-          });
-
-          const axios = require('axios');
-
-          if (status === 'checked_in') {
-            await axios.post(BOT_URL + '/send-checkin', {
-              phone,
-              guestName: res2.guest_name || 'Guest',
-              hotelName: res2.hotel_name || 'Hotel',
-              room: res2.room_numbers ? 'Room ' + res2.room_numbers : res2.room_type_name,
-              checkout: checkoutDate,
-              plan: res2.plan === 'CP' ? 'CP - With Breakfast' :
-                    res2.plan === 'MAP' ? 'MAP - Breakfast and Dinner' : 'EP - Room Only',
-              wifi: res2.wifi_name || process.env.WIFI_NAME || 'Ask reception'
-            });
-            waStatus = 'checkin_sent';
-          } else {
-            await axios.post(BOT_URL + '/send-checkout', {
-              phone,
-              guestName: res2.guest_name || 'Guest',
-              hotelName: res2.hotel_name || 'Hotel',
-              roomCharges: roomCharges.toLocaleString(),
-              gst: gstAmount.toLocaleString(),
-              total: total.toLocaleString(),
-              reviewLink: res2.google_review_link || ''
-            });
-            waStatus = 'checkout_sent';
-          }
-          console.log('WhatsApp ' + status + ' message sent via bot to', phone);
-        }
+        waStatus = {
+          success: true,
+          status: status === 'checked_in' ? 'checkin_sent' : 'checkout_sent',
+          phone: waResult.phone,
+          template: waResult.template
+        };
       } catch (err) {
-        waStatus = 'failed: ' + err.message;
         console.error('WhatsApp error:', err.message);
+        return res.status(502).json({
+          success: false,
+          error: 'Status updated, but WhatsApp failed: ' + err.message,
+          data: reservation,
+          whatsapp: { success: false, error: err.message }
+        });
       }
     }
 
@@ -572,31 +539,15 @@ router.post('/test-whatsapp-raw', async (req, res) => {
 router.post('/send-checkin', async (req, res) => {
   try {
     const { phone, guestName, hotelName, room, checkout, plan, wifi } = req.body;
-    const axios = require('axios');
-    const msg =
-      `Welcome to ${hotelName}!\n\n` +
-      `Dear ${guestName},\n\n` +
-      `You are now checked in. Here are your details:\n\n` +
-      `Room: ${room}\n` +
-      `Check-out: ${checkout}\n` +
-      `Plan: ${plan}\n` +
-      `WiFi: ${wifi}\n\n` +
-      `For assistance please call reception.\n\n` +
-      `We wish you a wonderful stay!\n` +
-      `Team ${hotelName}`;
-
-    await axios.post(
-      `https://graph.facebook.com/v25.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
-      {
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: phone.replace(/^\+/, '').replace(/\s/g, ''),
-        type: 'text',
-        text: { body: msg }
-      },
-      { headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`, 'Content-Type': 'application/json' } }
+    const templateName = process.env.WA_CHECKIN_TEMPLATE || process.env.CHECKIN_TEMPLATE_NAME || 'hotel_checkin';
+    const components = templateComponents(
+      { hotelName, guestName, room, checkoutDate: checkout, plan, wifi },
+      'WA_CHECKIN_TEMPLATE_PARAMS',
+      ['hotelName', 'guestName', 'room', 'checkoutDate', 'plan', 'wifi']
     );
-    res.json({ success: true, message: 'Check-in message sent to ' + phone });
+
+    await sendWATemplate(phone, templateName, components);
+    res.json({ success: true, message: 'Check-in template sent to ' + phone, template: templateName });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -606,29 +557,15 @@ router.post('/send-checkin', async (req, res) => {
 router.post('/send-checkout', async (req, res) => {
   try {
     const { phone, guestName, hotelName, roomCharges, gst, total, reviewLink } = req.body;
-    const axios = require('axios');
-    const msg =
-      `Dear ${guestName},\n\n` +
-      `Thank you for staying at ${hotelName}!\n\n` +
-      `Bill summary:\n` +
-      `Room charges: Rs.${roomCharges}\n` +
-      `GST: Rs.${gst}\n` +
-      `Total: Rs.${total}\n\n` +
-      `We hope to see you again!\n` +
-      (reviewLink ? `\nPlease share your experience:\n${reviewLink}` : '');
-
-    await axios.post(
-      `https://graph.facebook.com/v25.0/${process.env.WA_PHONE_NUMBER_ID}/messages`,
-      {
-        messaging_product: 'whatsapp',
-        recipient_type: 'individual',
-        to: phone.replace(/^\+/, '').replace(/\s/g, ''),
-        type: 'text',
-        text: { body: msg }
-      },
-      { headers: { Authorization: `Bearer ${process.env.WA_ACCESS_TOKEN}`, 'Content-Type': 'application/json' } }
+    const templateName = process.env.WA_CHECKOUT_TEMPLATE || process.env.CHECKOUT_TEMPLATE_NAME || 'hotel_checkout';
+    const components = templateComponents(
+      { guestName, hotelName, roomCharges, gst, total, reviewLink: reviewLink || 'Not available' },
+      'WA_CHECKOUT_TEMPLATE_PARAMS',
+      ['guestName', 'hotelName', 'roomCharges', 'gst', 'total', 'reviewLink']
     );
-    res.json({ success: true, message: 'Checkout message sent to ' + phone });
+
+    await sendWATemplate(phone, templateName, components);
+    res.json({ success: true, message: 'Checkout template sent to ' + phone, template: templateName });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

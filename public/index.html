@@ -1369,6 +1369,172 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
   </div>
 </div>
 
+<!-- ── CHATS PAGE ── -->
+<div class="page" id="page-chats">
+  <div style="display:flex;height:calc(100vh - 60px);overflow:hidden">
+    <!-- Left: Chat List -->
+    <div style="width:300px;min-width:300px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;background:#fff">
+      <div style="padding:12px;border-bottom:1px solid #e5e7eb">
+        <div style="background:#f3f4f6;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px">
+          <span style="color:#9ca3af">🔍</span>
+          <input id="chat-search" placeholder="Search room or guest..." oninput="filterChats(this.value)"
+            style="background:none;border:none;outline:none;font-size:13px;width:100%;color:#111827">
+        </div>
+      </div>
+      <div style="display:flex;border-bottom:1px solid #e5e7eb">
+        <button onclick="filterChatTab('all',this)" class="chat-tab" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:#fff;cursor:pointer;border-bottom:2px solid #1a6fdb;color:#1a6fdb">All</button>
+        <button onclick="filterChatTab('checked_in',this)" class="chat-tab" style="flex:1;padding:10px;font-size:12px;font-weight:500;border:none;background:#fff;cursor:pointer;border-bottom:2px solid transparent;color:#6b7280">In-House</button>
+        <button onclick="filterChatTab('tasks',this)" class="chat-tab" style="flex:1;padding:10px;font-size:12px;font-weight:500;border:none;background:#fff;cursor:pointer;border-bottom:2px solid transparent;color:#6b7280">Tasks</button>
+      </div>
+      <div id="chat-list" style="flex:1;overflow-y:auto"></div>
+    </div>
+
+    <!-- Right: Chat Window -->
+    <div style="flex:1;display:flex;flex-direction:column;background:#f9fafb">
+      <div id="chat-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9ca3af">
+        <div style="font-size:48px;margin-bottom:16px">💬</div>
+        <div style="font-size:16px;font-weight:600;color:#374151">Guest Chats</div>
+        <div style="font-size:13px;margin-top:6px">Select a guest to view their service requests and tasks</div>
+      </div>
+      <div id="chat-window" style="display:none;flex-direction:column;height:100%">
+        <div style="padding:14px 20px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px">
+          <div id="chat-avatar" style="width:40px;height:40px;border-radius:50%;background:#e8f0fc;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#1a6fdb;flex-shrink:0">G</div>
+          <div style="flex:1">
+            <div id="chat-guest-name" style="font-size:14px;font-weight:600;color:#111827">Guest</div>
+            <div id="chat-room-info" style="font-size:12px;color:#6b7280">Room —</div>
+          </div>
+          <span id="chat-status-badge" style="font-size:11px;padding:4px 10px;border-radius:100px;background:#dcfce7;color:#16a34a;font-weight:500">Checked In</span>
+          <button onclick="loadChatMessages(currentChatPhone, currentChatGuest, currentChatRoom)" style="padding:6px 12px;background:#f3f4f6;border:none;border-radius:6px;font-size:12px;cursor:pointer">🔄 Refresh</button>
+        </div>
+        <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+        <div style="padding:12px 16px;background:#fff;border-top:1px solid #e5e7eb">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="chat-msg-input" placeholder="Send a message to guest via WhatsApp..."
+              style="flex:1;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;font-family:inherit"
+              onkeypress="if(event.key==='Enter') sendStaffMessage()">
+            <button onclick="sendStaffMessage()" style="padding:10px 18px;background:#1a6fdb;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BUSINESS OVERVIEW PAGE ── -->
+<div class="page" id="page-overview">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+    <div>
+      <h2 style="font-size:1.4rem;font-weight:700;color:#111827">Business Overview</h2>
+      <div style="font-size:12px;color:#6b7280;margin-top:2px" id="overview-date">Today</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <select id="overview-period" onchange="loadOverview()" class="form-select" style="width:auto;padding:8px 12px;font-size:12px">
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+      </select>
+      <button onclick="loadOverview()" style="padding:8px 16px;background:#1a6fdb;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:500">🔄 Refresh</button>
+    </div>
+  </div>
+
+  <!-- Top Stats Row -->
+  <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.5rem">
+    <div class="metric-card" style="border-left:4px solid #1a6fdb">
+      <div class="metric-label">Total Tasks</div>
+      <div class="metric-value" id="ov-total-tasks">—</div>
+      <div class="metric-sub neutral" id="ov-tasks-sub">Loading...</div>
+    </div>
+    <div class="metric-card" style="border-left:4px solid #16a34a">
+      <div class="metric-label">Completed</div>
+      <div class="metric-value" style="color:#16a34a" id="ov-done-tasks">—</div>
+      <div class="metric-sub neutral" id="ov-done-sub">on time</div>
+    </div>
+    <div class="metric-card" style="border-left:4px solid #dc2626">
+      <div class="metric-label">Overdue / Escalated</div>
+      <div class="metric-value" style="color:#dc2626" id="ov-overdue-tasks">—</div>
+      <div class="metric-sub neutral">took &gt;5 min</div>
+    </div>
+    <div class="metric-card" style="border-left:4px solid #f59e0b">
+      <div class="metric-label">Avg Completion Time</div>
+      <div class="metric-value" style="color:#f59e0b" id="ov-avg-time">—</div>
+      <div class="metric-sub neutral">minutes</div>
+    </div>
+  </div>
+
+  <!-- Guest Satisfaction + Department Breakdown -->
+  <div class="grid-2" style="gap:1.5rem;margin-bottom:1.5rem">
+
+    <!-- Guest Satisfaction -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">⭐ Guest Satisfaction</span>
+        <span class="panel-action" onclick="loadOverview()">Refresh</span>
+      </div>
+      <div class="panel-body" style="padding:1.25rem">
+        <!-- Rating summary -->
+        <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.25rem">
+          <div style="text-align:center">
+            <div style="font-size:3rem;font-weight:700;color:#111827;line-height:1" id="ov-avg-rating">—</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:4px">out of 5</div>
+            <div style="font-size:18px;margin-top:4px" id="ov-rating-stars">⭐⭐⭐⭐⭐</div>
+          </div>
+          <div style="flex:1">
+            <div id="ov-rating-bars"></div>
+          </div>
+        </div>
+        <!-- Feedback list -->
+        <div style="border-top:1px solid #e5e7eb;padding-top:1rem">
+          <div style="font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Recent Feedback</div>
+          <div id="ov-feedback-list">
+            <div class="empty-state">No feedback yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Department Breakdown -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">📊 Department Performance</span>
+      </div>
+      <div class="panel-body" style="padding:1.25rem">
+        <div id="ov-dept-breakdown">
+          <div class="empty-state">No tasks yet</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Recent Tasks Table -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">📋 Recent Service Requests</span>
+      <span class="panel-action" onclick="loadOverview()">Refresh</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table" style="width:100%">
+        <thead>
+          <tr>
+            <th>Task ID</th>
+            <th>Room</th>
+            <th>Guest</th>
+            <th>Service</th>
+            <th>Department</th>
+            <th>Created</th>
+            <th>Time Taken</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="ov-tasks-table">
+          <tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
 <!-- ── MODALS ── -->
 
 <!-- New Reservation Modal -->
@@ -1470,7 +1636,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('checkout')">Cancel</button>
-      <button class="btn btn-outline" onclick="alert('Bill sent on WhatsApp! 📱')">Send on WhatsApp</button>
+      <button class="btn btn-outline" onclick="completeCheckout()">Send on WhatsApp</button>
       <button class="btn btn-gold" onclick="completeCheckout()">Confirm Checkout</button>
     </div>
   </div>
@@ -1554,6 +1720,8 @@ function showPage(name) {
   document.querySelector(`[onclick="showPage('${name}')"]`)?.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[name] || name;
   if (name === 'dashboard') loadDashboard();
+  if (name === 'chats') loadChats();
+  if (name === 'overview') loadOverview();
   if (name === 'rooms') renderRoomMap();
   if (name === 'reservations') loadReservations();
   if (name === 'checkin') loadCheckins();
@@ -1588,8 +1756,12 @@ async function loadDashboard() {
   if (!data?.success) return;
   const d = data.data;
   const metrics = document.querySelectorAll('#page-dashboard .metric-value');
-  if (metrics[0]) metrics[0].textContent = Math.round(d.occupancy?.occupancyPct || 0) + '%';
-  if (metrics[1]) metrics[1].textContent = d.occupancy?.availableRooms ?? '—';
+  const totalRooms = Number(d.occupancy?.totalRooms || 0);
+  const occupiedRooms = Number(d.occupancy?.occupiedRooms || 0);
+  const availableRooms = Math.max(totalRooms - occupiedRooms, 0);
+  const occupancyPct = d.occupancy?.occupancyPct ?? d.occupancy?.percentage ?? 0;
+  if (metrics[0]) metrics[0].textContent = Math.round(occupancyPct) + '%';
+  if (metrics[1]) metrics[1].textContent = availableRooms || '0';
   if (metrics[2]) metrics[2].textContent = '₹' + (d.revenue?.total || 0).toLocaleString();
   if (metrics[3]) metrics[3].textContent = d.newBookings || 0;
 }
@@ -1644,14 +1816,14 @@ function viewBooking(id) { toast('Opening booking ' + id + '...', 'info'); }
 async function quickCheckin(id) {
   if (!confirm('Confirm check-in for this booking?')) return;
   const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_in' }) });
-  if (res?.success) { toast('Guest checked in! WhatsApp message sent.'); loadReservations(); }
+  if (res?.success && res?.whatsapp?.success !== false) { toast(`Guest checked in! Template sent${res.whatsapp?.template ? ': ' + res.whatsapp.template : ''}.`); loadReservations(); }
   else toast('Check-in failed: ' + (res?.error || 'Unknown'), 'error');
 }
 
 async function quickCheckout(id, name) {
   if (!confirm(`Checkout ${name}?`)) return;
   const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_out' }) });
-  if (res?.success) { toast('Checked out! Bill sent on WhatsApp.'); loadReservations(); }
+  if (res?.success && res?.whatsapp?.success !== false) { toast(`Checked out! Template sent${res.whatsapp?.template ? ': ' + res.whatsapp.template : ''}.`); loadReservations(); }
   else toast('Checkout failed: ' + (res?.error || 'Unknown'), 'error');
 }
 
@@ -1698,7 +1870,7 @@ async function loadCheckins() {
 async function doCheckin(id) {
   if (!confirm('Confirm check-in?')) return;
   const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_in' }) });
-  if (res?.success) { toast('Guest checked in! WhatsApp message sent.'); loadCheckins(); }
+  if (res?.success && res?.whatsapp?.success !== false) { toast(`Guest checked in! Template sent${res.whatsapp?.template ? ': ' + res.whatsapp.template : ''}.`); loadCheckins(); }
   else toast('Failed: ' + (res?.error||'Unknown'), 'error');
 }
 
@@ -1736,12 +1908,13 @@ async function loadCheckouts() {
 async function openCheckoutBill(id, guest, total, balance) {
   if (!confirm(`Checkout ${guest}?\nBalance to collect: ₹${balance.toLocaleString()}`)) return;
   const res = await apiFetch(`/api/reservations/${id}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_out' }) });
-  if (res?.success) { toast('Checkout complete! Bill sent on WhatsApp.'); loadCheckouts(); }
+  if (res?.success && res?.whatsapp?.success !== false) { toast(`Checkout complete! Template sent${res.whatsapp?.template ? ': ' + res.whatsapp.template : ''}.`); loadCheckouts(); }
   else toast('Failed: ' + (res?.error||'Unknown'), 'error');
 }
 function filterCheckouts(q) { loadCheckouts(); }
 function filterCheckoutDate(v) { loadCheckouts(); }
-function doCheckout(id) { showModal('checkout'); }
+let activeCheckoutId = null;
+function doCheckout(id) { activeCheckoutId = id; showModal('checkout'); }
 
 // ── ROOMS ──────────────────────────────────────────────────────
 let currentStatusFilter = 'all', currentFloorFilter = 'all';
@@ -2657,7 +2830,22 @@ async function createBooking() {
     toast('Booking failed: ' + (res?.error || 'Unknown'), 'error');
   }
 }
-async function completeCheckout() { toast('Guest checked out!'); closeModal('checkout'); }
+async function completeCheckout() {
+  if (!activeCheckoutId) {
+    toast('No checkout booking selected', 'error');
+    return;
+  }
+  const res = await apiFetch(`/api/reservations/${activeCheckoutId}/status`, { method:'PATCH', body: JSON.stringify({ status:'checked_out' }) });
+  if (res?.success && res?.whatsapp?.success !== false) {
+    toast(`Checkout complete! Template sent${res.whatsapp?.template ? ': ' + res.whatsapp.template : ''}.`);
+    closeModal('checkout');
+    activeCheckoutId = null;
+    loadCheckins();
+    loadCheckouts();
+  } else {
+    toast('Checkout failed: ' + (res?.error || 'Unknown'), 'error');
+  }
+}
 
 // ── INIT ───────────────────────────────────────────────────────
 // Check login
@@ -2687,6 +2875,8 @@ const NAV_MENUS = {
   owner: [
     { section: 'Main' },
     { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'overview', icon:'🏢', label:'Business Overview' },
+    { page:'chats', icon:'💬', label:'Guest Chats' },
     { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
     { page:'rooms', icon:'🏨', label:'Room View' },
     { page:'guests', icon:'👤', label:'Guest View' },
@@ -2721,6 +2911,7 @@ const NAV_MENUS = {
   hotel_admin: [
     { section: 'Main' },
     { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'chats', icon:'💬', label:'Guest Chats' },
     { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
     { page:'rooms', icon:'🏨', label:'Room View' },
     { page:'guests', icon:'👤', label:'Guest View' },
