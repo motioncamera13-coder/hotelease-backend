@@ -288,13 +288,13 @@ function getApiBase() {
   const apiFromUrl = params.get('api');
   if (apiFromUrl) localStorage.setItem('he_api', apiFromUrl.replace(/\/$/, ''));
   if (window.location.hostname === 'optisetup.in' || window.location.hostname === 'www.optisetup.in') {
-    localStorage.setItem('he_api', 'https://hotelease-pms.onrender.com');
+    localStorage.setItem('he_api', 'https://hotelease-backend-fhba.onrender.com');
   }
   if (window.location.protocol === 'file:' && !localStorage.getItem('he_api')) {
-    localStorage.setItem('he_api', 'https://hotelease-pms.onrender.com');
+    localStorage.setItem('he_api', 'https://hotelease-backend-fhba.onrender.com');
   }
   return (localStorage.getItem('he_api') ||
-    (window.location.protocol === 'file:' ? 'https://hotelease-pms.onrender.com' : window.location.origin)
+    (window.location.protocol === 'file:' ? 'https://hotelease-backend-fhba.onrender.com' : window.location.origin)
   ).replace(/\/$/, '');
 }
 const API = getApiBase();
