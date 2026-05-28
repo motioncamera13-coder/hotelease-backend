@@ -4,109 +4,111 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HotelEase — Billing & Reports</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --gold:#C9A84C;--gold-light:#E8C96A;--gold-dim:rgba(201,168,76,0.1);
-  --dark:#0A0908;--dark2:#141210;--dark3:#1C1A18;--dark4:#242220;
-  --cream:#F0EBE2;--cream2:#D8D2C8;--muted:#6E6860;
-  --teal:#1D9E75;--teal-dim:rgba(29,158,117,0.1);
-  --red:#E24B4A;--red-dim:rgba(226,75,74,0.1);
-  --purple:#8B5CF6;--purple-dim:rgba(139,92,246,0.1);
-  --border:rgba(201,168,76,0.1);--border2:rgba(255,255,255,0.05);
+:root {
+  --blue: #1a6fdb; --blue-dark: #1459b5; --blue-light: #e8f0fc; --blue-dim: rgba(26,111,219,0.1);
+  --dark: #ffffff; --dark2: #ffffff; --dark3: #f3f4f6; --dark4: #e5e7eb;
+  --cream: #111827; --cream2: #374151; --muted: #6b7280;
+  --teal: #16a34a; --teal-dim: rgba(22,163,74,0.1);
+  --red: #dc2626; --red-dim: rgba(220,38,38,0.1);
+  --purple: #7c3aed; --purple-dim: rgba(124,58,237,0.1);
+  --gold: #1a6fdb; --gold-light: #2563eb; --gold-dim: rgba(26,111,219,0.1);
+  --border: #e5e7eb; --border2: #f3f4f6;
+  --sidebar-w: 220px;
 }
-body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;font-weight:300}
+body{background:var(--dark);color:#111827;font-family:'DM Sans',sans-serif;font-weight:300}
 .page{display:none}.page.active{display:block}
-.tabs{display:flex;gap:2px;background:var(--dark2);border:0.5px solid var(--border);border-radius:6px;padding:3px;width:fit-content;margin-bottom:1.5rem}
-.tab{padding:8px 22px;border-radius:4px;font-size:13px;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:'DM Sans',sans-serif;transition:all 0.2s;letter-spacing:0.02em}
+.tabs{display:flex;gap:2px;background:#ffffff;border:1px solid #e5e7eb;border-radius:6px;padding:3px;width:fit-content;margin-bottom:1.5rem}
+.tab{padding:8px 22px;border-radius:4px;font-size:13px;cursor:pointer;color:#6b7280;border:none;background:transparent;font-family:'DM Sans',sans-serif;transition:all 0.2s;letter-spacing:0.02em}
 .tab.active{background:var(--gold);color:var(--dark);font-weight:500}
 
 /* ── METRICS ── */
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
-.metric{background:var(--dark2);border:0.5px solid var(--border);border-radius:8px;padding:1.1rem 1.25rem}
-.metric-label{font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
+.metric{background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;padding:1.1rem 1.25rem}
+.metric-label{font-size:10px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
 .metric-val{font-family:'Cormorant Garamond',serif;font-size:2rem;color:#fff;line-height:1;margin-bottom:3px}
-.metric-sub{font-size:11px;color:var(--muted)}
+.metric-sub{font-size:11px;color:#6b7280}
 .metric-sub.up{color:var(--teal)}.metric-sub.down{color:var(--red)}
 
 /* ── PANELS ── */
-.panel{background:var(--dark2);border:0.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px}
-.panel-hdr{padding:.9rem 1.25rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.panel-title{font-size:12px;font-weight:500;color:var(--cream2);letter-spacing:0.04em}
+.panel{background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:12px}
+.panel-hdr{padding:.9rem 1.25rem;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-size:12px;font-weight:500;color:#374151;letter-spacing:0.04em}
 .panel-body{padding:1.25rem}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
 /* ── TABLE ── */
 .tbl{width:100%;border-collapse:collapse}
-.tbl th{font-size:10px;color:var(--muted);padding:8px 10px;text-align:left;letter-spacing:0.06em;text-transform:uppercase;border-bottom:0.5px solid var(--border);white-space:nowrap}
-.tbl td{font-size:12px;color:var(--cream2);padding:9px 10px;border-bottom:0.5px solid var(--border2);vertical-align:middle}
+.tbl th{font-size:10px;color:#6b7280;padding:8px 10px;text-align:left;letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+.tbl td{font-size:12px;color:#374151;padding:9px 10px;border-bottom:0.5px solid var(--border2);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:var(--dark3)}
+.tbl tr:hover td{background:#f3f4f6}
 .mono{font-family:'DM Mono',monospace;font-size:11px}
 .badge{font-size:9px;padding:2px 8px;border-radius:100px;letter-spacing:0.04em;text-transform:uppercase;display:inline-block;white-space:nowrap}
-.b-paid{background:var(--teal-dim);color:var(--teal)}
-.b-pending{background:var(--gold-dim);color:var(--gold)}
+.b-paid{background:rgba(22,163,74,0.1);color:var(--teal)}
+.b-pending{background:var(--blue-dim);color:var(--blue)}
 .b-partial{background:var(--purple-dim);color:var(--purple)}
 
 /* ── BILL MODAL OVERLAY ── */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .overlay.show{display:flex}
-.bill-modal{background:var(--dark2);border:0.5px solid var(--border);border-radius:12px;width:560px;max-height:90vh;overflow-y:auto;animation:popIn 0.2s ease}
+.bill-modal{background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;width:560px;max-height:90vh;overflow-y:auto;animation:popIn 0.2s ease}
 @keyframes popIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}
-.bill-hdr{padding:1.25rem 1.5rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.bill-hdr{padding:1.25rem 1.5rem;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between}
 .bill-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;color:#fff}
-.close-btn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1}
+.close-btn{background:none;border:none;color:#6b7280;font-size:20px;cursor:pointer;padding:0;line-height:1}
 .bill-body{padding:1.5rem}
 
 /* ── BILL LAYOUT ── */
-.bill-hotel{text-align:center;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:0.5px solid var(--border)}
+.bill-hotel{text-align:center;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid #e5e7eb}
 .bill-hotel-name{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:400;color:#fff}
-.bill-hotel-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.bill-hotel-sub{font-size:11px;color:#6b7280;margin-top:2px}
 .bill-no-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
-.bill-no{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);background:var(--gold-dim);padding:3px 12px;border-radius:100px}
-.bill-date{font-size:11px;color:var(--muted)}
-.guest-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;background:var(--dark3);border-radius:6px;padding:12px 14px}
-.guest-field label{font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;display:block;margin-bottom:3px}
-.guest-field span{font-size:13px;color:var(--cream)}
-.bill-section-title{font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
+.bill-no{font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);background:var(--blue-dim);padding:3px 12px;border-radius:100px}
+.bill-date{font-size:11px;color:#6b7280}
+.guest-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;background:#f3f4f6;border-radius:6px;padding:12px 14px}
+.guest-field label{font-size:9px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;display:block;margin-bottom:3px}
+.guest-field span{font-size:13px;color:#111827}
+.bill-section-title{font-size:10px;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px}
 .bill-line{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:7px 0;border-bottom:0.5px solid var(--border2)}
 .bill-line:last-child{border-bottom:none}
-.bill-line .desc{color:var(--muted)}
-.bill-line .amt{font-family:'DM Mono',monospace;color:var(--cream)}
-.bill-line.total-line{font-size:15px;font-weight:500;padding:10px 0;border-top:0.5px solid var(--border);margin-top:4px}
-.bill-line.total-line .desc{color:var(--cream)}
-.bill-line.total-line .amt{color:var(--gold)}
+.bill-line .desc{color:#6b7280}
+.bill-line .amt{font-family:'DM Mono',monospace;color:#111827}
+.bill-line.total-line{font-size:15px;font-weight:500;padding:10px 0;border-top:1px solid #e5e7eb;margin-top:4px}
+.bill-line.total-line .desc{color:#111827}
+.bill-line.total-line .amt{color:var(--blue)}
 .bill-line.grand-line{font-size:17px;font-weight:500;padding:12px 0;border-top:1px solid var(--gold);margin-top:4px}
 .bill-line.grand-line .desc{color:#fff}
-.bill-line.grand-line .amt{color:var(--gold);font-size:18px}
+.bill-line.grand-line .amt{color:var(--blue);font-size:18px}
 .bill-line.free{color:var(--teal)}.bill-line.free .amt{color:var(--teal)}
-.pay-section{background:var(--dark3);border-radius:6px;padding:12px 14px;margin-top:1.25rem}
+.pay-section{background:#f3f4f6;border-radius:6px;padding:12px 14px;margin-top:1.25rem}
 .pay-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .pay-btn{padding:7px 16px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s}
 .pay-btn-gold{background:var(--gold);color:var(--dark)}
 .pay-btn-gold:hover{background:var(--gold-light)}
-.pay-btn-outline{background:transparent;border:0.5px solid var(--border2);color:var(--cream)}
-.pay-btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.pay-btn-outline{background:transparent;border:0.5px solid var(--border2);color:#111827}
+.pay-btn-outline:hover{border-color:var(--blue);color:var(--blue)}
 .pay-btn-teal{background:var(--teal);color:#fff}
 
 /* ── DAILY REPORT ── */
 .report-date-row{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
-.report-date-input{padding:8px 14px;background:var(--dark3);border:0.5px solid var(--border);border-radius:5px;color:var(--cream);font-size:13px;font-family:'DM Mono',monospace;outline:none}
-.report-date-input:focus{border-color:var(--gold)}
+.report-date-input{padding:8px 14px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:5px;color:#111827;font-size:13px;font-family:'DM Mono',monospace;outline:none}
+.report-date-input:focus{border-color:var(--blue)}
 .btn{padding:8px 18px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;transition:all 0.15s;letter-spacing:0.03em}
 .btn-gold{background:var(--gold);color:var(--dark)}.btn-gold:hover{background:var(--gold-light)}
-.btn-outline{background:transparent;border:0.5px solid var(--border2);color:var(--cream)}.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-outline{background:transparent;border:0.5px solid var(--border2);color:#111827}.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
 .btn-teal{background:var(--teal);color:#fff}
 
 /* ── STAT BAR ── */
 .bar-row{display:flex;flex-direction:column;gap:12px}
 .bar-item{display:flex;flex-direction:column;gap:4px}
 .bar-labels{display:flex;justify-content:space-between;font-size:12px}
-.bar-label{color:var(--cream2)}
-.bar-value{color:var(--gold);font-family:'DM Mono',monospace}
-.bar-track{height:5px;border-radius:3px;background:var(--dark3);overflow:hidden}
+.bar-label{color:#374151}
+.bar-value{color:var(--blue);font-family:'DM Mono',monospace}
+.bar-track{height:5px;border-radius:3px;background:#f3f4f6;overflow:hidden}
 .bar-fill{height:100%;border-radius:3px;background:var(--gold);transition:width 0.6s ease}
 .bar-fill.teal{background:var(--teal)}
 .bar-fill.purple{background:var(--purple)}
@@ -162,11 +164,11 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
   </div>
 
   <div style="display:flex;gap:10px;margin-bottom:1rem;align-items:center">
-    <div style="display:flex;align-items:center;gap:8px;background:var(--dark3);border:0.5px solid var(--border);border-radius:5px;padding:7px 12px;flex:1">
-      <span style="color:var(--muted);font-size:14px">🔍</span>
-      <input style="background:none;border:none;color:var(--cream);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:100%" placeholder="Search by bill no, booking ID or guest name..." oninput="filterBills(this.value)">
+    <div style="display:flex;align-items:center;gap:8px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:5px;padding:7px 12px;flex:1">
+      <span style="color:#6b7280;font-size:14px">🔍</span>
+      <input style="background:none;border:none;color:#111827;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:100%" placeholder="Search by bill no, booking ID or guest name..." oninput="filterBills(this.value)">
     </div>
-    <select style="padding:8px 12px;background:var(--dark3);border:0.5px solid var(--border);border-radius:5px;color:var(--cream);font-size:13px;font-family:'DM Sans',sans-serif;outline:none" onchange="filterByBillStatus(this.value)">
+    <select style="padding:8px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:5px;color:#111827;font-size:13px;font-family:'DM Sans',sans-serif;outline:none" onchange="filterByBillStatus(this.value)">
       <option value="">All status</option>
       <option value="paid">Paid</option>
       <option value="pending">Pending</option>
@@ -178,7 +180,7 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
   <div class="panel">
     <div class="panel-hdr">
       <span class="panel-title">All bills</span>
-      <span style="font-size:11px;color:var(--muted)" id="bill-count">8 bills</span>
+      <span style="font-size:11px;color:#6b7280" id="bill-count">8 bills</span>
     </div>
     <div style="overflow-x:auto">
       <table class="tbl" id="bills-table">
@@ -257,12 +259,12 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
           </div>
           <div style="height:0.5px;background:var(--border);margin:1rem 0"></div>
           <div style="display:flex;justify-content:space-between;font-size:14px">
-            <span style="color:var(--muted)">GST (12% avg)</span>
-            <span style="color:var(--cream);font-family:'DM Mono',monospace">₹15,408</span>
+            <span style="color:#6b7280">GST (12% avg)</span>
+            <span style="color:#111827;font-family:'DM Mono',monospace">₹15,408</span>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:15px;margin-top:8px;font-weight:500">
-            <span style="color:var(--cream)">Grand total</span>
-            <span style="color:var(--gold);font-family:'DM Mono',monospace">₹1,28,400</span>
+            <span style="color:#111827">Grand total</span>
+            <span style="color:var(--blue);font-family:'DM Mono',monospace">₹1,28,400</span>
           </div>
         </div>
       </div>
@@ -274,10 +276,10 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
           <table class="tbl">
             <thead><tr><th>Agent</th><th>Bookings</th><th>Rooms</th><th>Revenue</th></tr></thead>
             <tbody>
-              <tr><td>Rahul Travels</td><td class="mono">3</td><td class="mono">6</td><td class="mono" style="color:var(--gold)">₹49,200</td></tr>
-              <tr><td>Nagfani Tours</td><td class="mono">2</td><td class="mono">4</td><td class="mono" style="color:var(--gold)">₹32,800</td></tr>
-              <tr><td>Devdarshann</td><td class="mono">2</td><td class="mono">5</td><td class="mono" style="color:var(--gold)">₹28,400</td></tr>
-              <tr><td>Walk-in</td><td class="mono">1</td><td class="mono">2</td><td class="mono" style="color:var(--gold)">₹18,000</td></tr>
+              <tr><td>Rahul Travels</td><td class="mono">3</td><td class="mono">6</td><td class="mono" style="color:var(--blue)">₹49,200</td></tr>
+              <tr><td>Nagfani Tours</td><td class="mono">2</td><td class="mono">4</td><td class="mono" style="color:var(--blue)">₹32,800</td></tr>
+              <tr><td>Devdarshann</td><td class="mono">2</td><td class="mono">5</td><td class="mono" style="color:var(--blue)">₹28,400</td></tr>
+              <tr><td>Walk-in</td><td class="mono">1</td><td class="mono">2</td><td class="mono" style="color:var(--blue)">₹18,000</td></tr>
             </tbody>
           </table>
         </div>
@@ -287,7 +289,7 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
     <div class="grid2">
       <!-- Checkins today -->
       <div class="panel">
-        <div class="panel-hdr"><span class="panel-title" style="color:var(--teal)">✅ Check-ins</span><span style="font-size:11px;color:var(--muted)" id="ci-count">4 guests</span></div>
+        <div class="panel-hdr"><span class="panel-title" style="color:var(--teal)">✅ Check-ins</span><span style="font-size:11px;color:#6b7280" id="ci-count">4 guests</span></div>
         <div style="overflow-x:auto">
           <table class="tbl" id="ci-table">
             <thead><tr><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Rooms</th><th>Plan</th><th>Nights</th></tr></thead>
@@ -298,7 +300,7 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
 
       <!-- Checkouts today -->
       <div class="panel">
-        <div class="panel-hdr"><span class="panel-title" style="color:var(--gold)">🚪 Check-outs</span><span style="font-size:11px;color:var(--muted)" id="co-count">3 guests</span></div>
+        <div class="panel-hdr"><span class="panel-title" style="color:var(--blue)">🚪 Check-outs</span><span style="font-size:11px;color:#6b7280" id="co-count">3 guests</span></div>
         <div style="overflow-x:auto">
           <table class="tbl" id="co-table">
             <thead><tr><th>Booking ID</th><th>Guest</th><th>Room type</th><th>Total</th><th>Status</th></tr></thead>
@@ -312,7 +314,7 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
     <div class="panel">
       <div class="panel-hdr">
         <span class="panel-title">In-house guests</span>
-        <span style="font-size:11px;color:var(--muted)">38 rooms occupied</span>
+        <span style="font-size:11px;color:#6b7280">38 rooms occupied</span>
       </div>
       <div style="overflow-x:auto">
         <table class="tbl" id="inhouse-table">
@@ -329,11 +331,11 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
         <table class="tbl">
           <thead><tr><th>Room type</th><th>Total</th><th>Occupied</th><th>Available</th><th>Occupancy %</th><th>Revenue</th></tr></thead>
           <tbody>
-            <tr><td>Deluxe</td><td class="mono">24</td><td class="mono">18</td><td class="mono">6</td><td><span class="badge b-paid">75%</span></td><td class="mono" style="color:var(--gold)">₹73,800</td></tr>
-            <tr><td>Super Deluxe</td><td class="mono">14</td><td class="mono">12</td><td class="mono">2</td><td><span class="badge" style="background:var(--gold-dim);color:var(--gold)">86%</span></td><td class="mono" style="color:var(--gold)">₹55,200</td></tr>
-            <tr><td>Honeymoon</td><td class="mono">4</td><td class="mono">4</td><td class="mono">0</td><td><span class="badge b-paid">100%</span></td><td class="mono" style="color:var(--gold)">₹23,600</td></tr>
-            <tr><td>KBN</td><td class="mono">8</td><td class="mono">4</td><td class="mono">4</td><td><span class="badge b-partial">50%</span></td><td class="mono" style="color:var(--gold)">₹16,400</td></tr>
-            <tr style="font-weight:500"><td style="color:#fff">Total</td><td class="mono">50</td><td class="mono">38</td><td class="mono">12</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">76%</span></td><td class="mono" style="color:var(--gold)">₹1,69,000</td></tr>
+            <tr><td>Deluxe</td><td class="mono">24</td><td class="mono">18</td><td class="mono">6</td><td><span class="badge b-paid">75%</span></td><td class="mono" style="color:var(--blue)">₹73,800</td></tr>
+            <tr><td>Super Deluxe</td><td class="mono">14</td><td class="mono">12</td><td class="mono">2</td><td><span class="badge" style="background:var(--blue-dim);color:var(--blue)">86%</span></td><td class="mono" style="color:var(--blue)">₹55,200</td></tr>
+            <tr><td>Honeymoon</td><td class="mono">4</td><td class="mono">4</td><td class="mono">0</td><td><span class="badge b-paid">100%</span></td><td class="mono" style="color:var(--blue)">₹23,600</td></tr>
+            <tr><td>KBN</td><td class="mono">8</td><td class="mono">4</td><td class="mono">4</td><td><span class="badge b-partial">50%</span></td><td class="mono" style="color:var(--blue)">₹16,400</td></tr>
+            <tr style="font-weight:500"><td style="color:#fff">Total</td><td class="mono">50</td><td class="mono">38</td><td class="mono">12</td><td><span class="badge" style="background:rgba(22,163,74,0.1);color:var(--teal)">76%</span></td><td class="mono" style="color:var(--blue)">₹1,69,000</td></tr>
           </tbody>
         </table>
       </div>
@@ -347,7 +349,7 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
 <div class="page" id="tab-monthly">
 
   <div class="report-date-row">
-    <select style="padding:8px 14px;background:var(--dark3);border:0.5px solid var(--border);border-radius:5px;color:var(--cream);font-size:13px;font-family:'DM Sans',sans-serif;outline:none" id="month-sel">
+    <select style="padding:8px 14px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:5px;color:#111827;font-size:13px;font-family:'DM Sans',sans-serif;outline:none" id="month-sel">
       <option value="5">May 2026</option>
       <option value="4">April 2026</option>
       <option value="3">March 2026</option>
@@ -382,10 +384,10 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
         <table class="tbl">
           <thead><tr><th>Plan</th><th>Bookings</th><th>Room nights</th><th>Revenue</th></tr></thead>
           <tbody>
-            <tr><td>MAP</td><td class="mono">68</td><td class="mono">186</td><td class="mono" style="color:var(--gold)">₹5,20,800</td></tr>
-            <tr><td>CP</td><td class="mono">48</td><td class="mono">112</td><td class="mono" style="color:var(--gold)">₹2,45,600</td></tr>
-            <tr><td>EP</td><td class="mono">8</td><td class="mono">14</td><td class="mono" style="color:var(--gold)">₹40,600</td></tr>
-            <tr style="font-weight:500"><td style="color:#fff">Total</td><td class="mono">124</td><td class="mono">312</td><td class="mono" style="color:var(--gold)">₹8,07,000</td></tr>
+            <tr><td>MAP</td><td class="mono">68</td><td class="mono">186</td><td class="mono" style="color:var(--blue)">₹5,20,800</td></tr>
+            <tr><td>CP</td><td class="mono">48</td><td class="mono">112</td><td class="mono" style="color:var(--blue)">₹2,45,600</td></tr>
+            <tr><td>EP</td><td class="mono">8</td><td class="mono">14</td><td class="mono" style="color:var(--blue)">₹40,600</td></tr>
+            <tr style="font-weight:500"><td style="color:#fff">Total</td><td class="mono">124</td><td class="mono">312</td><td class="mono" style="color:var(--blue)">₹8,07,000</td></tr>
           </tbody>
         </table>
       </div>
@@ -410,11 +412,11 @@ body{background:var(--dark);color:var(--cream);font-family:'DM Sans',sans-serif;
       <table class="tbl">
         <thead><tr><th>Agent</th><th>Category</th><th>Bookings</th><th>Rooms</th><th>Room nights</th><th>Revenue</th><th>Commission</th></tr></thead>
         <tbody>
-          <tr><td>Rahul Travels</td><td><span class="badge" style="background:var(--gold-dim);color:var(--gold)">A</span></td><td class="mono">24</td><td class="mono">52</td><td class="mono">128</td><td class="mono" style="color:var(--gold)">₹3,84,000</td><td class="mono" style="color:var(--teal)">10%</td></tr>
-          <tr><td>Sharma Tours</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">B</span></td><td class="mono">18</td><td class="mono">38</td><td class="mono">96</td><td class="mono" style="color:var(--gold)">₹2,16,000</td><td class="mono" style="color:var(--teal)">5%</td></tr>
-          <tr><td>Nagfani Tours</td><td><span class="badge" style="background:rgba(255,255,255,0.06);color:var(--muted)">C</span></td><td class="mono">12</td><td class="mono">24</td><td class="mono">56</td><td class="mono" style="color:var(--gold)">₹1,44,000</td><td class="mono">0%</td></tr>
-          <tr><td>Meet India Tour</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">B</span></td><td class="mono">8</td><td class="mono">14</td><td class="mono">32</td><td class="mono" style="color:var(--gold)">₹96,000</td><td class="mono" style="color:var(--teal)">5%</td></tr>
-          <tr><td>Walk-in / Direct</td><td><span class="badge" style="background:rgba(255,255,255,0.06);color:var(--muted)">—</span></td><td class="mono">62</td><td class="mono">86</td><td class="mono">—</td><td class="mono" style="color:var(--gold)">₹1,67,000</td><td class="mono">—</td></tr>
+          <tr><td>Rahul Travels</td><td><span class="badge" style="background:var(--blue-dim);color:var(--blue)">A</span></td><td class="mono">24</td><td class="mono">52</td><td class="mono">128</td><td class="mono" style="color:var(--blue)">₹3,84,000</td><td class="mono" style="color:var(--teal)">10%</td></tr>
+          <tr><td>Sharma Tours</td><td><span class="badge" style="background:rgba(22,163,74,0.1);color:var(--teal)">B</span></td><td class="mono">18</td><td class="mono">38</td><td class="mono">96</td><td class="mono" style="color:var(--blue)">₹2,16,000</td><td class="mono" style="color:var(--teal)">5%</td></tr>
+          <tr><td>Nagfani Tours</td><td><span class="badge" style="background:rgba(255,255,255,0.06);color:#6b7280">C</span></td><td class="mono">12</td><td class="mono">24</td><td class="mono">56</td><td class="mono" style="color:var(--blue)">₹1,44,000</td><td class="mono">0%</td></tr>
+          <tr><td>Meet India Tour</td><td><span class="badge" style="background:rgba(22,163,74,0.1);color:var(--teal)">B</span></td><td class="mono">8</td><td class="mono">14</td><td class="mono">32</td><td class="mono" style="color:var(--blue)">₹96,000</td><td class="mono" style="color:var(--teal)">5%</td></tr>
+          <tr><td>Walk-in / Direct</td><td><span class="badge" style="background:rgba(255,255,255,0.06);color:#6b7280">—</span></td><td class="mono">62</td><td class="mono">86</td><td class="mono">—</td><td class="mono" style="color:var(--blue)">₹1,67,000</td><td class="mono">—</td></tr>
         </tbody>
       </table>
     </div>
@@ -499,19 +501,19 @@ function renderBills(data = BILLS) {
   document.getElementById('bills-body').innerHTML = data.map(b => {
     const c = calcBill(b);
     return `<tr>
-      <td class="mono" style="color:var(--gold)">${b.id}</td>
+      <td class="mono" style="color:var(--blue)">${b.id}</td>
       <td class="mono">${b.bookingId}</td>
       <td style="font-weight:400">${b.guest}</td>
-      <td style="color:var(--muted);font-size:11px">${b.agent}</td>
+      <td style="color:#6b7280;font-size:11px">${b.agent}</td>
       <td class="mono">₹${c.room.toLocaleString()}</td>
       <td class="mono">${c.extras > 0 ? '₹'+c.extras.toLocaleString() : '—'}</td>
       <td class="mono">${b.gst}% · ₹${c.gst.toLocaleString()}</td>
-      <td class="mono" style="color:var(--gold);font-weight:500">₹${c.total.toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue);font-weight:500">₹${c.total.toLocaleString()}</td>
       <td class="mono" style="color:var(--teal)">${b.paid > 0 ? '₹'+b.paid.toLocaleString() : '—'}</td>
       <td class="mono" style="color:${c.balance > 0 ? 'var(--red)' : 'var(--teal)'}">${c.balance > 0 ? '₹'+c.balance.toLocaleString() : 'Nil'}</td>
       <td><span class="badge b-${b.status}">${b.status}</span></td>
       <td>
-        <span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:8px" onclick="viewBill('${b.id}')">View</span>
+        <span style="color:var(--blue);cursor:pointer;font-size:11px;margin-right:8px" onclick="viewBill('${b.id}')">View</span>
         ${b.status !== 'paid' ? `<span style="color:var(--teal);cursor:pointer;font-size:11px" onclick="collectPayment('${b.id}')">Collect</span>` : ''}
       </td>
     </tr>`;
@@ -559,7 +561,7 @@ function viewBill(id) {
 
     <div class="guest-row">
       <div class="guest-field"><label>Guest name</label><span>${b.guest}</span></div>
-      <div class="guest-field"><label>Booking ID</label><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gold)">${b.bookingId}</span></div>
+      <div class="guest-field"><label>Booking ID</label><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--blue)">${b.bookingId}</span></div>
       <div class="guest-field"><label>Check-in</label><span>${b.ciDate} 2026</span></div>
       <div class="guest-field"><label>Check-out</label><span>${b.coDate} 2026</span></div>
       <div class="guest-field"><label>Room type</label><span>${b.roomType} (${b.rooms} room${b.rooms>1?'s':''})</span></div>
@@ -604,7 +606,7 @@ function viewBill(id) {
       </div>` : `<div style="font-size:12px;color:var(--teal);margin-top:8px">✓ Fully paid</div>`}
     </div>
 
-    <div style="margin-top:1.25rem;text-align:center;font-size:11px;color:var(--muted);border-top:0.5px solid var(--border);padding-top:1rem">
+    <div style="margin-top:1.25rem;text-align:center;font-size:11px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:1rem">
       Thank you for staying with us! 🙏<br>
       We hope to welcome you again soon.
     </div>
@@ -628,13 +630,13 @@ function collectPayment(id) { viewBill(id); }
 function loadDailyReport(date) {
   // In production: fetch from /api/reports/daily?date=...
   document.getElementById('ci-body').innerHTML = CHECKINS.map(c =>
-    `<tr><td class="mono" style="color:var(--gold)">${c.id}</td><td>${c.guest}</td><td>${c.type}</td><td class="mono">${c.rooms}</td><td><span class="badge b-paid">${c.plan}</span></td><td class="mono">${c.nights}</td></tr>`
+    `<tr><td class="mono" style="color:var(--blue)">${c.id}</td><td>${c.guest}</td><td>${c.type}</td><td class="mono">${c.rooms}</td><td><span class="badge b-paid">${c.plan}</span></td><td class="mono">${c.nights}</td></tr>`
   ).join('');
   document.getElementById('co-body').innerHTML = CHECKOUTS.map(c =>
-    `<tr><td class="mono" style="color:var(--gold)">${c.id}</td><td>${c.guest}</td><td>${c.type}</td><td class="mono" style="color:var(--gold)">${c.total}</td><td><span class="badge b-${c.status}">${c.status}</span></td></tr>`
+    `<tr><td class="mono" style="color:var(--blue)">${c.id}</td><td>${c.guest}</td><td>${c.type}</td><td class="mono" style="color:var(--blue)">${c.total}</td><td><span class="badge b-${c.status}">${c.status}</span></td></tr>`
   ).join('');
   document.getElementById('inhouse-body').innerHTML = INHOUSE.map(r =>
-    `<tr><td class="mono" style="color:var(--gold)">${r.id}</td><td>${r.guest}</td><td style="color:var(--muted)">${r.agent}</td><td>${r.type}</td><td class="mono">${r.rooms}</td><td class="mono">${r.ci}</td><td class="mono">${r.co}</td><td><span class="badge ${r.left===0?'b-paid':'b-pending'}">${r.left===0?'Today':''+r.left+' left'}</span></td><td><span class="badge" style="background:var(--gold-dim);color:var(--gold)">${r.plan}</span></td><td class="mono">${r.rate}</td></tr>`
+    `<tr><td class="mono" style="color:var(--blue)">${r.id}</td><td>${r.guest}</td><td style="color:#6b7280">${r.agent}</td><td>${r.type}</td><td class="mono">${r.rooms}</td><td class="mono">${r.ci}</td><td class="mono">${r.co}</td><td><span class="badge ${r.left===0?'b-paid':'b-pending'}">${r.left===0?'Today':''+r.left+' left'}</span></td><td><span class="badge" style="background:var(--blue-dim);color:var(--blue)">${r.plan}</span></td><td class="mono">${r.rate}</td></tr>`
   ).join('');
 }
 
@@ -650,12 +652,12 @@ function loadMonthly() {
     rows.push(`<tr>
       <td class="mono">0${d} May 2026</td>
       <td class="mono" style="color:var(--teal)">${ci}</td>
-      <td class="mono" style="color:var(--gold)">${co}</td>
+      <td class="mono" style="color:var(--blue)">${co}</td>
       <td class="mono">${Math.round(occ * 0.46)}</td>
       <td><span class="badge b-paid">${occ}%</span></td>
-      <td class="mono" style="color:var(--gold)">₹${rev.toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue)">₹${rev.toLocaleString()}</td>
       <td class="mono">₹${extras.toLocaleString()}</td>
-      <td class="mono" style="color:var(--gold);font-weight:500">₹${(rev+extras).toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue);font-weight:500">₹${(rev+extras).toLocaleString()}</td>
     </tr>`);
   }
   document.getElementById('monthly-daily-body').innerHTML = rows.join('');

@@ -4,65 +4,66 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HotelEase PMS — Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --gold: #C9A84C; --gold-light: #E8C96A; --gold-dim: rgba(201,168,76,0.1);
-  --dark: #0A0908; --dark2: #121110; --dark3: #1C1A18; --dark4: #242220;
-  --cream: #F0EBE2; --cream2: #D8D2C8; --muted: #6E6860;
-  --teal: #1D9E75; --teal-dim: rgba(29,158,117,0.1);
-  --red: #E24B4A; --red-dim: rgba(226,75,74,0.1);
-  --purple: #8B5CF6; --purple-dim: rgba(139,92,246,0.1);
-  --border: rgba(201,168,76,0.1); --border2: rgba(255,255,255,0.05);
+  --blue: #1a6fdb; --blue-dark: #1459b5; --blue-light: #e8f0fc; --blue-dim: rgba(26,111,219,0.1);
+  --dark: #ffffff; --dark2: #ffffff; --dark3: #f3f4f6; --dark4: #e5e7eb;
+  --cream: #111827; --cream2: #374151; --muted: #6b7280;
+  --teal: #16a34a; --teal-dim: rgba(22,163,74,0.1);
+  --red: #dc2626; --red-dim: rgba(220,38,38,0.1);
+  --purple: #7c3aed; --purple-dim: rgba(124,58,237,0.1);
+  --gold: #1a6fdb; --gold-light: #2563eb; --gold-dim: rgba(26,111,219,0.1);
+  --border: #e5e7eb; --border2: #f3f4f6;
   --sidebar-w: 220px;
 }
 html { height: 100%; }
-body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', sans-serif; font-weight: 300; display: flex; height: 100vh; overflow: hidden; }
+body { background: #f9fafb; color: #111827; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 300; display: flex; height: 100vh; overflow: hidden; }
 
 /* ── SIDEBAR ── */
 .sidebar {
   width: var(--sidebar-w); min-width: var(--sidebar-w);
-  background: var(--dark2); border-right: 0.5px solid var(--border);
+  background: #ffffff; border-right: 1px solid #e5e7eb;
   display: flex; flex-direction: column; height: 100vh; overflow: hidden;
 }
-.sidebar-logo { padding: 1.5rem 1.25rem 1rem; border-bottom: 0.5px solid var(--border); }
-.sidebar-logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600; color: var(--gold); }
-.sidebar-logo p { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+.sidebar-logo { padding: 1.5rem 1.25rem 1rem; border-bottom: 1px solid #e5e7eb; }
+.sidebar-logo h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--blue); }
+.sidebar-logo p { font-size: 10px; color: #9ca3af; margin-top: 2px; }
 .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
-.nav-section { padding: 0.5rem 1.25rem 0.25rem; font-size: 9px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+.nav-section { padding: 0.5rem 1.25rem 0.25rem; font-size: 9px; letter-spacing: 0.1em; color: #9ca3af; text-transform: uppercase; font-weight: 600; }
 .nav-item {
   display: flex; align-items: center; gap: 10px;
-  padding: 9px 1.25rem; font-size: 13px; color: var(--muted);
+  padding: 9px 1.25rem; font-size: 13px; color: #6b7280;
   cursor: pointer; transition: all 0.15s; border-left: 2px solid transparent;
 }
-.nav-item:hover { color: var(--cream); background: var(--dark3); }
-.nav-item.active { color: var(--gold); background: var(--gold-dim); border-left-color: var(--gold); }
+.nav-item:hover { color: var(--blue-dark); background: var(--blue-dim); }
+.nav-item.active { color: var(--blue); background: var(--blue-dim); border-left-color: var(--blue); font-weight: 500; }
 .nav-item .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
-.sidebar-bottom { padding: 1rem 1.25rem; border-top: 0.5px solid var(--border); }
-.hotel-badge { background: var(--dark3); border-radius: 6px; padding: 10px 12px; }
-.hotel-badge-name { font-size: 12px; color: var(--cream2); font-weight: 400; }
-.hotel-badge-city { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.sidebar-bottom { padding: 1rem 1.25rem; border-top: 1px solid #e5e7eb; }
+.hotel-badge { background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px; }
+.hotel-badge-name { font-size: 12px; color: #1e40af; font-weight: 600; }
+.hotel-badge-city { font-size: 10px; color: #6b7280; margin-top: 2px; }
 .online-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); display: inline-block; margin-right: 5px; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 /* ── MAIN ── */
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .topbar {
-  padding: 0.9rem 2rem; border-bottom: 0.5px solid var(--border);
+  padding: 0.9rem 2rem; border-bottom: 1px solid #e5e7eb;
   display: flex; align-items: center; justify-content: space-between;
-  background: var(--dark2); flex-shrink: 0;
+  background: #ffffff; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-.topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 400; color: #fff; }
+.topbar-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; font-weight: 600; color: #111827; }
 .topbar-right { display: flex; align-items: center; gap: 1rem; }
-.date-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
-.btn { padding: 8px 18px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; border: none; letter-spacing: 0.03em; }
-.btn-gold { background: var(--gold); color: var(--dark); }
-.btn-gold:hover { background: var(--gold-light); }
-.btn-outline { background: transparent; border: 0.5px solid var(--border2); color: var(--cream); }
-.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.date-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: #6b7280; background: #f3f4f6; padding: 4px 10px; border-radius: 6px; }
+.btn { padding: 8px 18px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: all 0.15s; border: none; letter-spacing: 0.03em; }
+.btn-gold { background: var(--blue); color: #ffffff; border-radius: 7px; }
+.btn-gold:hover { background: var(--blue-dark); }
+.btn-outline { background: transparent; border: 1.5px solid #d1d5db; color: #374151; border-radius: 7px; }
+.btn-outline:hover { border-color: var(--blue); color: var(--blue); }
 .btn-logout {
-  background: var(--red-dim);
+  background: rgba(220,38,38,0.1);
   color: var(--red);
   border: 0.5px solid rgba(226,75,74,0.45);
 }
@@ -82,34 +83,34 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
 
 /* ── METRICS ROW ── */
 .metrics-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
-.metric-card { background: var(--dark2); border: 0.5px solid var(--border); border-radius: 8px; padding: 1.25rem; }
-.metric-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
-.metric-value { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: #fff; line-height: 1; margin-bottom: 4px; }
+.metric-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.metric-label { font-size: 10px; color: #6b7280; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.metric-value { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 700; color: #111827; line-height: 1; margin-bottom: 4px; }
 .metric-sub { font-size: 11px; display: flex; align-items: center; gap: 4px; }
 .metric-sub.up { color: var(--teal); }
 .metric-sub.down { color: var(--red); }
-.metric-sub.neutral { color: var(--muted); }
+.metric-sub.neutral { color: #6b7280; }
 
 /* ── GRID 2COL ── */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
 
 /* ── PANELS ── */
-.panel { background: var(--dark2); border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
-.panel-header { padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.panel-title { font-size: 12px; font-weight: 500; color: var(--cream2); letter-spacing: 0.04em; }
-.panel-action { font-size: 11px; color: var(--gold); cursor: pointer; }
+.panel { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.panel-header { padding: 1rem 1.25rem; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; background: #f9fafb; }
+.panel-title { font-size: 12px; font-weight: 600; color: #374151; letter-spacing: 0.04em; text-transform: uppercase; }
+.panel-action { font-size: 11px; color: var(--blue); cursor: pointer; font-weight: 500; }
 .panel-body { padding: 1.25rem; }
 
 /* ── ROOM GRID ── */
 .room-floor { margin-bottom: 1rem; }
-.floor-label { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 6px; text-transform: uppercase; }
+.floor-label { font-size: 10px; color: #6b7280; letter-spacing: 0.08em; margin-bottom: 6px; text-transform: uppercase; }
 .rooms-row { display: flex; flex-wrap: wrap; gap: 5px; }
 .room-floor-col { min-width: 260px; flex: 1; }
-.floor-header { background: var(--dark3); border-radius: 8px 8px 0 0; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border: 0.5px solid var(--border); border-bottom: none; }
-.floor-header-title { font-size: 14px; font-weight: 500; color: var(--cream); }
-.floor-header-count { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; background: var(--dark4); padding: 2px 8px; border-radius: 10px; }
-.floor-rooms { background: var(--dark3); border: 0.5px solid var(--border); border-radius: 0 0 8px 8px; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.floor-header { background: #f9fafb; border-radius: 8px 8px 0 0; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #e5e7eb; border-bottom: none; }
+.floor-header-title { font-size: 14px; font-weight: 600; color: #111827; }
+.floor-header-count { font-size: 12px; color: #6b7280; font-family: 'DM Mono', monospace; background: #e5e7eb; padding: 2px 8px; border-radius: 10px; }
+.floor-rooms { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0 0 8px 8px; padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .room-card { border-radius: 8px; padding: 8px 10px; cursor: pointer; transition: all 0.15s; position: relative; min-height: 80px; display: flex; flex-direction: column; justify-content: space-between; }
 .room-card:hover { transform: translateY(-1px); filter: brightness(1.1); }
 .room-card.available { background: #22C55E; }
@@ -129,15 +130,15 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
 .rooms-map-container { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
 .room-filters { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
 .room-legend { display: flex; gap: 1rem; margin-top: 8px; flex-wrap: wrap; }
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #6b7280; }
 .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
 
 /* ── TABLE ── */
 .data-table { width: 100%; border-collapse: collapse; }
-.data-table th { font-size: 10px; color: var(--muted); padding: 8px 12px; text-align: left; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 0.5px solid var(--border); white-space: nowrap; }
-.data-table td { font-size: 12px; color: var(--cream2); padding: 10px 12px; border-bottom: 0.5px solid var(--border2); vertical-align: middle; }
+.data-table th { font-size: 10px; color: #6b7280; padding: 8px 12px; text-align: left; letter-spacing: 0.06em; text-transform: uppercase; border-bottom: 1px solid #e5e7eb; white-space: nowrap; background: #f9fafb; }
+.data-table td { font-size: 12px; color: #374151; padding: 10px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: var(--dark3); }
+.data-table tr:hover td { background: #f0f7ff; }
 .data-table .mono { font-family: 'DM Mono', monospace; font-size: 11px; }
 
 /* ── LEGACY ADMIN SCREENS ── */
@@ -147,7 +148,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
   margin: -1.5rem -2rem;
   min-height: calc(100vh - 58px);
   padding: 24px 16px 60px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 .legacy-head {
   display: flex;
@@ -213,7 +214,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
   font-size: 16px;
   border-radius: 0;
   width: 100%;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 .legacy-input:focus,
 .legacy-select:focus {
@@ -230,7 +231,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
   min-width: 84px;
   font-size: 16px;
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 .legacy-btn:hover { background: #43aed9; }
 .legacy-toolbar {
@@ -371,64 +372,64 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
 
 /* ── BADGES ── */
 .badge { font-size: 9px; padding: 2px 8px; border-radius: 100px; letter-spacing: 0.04em; text-transform: uppercase; display: inline-block; white-space: nowrap; }
-.badge-confirmed { background: var(--teal-dim); color: var(--teal); }
-.badge-checked_in { background: var(--gold-dim); color: var(--gold); }
-.badge-checked_out { background: rgba(255,255,255,0.06); color: var(--muted); }
-.badge-cancelled { background: var(--red-dim); color: var(--red); }
-.badge-a { background: var(--gold-dim); color: var(--gold); }
-.badge-b { background: var(--teal-dim); color: var(--teal); }
-.badge-c { background: rgba(255,255,255,0.06); color: var(--muted); }
+.badge-confirmed { background: rgba(22,163,74,0.1); color: #16a34a; }
+.badge-checked_in { background: rgba(26,111,219,0.1); color: #1a6fdb; }
+.badge-checked_out { background: #f3f4f6; color: #6b7280; }
+.badge-cancelled { background: rgba(220,38,38,0.1); color: var(--red); }
+.badge-a { background: rgba(26,111,219,0.1); color: #1a6fdb; }
+.badge-b { background: rgba(22,163,74,0.1); color: #16a34a; }
+.badge-c { background: #f3f4f6; color: #6b7280; }
 
 /* ── MODAL ── */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 .modal-overlay.show { display: flex; }
-.modal { background: var(--dark2); border: 0.5px solid var(--border); border-radius: 12px; width: 520px; max-height: 85vh; overflow-y: auto; animation: modalIn 0.2s ease; }
+.modal { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); width: 520px; max-height: 85vh; overflow-y: auto; animation: modalIn 0.2s ease; }
 @keyframes modalIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
-.modal-header { padding: 1.25rem 1.5rem; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: #fff; font-weight: 400; }
-.modal-close { font-size: 20px; color: var(--muted); cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
+.modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; color: #111827; font-weight: 600; }
+.modal-close { font-size: 20px; color: #9ca3af; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
 .modal-body { padding: 1.5rem; }
-.modal-footer { padding: 1rem 1.5rem; border-top: 0.5px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; justify-content: flex-end; background: #f9fafb; border-radius: 0 0 12px 12px; }
 
 /* ── FORM ── */
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .form-row.full { grid-template-columns: 1fr; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; }
-.form-input, .form-select { padding: 9px 12px; background: var(--dark3); border: 0.5px solid var(--border); border-radius: 5px; color: var(--cream); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.15s; width: 100%; }
-.form-input:focus, .form-select:focus { border-color: var(--gold); }
-.form-select option { background: var(--dark3); }
-.form-input::placeholder { color: var(--muted); }
+.form-label { font-size: 11px; color: #6b7280; letter-spacing: 0.06em; font-weight: 500; }
+.form-input, .form-select { padding: 9px 12px; background: #ffffff; border: 1.5px solid #d1d5db; border-radius: 7px; color: #111827; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%; }
+.form-input:focus, .form-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,111,219,0.1); }
+.form-select option { background: #ffffff; color: #111827; }
+.form-input::placeholder { color: #6b7280; }
 
 /* ── CHECKIN LIST ── */
-.checkin-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border2); }
+.checkin-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }
 .checkin-item:last-child { border-bottom: none; }
-.checkin-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--gold-dim); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--gold); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+.checkin-avatar { width: 36px; height: 36px; border-radius: 50%; background: #e8f0fc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #1a6fdb; font-family: 'DM Mono', monospace; flex-shrink: 0; font-weight: 600; }
 .checkin-info { flex: 1; }
-.checkin-name { font-size: 13px; color: var(--cream); font-weight: 400; }
-.checkin-detail { font-size: 11px; color: var(--muted); margin-top: 1px; }
-.checkin-action { font-size: 11px; color: var(--gold); cursor: pointer; white-space: nowrap; }
+.checkin-name { font-size: 13px; color: #111827; font-weight: 500; }
+.checkin-detail { font-size: 11px; color: #6b7280; margin-top: 1px; }
+.checkin-action { font-size: 11px; color: #1a6fdb; cursor: pointer; white-space: nowrap; font-weight: 500; }
 
 /* ── STAT BAR ── */
-.stat-bar { height: 4px; border-radius: 2px; background: var(--dark3); margin-top: 8px; overflow: hidden; }
+.stat-bar { height: 4px; border-radius: 2px; background: #f3f4f6; margin-top: 8px; overflow: hidden; }
 .stat-bar-fill { height: 100%; border-radius: 2px; background: var(--gold); transition: width 0.8s ease; }
-.stat-bar-fill.teal { background: var(--teal); }
+.stat-bar-fill.teal { background: #16a34a; }
 
 /* ── SEARCH ── */
-.search-box { display: flex; align-items: center; gap: 8px; background: var(--dark3); border: 0.5px solid var(--border); border-radius: 5px; padding: 8px 12px; }
-.search-input { background: none; border: none; color: var(--cream); font-size: 13px; font-family: 'DM Sans', sans-serif; outline: none; flex: 1; }
-.search-input::placeholder { color: var(--muted); }
+.search-box { display: flex; align-items: center; gap: 8px; background: #f3f4f6; border: 1.5px solid #e5e7eb; border-radius: 7px; padding: 7px 12px; flex: 1; }
+.search-input { background: none; border: none; color: #111827; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; outline: none; flex: 1; }
+.search-input::placeholder { color: #6b7280; }
 
 /* ── EMPTY STATE ── */
 .empty-state { text-align: center; padding: 3rem 1rem; }
 .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
-.empty-title { font-size: 14px; color: var(--cream2); margin-bottom: 4px; }
-.empty-sub { font-size: 12px; color: var(--muted); }
+.empty-title { font-size: 14px; color: #374151; margin-bottom: 4px; }
+.empty-sub { font-size: 12px; color: #6b7280; }
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--dark4); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
@@ -479,25 +480,25 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
       <div class="metrics-row">
         <div class="metric-card">
           <div class="metric-label">Occupancy</div>
-          <div class="metric-value">78%</div>
-          <div class="metric-sub up">↑ 12% vs yesterday</div>
-          <div class="stat-bar"><div class="stat-bar-fill" style="width:78%"></div></div>
+          <div class="metric-value">—</div>
+          <div class="metric-sub neutral">No data yet</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:0%"></div></div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Available rooms</div>
-          <div class="metric-value">8</div>
-          <div class="metric-sub neutral">of 46 total rooms</div>
-          <div class="stat-bar"><div class="stat-bar-fill teal" style="width:17%"></div></div>
+          <div class="metric-value">—</div>
+          <div class="metric-sub neutral">No data yet</div>
+          <div class="stat-bar"><div class="stat-bar-fill teal" style="width:0%"></div></div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Revenue today</div>
-          <div class="metric-value">₹42,500</div>
-          <div class="metric-sub up">↑ 8% vs yesterday</div>
+          <div class="metric-value">₹0</div>
+          <div class="metric-sub neutral">No revenue yet</div>
         </div>
         <div class="metric-card">
           <div class="metric-label">WA enquiries</div>
-          <div class="metric-value">3</div>
-          <div class="metric-sub neutral">2 pending reply</div>
+          <div class="metric-value">0</div>
+          <div class="metric-sub neutral">No enquiries yet</div>
         </div>
       </div>
 
@@ -509,30 +510,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <span class="panel-action" onclick="showPage('checkin')">View all →</span>
           </div>
           <div class="panel-body" id="checkin-list">
-            <div class="checkin-item">
-              <div class="checkin-avatar">RS</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Rahul Sharma</div>
-                <div class="checkin-detail">Deluxe × 2 · CP · HE20260515001</div>
-              </div>
-              <div class="checkin-action" onclick="doCheckin('HE20260515001')">Check in →</div>
-            </div>
-            <div class="checkin-item">
-              <div class="checkin-avatar">PK</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Priya Kaur</div>
-                <div class="checkin-detail">Honeymoon × 1 · MAP · HE20260515002</div>
-              </div>
-              <div class="checkin-action" onclick="doCheckin('HE20260515002')">Check in →</div>
-            </div>
-            <div class="checkin-item">
-              <div class="checkin-avatar">AM</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Arvind Mehta × 6</div>
-                <div class="checkin-detail">Deluxe × 3 · MAP · HE20260515003</div>
-              </div>
-              <div class="checkin-action" onclick="doCheckin('HE20260515003')">Check in →</div>
-            </div>
+            <div class="empty-state">No check-ins scheduled today</div>
           </div>
         </div>
 
@@ -543,25 +521,25 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <div class="panel-body">
               <div style="display:flex;flex-direction:column;gap:10px">
                 <div style="display:flex;justify-content:space-between;font-size:12px">
-                  <span style="color:var(--muted)">Check-ins</span>
-                  <span style="color:var(--teal);font-family:'DM Mono',monospace">3</span>
+                  <span style="color:#6b7280">Check-ins</span>
+                  <span style="color:var(--teal);font-family:'DM Mono',monospace">0</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:12px">
-                  <span style="color:var(--muted)">Check-outs</span>
-                  <span style="color:var(--gold);font-family:'DM Mono',monospace">2</span>
+                  <span style="color:#6b7280">Check-outs</span>
+                  <span style="color:var(--blue);font-family:'DM Mono',monospace">0</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:12px">
-                  <span style="color:var(--muted)">In-house guests</span>
-                  <span style="color:var(--cream);font-family:'DM Mono',monospace">38</span>
+                  <span style="color:#6b7280">In-house guests</span>
+                  <span style="color:#111827;font-family:'DM Mono',monospace">0</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;font-size:12px">
-                  <span style="color:var(--muted)">New bookings</span>
-                  <span style="color:var(--cream);font-family:'DM Mono',monospace">5</span>
+                  <span style="color:#6b7280">New bookings</span>
+                  <span style="color:#111827;font-family:'DM Mono',monospace">0</span>
                 </div>
                 <div style="height:0.5px;background:var(--border)"></div>
                 <div style="display:flex;justify-content:space-between;font-size:13px">
-                  <span style="color:var(--muted)">Total revenue</span>
-                  <span style="color:var(--gold);font-family:'DM Mono',monospace">₹42,500</span>
+                  <span style="color:#6b7280">Total revenue</span>
+                  <span style="color:var(--blue);font-family:'DM Mono',monospace">₹0</span>
                 </div>
               </div>
             </div>
@@ -571,12 +549,12 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <div class="panel-body">
               <div style="display:flex;flex-direction:column;gap:8px">
                 <div style="display:flex;justify-content:space-between;align-items:center">
-                  <span style="font-size:12px;color:var(--gold)">● Occupied</span>
-                  <span style="font-size:12px;font-family:'DM Mono',monospace">38</span>
+                  <span style="font-size:12px;color:var(--blue)">● Occupied</span>
+                  <span style="font-size:12px;font-family:'DM Mono',monospace">0</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                   <span style="font-size:12px;color:var(--teal)">● Available</span>
-                  <span style="font-size:12px;font-family:'DM Mono',monospace">8</span>
+                  <span style="font-size:12px;font-family:'DM Mono',monospace">0</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                   <span style="font-size:12px;color:var(--red)">● Maintenance</span>
@@ -603,11 +581,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
               </tr>
             </thead>
             <tbody id="recent-bookings">
-              <tr><td class="mono">HE20260515001</td><td>Rahul Sharma</td><td>Rahul Travels</td><td>Deluxe × 2</td><td>15 May</td><td>17 May</td><td>CP</td><td class="mono">₹4,100</td><td><span class="badge badge-confirmed">Confirmed</span></td></tr>
-              <tr><td class="mono">HE20260515002</td><td>Priya Kaur</td><td>Sharma Tours</td><td>Honeymoon × 1</td><td>15 May</td><td>18 May</td><td>MAP</td><td class="mono">₹5,600</td><td><span class="badge badge-checked_in">Checked in</span></td></tr>
-              <tr><td class="mono">HE20260515003</td><td>Arvind Mehta</td><td>Delhi Holidays</td><td>Deluxe × 3</td><td>15 May</td><td>17 May</td><td>MAP</td><td class="mono">₹4,700</td><td><span class="badge badge-confirmed">Confirmed</span></td></tr>
-              <tr><td class="mono">HE20260514009</td><td>Sonia Kumar</td><td>Rahul Travels</td><td>Super Deluxe × 1</td><td>14 May</td><td>16 May</td><td>CP</td><td class="mono">₹4,600</td><td><span class="badge badge-checked_in">Checked in</span></td></tr>
-              <tr><td class="mono">HE20260514007</td><td>Rajesh Singh</td><td>Meet India</td><td>Deluxe × 2</td><td>13 May</td><td>15 May</td><td>CP</td><td class="mono">₹4,100</td><td><span class="badge badge-checked_out">Checked out</span></td></tr>
+              <tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No bookings yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -617,9 +591,9 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
     <!-- ── ROOMS PAGE ── -->
     <div class="page" id="page-rooms">
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">Total rooms</div><div class="metric-value">35</div><div class="metric-sub neutral">3 floors</div></div>
-        <div class="metric-card"><div class="metric-label">Occupied</div><div class="metric-value" style="color:#3B82F6">24</div><div class="metric-sub up" style="color:#3B82F6">69% occupancy</div></div>
-        <div class="metric-card"><div class="metric-label">Available</div><div class="metric-value" style="color:#22C55E">11</div><div class="metric-sub neutral">Ready to book</div></div>
+        <div class="metric-card"><div class="metric-label">Total rooms</div><div class="metric-value">—</div><div class="metric-sub neutral">Not configured</div></div>
+        <div class="metric-card"><div class="metric-label">Occupied</div><div class="metric-value" style="color:#3B82F6">0</div><div class="metric-sub neutral" style="color:#3B82F6">0% occupancy</div></div>
+        <div class="metric-card"><div class="metric-label">Available</div><div class="metric-value" style="color:#22C55E">0</div><div class="metric-sub neutral">No rooms yet</div></div>
         <div class="metric-card"><div class="metric-label">Maintenance</div><div class="metric-value" style="color:var(--red)">0</div><div class="metric-sub neutral">All rooms operational</div></div>
       </div>
       <div class="panel">
@@ -672,62 +646,19 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
     <div class="page" id="page-checkin">
       <div class="grid-2">
         <div class="panel">
-          <div class="panel-header" style="background:var(--teal-dim)">
-            <span class="panel-title" style="color:var(--teal)">✅ Check-ins today (3)</span>
+          <div class="panel-header" style="background:rgba(22,163,74,0.1)">
+            <span class="panel-title" style="color:var(--teal)">✅ Check-ins today (0)</span>
           </div>
           <div class="panel-body">
-            <div class="checkin-item">
-              <div class="checkin-avatar">RS</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Rahul Sharma</div>
-                <div class="checkin-detail">Deluxe × 2 · CP · ₹4,100/night</div>
-                <div class="checkin-detail mono" style="color:var(--gold)">HE20260515001</div>
-              </div>
-              <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('HE20260515001')">Check in</button>
-            </div>
-            <div class="checkin-item">
-              <div class="checkin-avatar">PK</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Priya Kaur</div>
-                <div class="checkin-detail">Honeymoon × 1 · MAP · ₹5,600/night</div>
-                <div class="checkin-detail mono" style="color:var(--gold)">HE20260515002</div>
-              </div>
-              <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('HE20260515002')">Check in</button>
-            </div>
-            <div class="checkin-item">
-              <div class="checkin-avatar">AM</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Arvind Mehta × 6</div>
-                <div class="checkin-detail">Deluxe × 3 · MAP · ₹4,700/night</div>
-                <div class="checkin-detail mono" style="color:var(--gold)">HE20260515003</div>
-              </div>
-              <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('HE20260515003')">Check in</button>
-            </div>
+            <div class="empty-state">No check-ins today</div>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-header" style="background:var(--gold-dim)">
-            <span class="panel-title" style="color:var(--gold)">🚪 Check-outs today (2)</span>
+          <div class="panel-header" style="background:var(--blue-dim)">
+            <span class="panel-title" style="color:var(--blue)">🚪 Check-outs today (0)</span>
           </div>
           <div class="panel-body">
-            <div class="checkin-item">
-              <div class="checkin-avatar" style="background:var(--gold-dim);color:var(--gold)">RJ</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Rajesh Singh</div>
-                <div class="checkin-detail">Deluxe × 2 · CP · 2 nights</div>
-                <div class="checkin-detail mono" style="color:var(--gold)">HE20260514007</div>
-              </div>
-              <button class="btn btn-outline" style="font-size:11px;padding:6px 14px" onclick="doCheckout('HE20260514007')">Checkout + Bill</button>
-            </div>
-            <div class="checkin-item">
-              <div class="checkin-avatar" style="background:var(--gold-dim);color:var(--gold)">SK</div>
-              <div class="checkin-info">
-                <div class="checkin-name">Sonia Kumar</div>
-                <div class="checkin-detail">Super Deluxe × 1 · CP · 2 nights</div>
-                <div class="checkin-detail mono" style="color:var(--gold)">HE20260514009</div>
-              </div>
-              <button class="btn btn-outline" style="font-size:11px;padding:6px 14px" onclick="doCheckout('HE20260514009')">Checkout + Bill</button>
-            </div>
+            <div class="empty-state">No check-outs today</div>
           </div>
         </div>
       </div>
@@ -744,10 +675,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Name</th><th>Phone</th><th>Company</th><th>Category</th><th>Discount</th><th>Bookings</th><th>Revenue</th><th>Actions</th></tr></thead>
             <tbody>
-              <tr><td>Rahul Travels</td><td class="mono">919876543210</td><td>Rahul Tours Pvt</td><td><span class="badge badge-a">A</span></td><td class="mono" style="color:var(--teal)">10%</td><td class="mono">24</td><td class="mono">₹3,84,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
-              <tr><td>Sharma Tours</td><td class="mono">918894888858</td><td>Sharma Holidays</td><td><span class="badge badge-b">B</span></td><td class="mono" style="color:var(--teal)">5%</td><td class="mono">18</td><td class="mono">₹2,16,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
-              <tr><td>Delhi Holidays</td><td class="mono">919999999999</td><td>Delhi Holidays</td><td><span class="badge badge-c">C</span></td><td class="mono">0%</td><td class="mono">12</td><td class="mono">₹1,44,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
-              <tr><td>Meet India Tour</td><td class="mono">917777777777</td><td>Meet India</td><td><span class="badge badge-b">B</span></td><td class="mono" style="color:var(--teal)">5%</td><td class="mono">8</td><td class="mono">₹96,000</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+              <tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No agents added yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -763,9 +691,9 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <table class="data-table">
               <thead><tr><th>Room Type</th><th>CP Rate</th><th>MAP Rate</th><th></th></tr></thead>
               <tbody>
-                <tr><td>Deluxe</td><td class="mono" style="color:var(--gold)">₹4,100</td><td class="mono" style="color:var(--gold)">₹4,900</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
-                <tr><td>Super Deluxe</td><td class="mono" style="color:var(--gold)">₹4,600</td><td class="mono" style="color:var(--gold)">₹5,400</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
-                <tr><td>Honeymoon</td><td class="mono" style="color:var(--gold)">₹5,100</td><td class="mono" style="color:var(--gold)">₹5,900</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Deluxe</td><td class="mono" style="color:var(--blue)">₹4,100</td><td class="mono" style="color:var(--blue)">₹4,900</td><td><span style="color:var(--blue);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Super Deluxe</td><td class="mono" style="color:var(--blue)">₹4,600</td><td class="mono" style="color:var(--blue)">₹5,400</td><td><span style="color:var(--blue);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Honeymoon</td><td class="mono" style="color:var(--blue)">₹5,100</td><td class="mono" style="color:var(--blue)">₹5,900</td><td><span style="color:var(--blue);cursor:pointer;font-size:11px">Edit</span></td></tr>
               </tbody>
             </table>
           </div>
@@ -776,9 +704,9 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <table class="data-table">
               <thead><tr><th>Room Type</th><th>CP Rate</th><th>MAP Rate</th><th></th></tr></thead>
               <tbody>
-                <tr><td>Deluxe</td><td class="mono" style="color:var(--teal)">₹3,000</td><td class="mono" style="color:var(--teal)">₹3,600</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
-                <tr><td>Super Deluxe</td><td class="mono" style="color:var(--teal)">₹3,500</td><td class="mono" style="color:var(--teal)">₹4,100</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
-                <tr><td>Honeymoon</td><td class="mono" style="color:var(--teal)">₹4,000</td><td class="mono" style="color:var(--teal)">₹4,600</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Deluxe</td><td class="mono" style="color:var(--teal)">₹3,000</td><td class="mono" style="color:var(--teal)">₹3,600</td><td><span style="color:var(--blue);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Super Deluxe</td><td class="mono" style="color:var(--teal)">₹3,500</td><td class="mono" style="color:var(--teal)">₹4,100</td><td><span style="color:var(--blue);cursor:pointer;font-size:11px">Edit</span></td></tr>
+                <tr><td>Honeymoon</td><td class="mono" style="color:var(--teal)">₹4,000</td><td class="mono" style="color:var(--teal)">₹4,600</td><td><span style="color:var(--blue);cursor:pointer;font-size:11px">Edit</span></td></tr>
               </tbody>
             </table>
           </div>
@@ -802,19 +730,19 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
     <!-- ── REPORTS PAGE ── -->
     <div class="page" id="page-reports">
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">This month revenue</div><div class="metric-value">₹8.4L</div><div class="metric-sub up">↑ 18% vs last month</div></div>
-        <div class="metric-card"><div class="metric-label">Avg occupancy</div><div class="metric-value">72%</div><div class="metric-sub up">↑ 5% vs last month</div></div>
-        <div class="metric-card"><div class="metric-label">Total bookings</div><div class="metric-value">124</div><div class="metric-sub neutral">this month</div></div>
-        <div class="metric-card"><div class="metric-label">Top agent</div><div class="metric-value" style="font-size:1.2rem;margin-top:4px">Rahul Travels</div><div class="metric-sub neutral">₹3,84,000 revenue</div></div>
+        <div class="metric-card"><div class="metric-label">This month revenue</div><div class="metric-value">₹0</div><div class="metric-sub neutral">No data yet</div></div>
+        <div class="metric-card"><div class="metric-label">Avg occupancy</div><div class="metric-value">0%</div><div class="metric-sub neutral">No data yet</div></div>
+        <div class="metric-card"><div class="metric-label">Total bookings</div><div class="metric-value">0</div><div class="metric-sub neutral">this month</div></div>
+        <div class="metric-card"><div class="metric-label">Top agent</div><div class="metric-value" style="font-size:1.2rem;margin-top:4px">—</div><div class="metric-sub neutral">No data yet</div></div>
       </div>
       <div class="grid-2">
         <div class="panel">
           <div class="panel-header"><span class="panel-title">Revenue by room type</span></div>
           <div class="panel-body">
             <div style="display:flex;flex-direction:column;gap:12px">
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Deluxe</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹4,20,000</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:72%"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Super Deluxe</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹2,70,000</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:46%"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Honeymoon</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹1,50,000</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:26%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#374151">Deluxe</span><span style="color:var(--blue);font-family:'DM Mono',monospace">₹0</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:0%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#374151">Super Deluxe</span><span style="color:var(--blue);font-family:'DM Mono',monospace">₹0</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:0%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#374151">Honeymoon</span><span style="color:var(--blue);font-family:'DM Mono',monospace">₹0</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:0%"></div></div></div>
             </div>
           </div>
         </div>
@@ -824,10 +752,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <table class="data-table">
               <thead><tr><th>Agent</th><th>Bookings</th><th>Revenue</th></tr></thead>
               <tbody>
-                <tr><td>Rahul Travels</td><td class="mono">24</td><td class="mono" style="color:var(--gold)">₹3,84,000</td></tr>
-                <tr><td>Sharma Tours</td><td class="mono">18</td><td class="mono" style="color:var(--gold)">₹2,16,000</td></tr>
-                <tr><td>Delhi Holidays</td><td class="mono">12</td><td class="mono" style="color:var(--gold)">₹1,44,000</td></tr>
-                <tr><td>Meet India Tour</td><td class="mono">8</td><td class="mono" style="color:var(--gold)">₹96,000</td></tr>
+                <tr><td colspan="3" style="text-align:center;color:#6b7280;padding:1.5rem">No agent data yet</td></tr>
               </tbody>
             </table>
           </div>
@@ -845,11 +770,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Name</th><th>Phone</th><th>Total stays</th><th>Last stay</th><th>Revenue</th></tr></thead>
             <tbody>
-              <tr><td>Rahul Sharma</td><td class="mono">9876543210</td><td class="mono">3</td><td>15 May 2026</td><td class="mono" style="color:var(--gold)">₹32,800</td></tr>
-              <tr><td>Priya Kaur</td><td class="mono">9812345678</td><td class="mono">1</td><td>15 May 2026</td><td class="mono" style="color:var(--gold)">₹16,800</td></tr>
-              <tr><td>Arvind Mehta</td><td class="mono">9898989898</td><td class="mono">2</td><td>15 May 2026</td><td class="mono" style="color:var(--gold)">₹56,400</td></tr>
-              <tr><td>Sonia Kumar</td><td class="mono">9111222333</td><td class="mono">4</td><td>14 May 2026</td><td class="mono" style="color:var(--gold)">₹41,200</td></tr>
-              <tr><td>Rajesh Singh</td><td class="mono">9444555666</td><td class="mono">1</td><td>13 May 2026</td><td class="mono" style="color:var(--gold)">₹16,400</td></tr>
+              <tr><td colspan="5" style="text-align:center;color:#6b7280;padding:2rem">No guests yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -867,8 +788,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Bill No</th><th>Booking ID</th><th>Guest</th><th>Room charges</th><th>Extras</th><th>GST</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
-              <tr><td class="mono">BILL001</td><td class="mono">HE20260514007</td><td>Rajesh Singh</td><td class="mono">₹16,400</td><td class="mono">₹0</td><td class="mono">₹1,968</td><td class="mono" style="color:var(--gold)">₹18,368</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">Paid</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">View</span></td></tr>
-              <tr><td class="mono">BILL002</td><td class="mono">HE20260514009</td><td>Sonia Kumar</td><td class="mono">₹9,200</td><td class="mono">₹1,600</td><td class="mono">₹1,296</td><td class="mono" style="color:var(--gold)">₹12,096</td><td><span class="badge badge-confirmed">Pending</span></td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Collect</span></td></tr>
+              <tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No bills yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -886,10 +806,10 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
         </select>
       </div>
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">Due Today</div><div class="metric-value" style="color:var(--gold)">3</div><div class="metric-sub neutral">guests checking out</div></div>
-        <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--teal)">1</div><div class="metric-sub neutral">checked out today</div></div>
-        <div class="metric-card"><div class="metric-label">Revenue Collected</div><div class="metric-value">₹18,368</div><div class="metric-sub up">from checkouts today</div></div>
-        <div class="metric-card"><div class="metric-label">Pending Collection</div><div class="metric-value" style="color:var(--red)">₹42,600</div><div class="metric-sub neutral">3 bills pending</div></div>
+        <div class="metric-card"><div class="metric-label">Due Today</div><div class="metric-value" style="color:var(--blue)">0</div><div class="metric-sub neutral">guests checking out</div></div>
+        <div class="metric-card"><div class="metric-label">Completed</div><div class="metric-value" style="color:var(--teal)">0</div><div class="metric-sub neutral">checked out today</div></div>
+        <div class="metric-card"><div class="metric-label">Revenue Collected</div><div class="metric-value">₹0</div><div class="metric-sub neutral">from checkouts today</div></div>
+        <div class="metric-card"><div class="metric-label">Pending Collection</div><div class="metric-value" style="color:var(--red)">₹0</div><div class="metric-sub neutral">no bills pending</div></div>
       </div>
       <div class="panel">
         <div class="panel-header"><span class="panel-title">Checkout Queue</span></div>
@@ -897,24 +817,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Booking ID</th><th>Guest</th><th>Room</th><th>Plan</th><th>Nights</th><th>Room Charges</th><th>Extras</th><th>GST</th><th>Total</th><th>Advance Paid</th><th>Balance</th><th>Action</th></tr></thead>
             <tbody id="checkout-tbody">
-              <tr>
-                <td class="mono" style="color:var(--gold)">HE20260515001</td>
-                <td>Rahul Sharma</td><td>201, 202</td><td>CP</td><td class="mono">2</td>
-                <td class="mono">₹16,400</td><td class="mono">₹0</td><td class="mono">₹1,968</td>
-                <td class="mono" style="color:var(--gold)">₹18,368</td>
-                <td class="mono" style="color:var(--teal)">₹4,592</td>
-                <td class="mono" style="color:var(--red)">₹13,776</td>
-                <td><button class="btn btn-gold" style="font-size:11px;padding:5px 12px" onclick="openCheckoutBill('HE20260515001')">Checkout + Bill</button></td>
-              </tr>
-              <tr>
-                <td class="mono" style="color:var(--gold)">HE20260514009</td>
-                <td>Sonia Kumar</td><td>305</td><td>CP</td><td class="mono">2</td>
-                <td class="mono">₹9,200</td><td class="mono">₹1,600</td><td class="mono">₹1,296</td>
-                <td class="mono" style="color:var(--gold)">₹12,096</td>
-                <td class="mono" style="color:var(--teal)">₹3,024</td>
-                <td class="mono" style="color:var(--red)">₹9,072</td>
-                <td><button class="btn btn-gold" style="font-size:11px;padding:5px 12px" onclick="openCheckoutBill('HE20260514009')">Checkout + Bill</button></td>
-              </tr>
+              <tr><td colspan="12" style="text-align:center;color:#6b7280;padding:2rem">No checkouts scheduled today</td></tr>
             </tbody>
           </table>
         </div>
@@ -930,17 +833,11 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <div class="form-group"><label class="form-label">From Room (Current)</label>
               <select class="form-select" id="swap-from">
                 <option value="">Select current room</option>
-                <option>101 — Deluxe (Rahul Sharma)</option>
-                <option>201 — Super Deluxe (Priya Kaur)</option>
-                <option>304 — Honeymoon (Arvind Mehta)</option>
               </select>
             </div>
             <div class="form-group" style="margin-top:1rem"><label class="form-label">To Room (New)</label>
               <select class="form-select" id="swap-to">
                 <option value="">Select new room</option>
-                <option>103 — Deluxe (Available)</option>
-                <option>212 — Super Deluxe (Available)</option>
-                <option>311 — Deluxe (Available)</option>
               </select>
             </div>
             <div class="form-group" style="margin-top:1rem"><label class="form-label">Reason for Swap</label>
@@ -954,8 +851,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <table class="data-table">
               <thead><tr><th>Date</th><th>Guest</th><th>From</th><th>To</th><th>Reason</th></tr></thead>
               <tbody>
-                <tr><td>15 May</td><td>Rahul Sharma</td><td>101</td><td>103</td><td style="color:var(--muted)">Guest request</td></tr>
-                <tr><td>14 May</td><td>Sonia Kumar</td><td>212</td><td>305</td><td style="color:var(--muted)">Upgrade</td></tr>
+                <tr><td colspan="5" style="text-align:center;color:#6b7280;padding:1.5rem">No swaps yet</td></tr>
               </tbody>
             </table>
           </div>
@@ -983,10 +879,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Room</th><th>Floor</th><th>Type</th><th>Status</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Nights</th><th>Plan</th><th>Agent</th><th>Rate</th><th>Housekeeping</th></tr></thead>
             <tbody id="investigation-tbody">
-              <tr><td class="mono">101</td><td>1</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td>Rahul Sharma</td><td>15 May</td><td>17 May</td><td class="mono">2</td><td>CP</td><td style="color:var(--muted)">Rahul Travels</td><td class="mono">₹4,100</td><td><span style="color:var(--teal)">Clean ✓</span></td></tr>
-              <tr><td class="mono">102</td><td>1</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td>Priya Kaur</td><td>15 May</td><td>18 May</td><td class="mono">3</td><td>MAP</td><td style="color:var(--muted)">Sharma Tours</td><td class="mono">₹5,600</td><td><span style="color:var(--red)">Pending</span></td></tr>
-              <tr><td class="mono">103</td><td>1</td><td>Deluxe</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">Available</span></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span style="color:var(--teal)">Clean ✓</span></td></tr>
-              <tr><td class="mono">201</td><td>2</td><td>Super Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td>Arvind Mehta</td><td>15 May</td><td>17 May</td><td class="mono">2</td><td>MAP</td><td style="color:var(--muted)">Delhi Holidays</td><td class="mono">₹4,700</td><td><span style="color:var(--gold)">In Progress</span></td></tr>
+              <tr><td colspan="12" style="text-align:center;color:#6b7280;padding:2rem">No rooms configured yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -996,10 +889,10 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
     <!-- ── RS UPDATE PAGE ── -->
     <div class="page" id="page-rsupdate">
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">Total Rooms</div><div class="metric-value">35</div></div>
-        <div class="metric-card"><div class="metric-label">Clean</div><div class="metric-value" style="color:var(--teal)">22</div></div>
-        <div class="metric-card"><div class="metric-label">Dirty</div><div class="metric-value" style="color:var(--red)">8</div></div>
-        <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-value" style="color:var(--gold)">5</div></div>
+        <div class="metric-card"><div class="metric-label">Total Rooms</div><div class="metric-value">0</div></div>
+        <div class="metric-card"><div class="metric-label">Clean</div><div class="metric-value" style="color:var(--teal)">0</div></div>
+        <div class="metric-card"><div class="metric-label">Dirty</div><div class="metric-value" style="color:var(--red)">0</div></div>
+        <div class="metric-card"><div class="metric-label">In Progress</div><div class="metric-value" style="color:var(--blue)">0</div></div>
       </div>
       <div class="panel">
         <div class="panel-header">
@@ -1010,9 +903,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Room</th><th>Type</th><th>Occupancy</th><th>Housekeeping Status</th><th>Updated By</th><th>Time</th><th>Update</th></tr></thead>
             <tbody>
-              <tr><td class="mono">101</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td><span style="color:var(--teal)">● Clean</span></td><td style="color:var(--muted)">Hansraj</td><td style="color:var(--muted)">09:30 AM</td><td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('101',this.value)"><option>Clean</option><option>Dirty</option><option>In Progress</option><option>Inspected</option></select></td></tr>
-              <tr><td class="mono">102</td><td>Deluxe</td><td><span class="badge badge-checked_in">Occupied</span></td><td><span style="color:var(--red)">● Dirty</span></td><td style="color:var(--muted)">Anu</td><td style="color:var(--muted)">08:15 AM</td><td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('102',this.value)"><option>Clean</option><option selected>Dirty</option><option>In Progress</option><option>Inspected</option></select></td></tr>
-              <tr><td class="mono">103</td><td>Deluxe</td><td><span class="badge" style="background:var(--teal-dim);color:var(--teal)">Available</span></td><td><span style="color:var(--gold)">● In Progress</span></td><td style="color:var(--muted)">Pradeep HK</td><td style="color:var(--muted)">10:00 AM</td><td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('103',this.value)"><option>Clean</option><option>Dirty</option><option selected>In Progress</option><option>Inspected</option></select></td></tr>
+              <tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem">No rooms configured yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -1030,10 +921,10 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
         <button class="btn btn-outline" onclick="exportCashBook()">Export</button>
       </div>
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">Opening Balance</div><div class="metric-value">₹12,500</div></div>
-        <div class="metric-card"><div class="metric-label">Cash In</div><div class="metric-value" style="color:var(--teal)">₹42,368</div></div>
-        <div class="metric-card"><div class="metric-label">Cash Out</div><div class="metric-value" style="color:var(--red)">₹8,200</div></div>
-        <div class="metric-card"><div class="metric-label">Closing Balance</div><div class="metric-value" style="color:var(--gold)">₹46,668</div></div>
+        <div class="metric-card"><div class="metric-label">Opening Balance</div><div class="metric-value">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Cash In</div><div class="metric-value" style="color:var(--teal)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Cash Out</div><div class="metric-value" style="color:var(--red)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Closing Balance</div><div class="metric-value" style="color:var(--blue)">₹0</div></div>
       </div>
       <div class="panel">
         <div class="panel-header"><span class="panel-title">Cash Book — 18 May 2026</span></div>
@@ -1041,12 +932,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>S.No</th><th>Time</th><th>Description</th><th>Booking ID</th><th>Cash In</th><th>Cash Out</th><th>Balance</th><th>By</th></tr></thead>
             <tbody>
-              <tr><td class="mono">1</td><td>09:00</td><td>Opening Balance</td><td>—</td><td class="mono" style="color:var(--teal)">₹12,500</td><td>—</td><td class="mono" style="color:var(--gold)">₹12,500</td><td style="color:var(--muted)">System</td></tr>
-              <tr><td class="mono">2</td><td>10:30</td><td>Room checkout — Rajesh Singh</td><td class="mono">HE20260514007</td><td class="mono" style="color:var(--teal)">₹18,368</td><td>—</td><td class="mono" style="color:var(--gold)">₹30,868</td><td style="color:var(--muted)">User</td></tr>
-              <tr><td class="mono">3</td><td>11:15</td><td>Laundry expense</td><td>—</td><td>—</td><td class="mono" style="color:var(--red)">₹3,200</td><td class="mono" style="color:var(--gold)">₹27,668</td><td style="color:var(--muted)">User</td></tr>
-              <tr><td class="mono">4</td><td>14:00</td><td>Room advance — Arvind Mehta</td><td class="mono">HE20260515003</td><td class="mono" style="color:var(--teal)">₹7,050</td><td>—</td><td class="mono" style="color:var(--gold)">₹34,718</td><td style="color:var(--muted)">Anu</td></tr>
-              <tr><td class="mono">5</td><td>15:30</td><td>Grocery purchase</td><td>—</td><td>—</td><td class="mono" style="color:var(--red)">₹5,000</td><td class="mono" style="color:var(--gold)">₹29,718</td><td style="color:var(--muted)">Hansraj</td></tr>
-              <tr><td class="mono">6</td><td>18:00</td><td>Room advance — Sonia Kumar</td><td class="mono">HE20260514009</td><td class="mono" style="color:var(--teal)">₹16,950</td><td>—</td><td class="mono" style="color:var(--gold)">₹46,668</td><td style="color:var(--muted)">User</td></tr>
+              <tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No transactions today</td></tr>
             </tbody>
           </table>
         </div>
@@ -1065,9 +951,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Receipt No</th><th>Date</th><th>Booking ID</th><th>Guest</th><th>Amount</th><th>Mode</th><th>Narration</th><th>Actions</th></tr></thead>
             <tbody>
-              <tr><td class="mono" style="color:var(--gold)">RCP001</td><td>18 May 2026</td><td class="mono">HE20260514007</td><td>Rajesh Singh</td><td class="mono" style="color:var(--teal)">₹18,368</td><td><span class="badge badge-confirmed">Cash</span></td><td style="color:var(--muted)">Full payment on checkout</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Print</span></td></tr>
-              <tr><td class="mono" style="color:var(--gold)">RCP002</td><td>18 May 2026</td><td class="mono">HE20260515003</td><td>Arvind Mehta</td><td class="mono" style="color:var(--teal)">₹7,050</td><td><span class="badge badge-checked_in">UPI</span></td><td style="color:var(--muted)">25% advance payment</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Print</span></td></tr>
-              <tr><td class="mono" style="color:var(--gold)">RCP003</td><td>18 May 2026</td><td class="mono">HE20260514009</td><td>Sonia Kumar</td><td class="mono" style="color:var(--teal)">₹3,024</td><td><span class="badge badge-confirmed">Card</span></td><td style="color:var(--muted)">25% advance payment</td><td><span style="color:var(--gold);cursor:pointer;font-size:11px">Print</span></td></tr>
+              <tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No receipts yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -1084,8 +968,8 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
       </div>
       <div class="metrics-row">
         <div class="metric-card"><div class="metric-label">Total Taxable Value</div><div class="metric-value">₹3,84,000</div></div>
-        <div class="metric-card"><div class="metric-label">GST @ 12% (< ₹7500)</div><div class="metric-value" style="color:var(--gold)">₹28,800</div></div>
-        <div class="metric-card"><div class="metric-label">GST @ 18% (≥ ₹7500)</div><div class="metric-value" style="color:var(--gold)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">GST @ 12% (< ₹7500)</div><div class="metric-value" style="color:var(--blue)">₹28,800</div></div>
+        <div class="metric-card"><div class="metric-label">GST @ 18% (≥ ₹7500)</div><div class="metric-value" style="color:var(--blue)">₹0</div></div>
         <div class="metric-card"><div class="metric-label">Total GST Payable</div><div class="metric-value" style="color:var(--red)">₹28,800</div></div>
       </div>
       <div class="panel">
@@ -1094,9 +978,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Booking ID</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Room Type</th><th>Tariff</th><th>GST %</th><th>GST Amount</th><th>Total</th></tr></thead>
             <tbody>
-              <tr><td class="mono">HE20260515001</td><td>Rahul Sharma</td><td>15 May</td><td>17 May</td><td>Deluxe</td><td class="mono">₹16,400</td><td class="mono">12%</td><td class="mono" style="color:var(--gold)">₹1,968</td><td class="mono">₹18,368</td></tr>
-              <tr><td class="mono">HE20260515002</td><td>Priya Kaur</td><td>15 May</td><td>18 May</td><td>Honeymoon</td><td class="mono">₹16,800</td><td class="mono">12%</td><td class="mono" style="color:var(--gold)">₹2,016</td><td class="mono">₹18,816</td></tr>
-              <tr><td class="mono">HE20260515003</td><td>Arvind Mehta</td><td>15 May</td><td>17 May</td><td>Deluxe</td><td class="mono">₹28,200</td><td class="mono">12%</td><td class="mono" style="color:var(--gold)">₹3,384</td><td class="mono">₹31,584</td></tr>
+              <tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No GST entries yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -1110,19 +992,19 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
         <button class="btn btn-outline" onclick="exportSettlement()">Export</button>
       </div>
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">Cash</div><div class="metric-value" style="color:var(--teal)">₹42,368</div></div>
-        <div class="metric-card"><div class="metric-label">Card</div><div class="metric-value" style="color:var(--teal)">₹12,096</div></div>
-        <div class="metric-card"><div class="metric-label">UPI</div><div class="metric-value" style="color:var(--teal)">₹7,050</div></div>
-        <div class="metric-card"><div class="metric-label">Total Settlement</div><div class="metric-value" style="color:var(--gold)">₹61,514</div></div>
+        <div class="metric-card"><div class="metric-label">Cash</div><div class="metric-value" style="color:var(--teal)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Card</div><div class="metric-value" style="color:var(--teal)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">UPI</div><div class="metric-value" style="color:var(--teal)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Total Settlement</div><div class="metric-value" style="color:var(--blue)">₹0</div></div>
       </div>
       <div class="grid-2">
         <div class="panel">
           <div class="panel-header"><span class="panel-title">Payment Mode Breakdown</span></div>
           <div class="panel-body">
             <div style="display:flex;flex-direction:column;gap:12px">
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Cash</span><span style="color:var(--teal);font-family:'DM Mono',monospace">₹42,368 (68.9%)</span></div><div class="stat-bar"><div class="stat-bar-fill teal" style="width:69%"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">Card</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹12,096 (19.7%)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:20%"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--cream2)">UPI</span><span style="color:var(--purple);font-family:'DM Mono',monospace">₹7,050 (11.4%)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:11%;background:var(--purple)"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#374151">Cash</span><span style="color:var(--teal);font-family:'DM Mono',monospace">₹0 (0%)</span></div><div class="stat-bar"><div class="stat-bar-fill teal" style="width:0%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#374151">Card</span><span style="color:var(--blue);font-family:'DM Mono',monospace">₹0 (0%)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:0%"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:#374151">UPI</span><span style="color:var(--purple);font-family:'DM Mono',monospace">₹0 (0%)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:0%;background:var(--purple)"></div></div></div>
             </div>
           </div>
         </div>
@@ -1132,10 +1014,10 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
             <table class="data-table">
               <thead><tr><th>Department</th><th>Amount</th></tr></thead>
               <tbody>
-                <tr><td>Room Revenue</td><td class="mono" style="color:var(--gold)">₹54,800</td></tr>
-                <tr><td>F&B Revenue</td><td class="mono" style="color:var(--gold)">₹4,200</td></tr>
-                <tr><td>Laundry</td><td class="mono" style="color:var(--gold)">₹800</td></tr>
-                <tr><td>Miscellaneous</td><td class="mono" style="color:var(--gold)">₹1,714</td></tr>
+                <tr><td>Room Revenue</td><td class="mono" style="color:var(--blue)">₹0</td></tr>
+                <tr><td>F&B Revenue</td><td class="mono" style="color:var(--blue)">₹0</td></tr>
+                <tr><td>Laundry</td><td class="mono" style="color:var(--blue)">₹0</td></tr>
+                <tr><td>Miscellaneous</td><td class="mono" style="color:var(--blue)">₹0</td></tr>
               </tbody>
             </table>
           </div>
@@ -1146,15 +1028,15 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
     <!-- ── NIGHT AUDIT PAGE ── -->
     <div class="page" id="page-nightaudit">
       <div style="display:flex;gap:10px;margin-bottom:1rem;align-items:center">
-        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">Night Audit — 18 May 2026</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:#6b7280">Night Audit — 18 May 2026</div>
         <button class="btn btn-gold" onclick="runNightAudit()">Run Night Audit</button>
         <button class="btn btn-outline" onclick="exportNightAudit()">Export Report</button>
       </div>
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">Rooms Occupied</div><div class="metric-value">28</div></div>
-        <div class="metric-card"><div class="metric-label">Rooms Available</div><div class="metric-value" style="color:var(--teal)">7</div></div>
-        <div class="metric-card"><div class="metric-label">Total Room Revenue</div><div class="metric-value">₹54,800</div></div>
-        <div class="metric-card"><div class="metric-label">Audit Status</div><div class="metric-value" style="font-size:1.2rem;color:var(--teal)">Completed ✓</div></div>
+        <div class="metric-card"><div class="metric-label">Rooms Occupied</div><div class="metric-value">0</div></div>
+        <div class="metric-card"><div class="metric-label">Rooms Available</div><div class="metric-value" style="color:var(--teal)">0</div></div>
+        <div class="metric-card"><div class="metric-label">Total Room Revenue</div><div class="metric-value">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Audit Status</div><div class="metric-value" style="font-size:1.2rem;color:#6b7280">Pending</div></div>
       </div>
       <div class="panel">
         <div class="panel-header"><span class="panel-title">Night Audit Summary</span></div>
@@ -1162,9 +1044,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Room</th><th>Guest</th><th>Nights</th><th>Plan</th><th>Rate</th><th>Charges Posted</th><th>Balance</th><th>Status</th></tr></thead>
             <tbody>
-              <tr><td class="mono">101</td><td>Rahul Sharma</td><td class="mono">1 of 2</td><td>CP</td><td class="mono">₹4,100</td><td class="mono" style="color:var(--teal)">₹4,100</td><td class="mono" style="color:var(--red)">₹13,776</td><td><span class="badge badge-confirmed">Posted</span></td></tr>
-              <tr><td class="mono">102</td><td>Priya Kaur</td><td class="mono">1 of 3</td><td>MAP</td><td class="mono">₹5,600</td><td class="mono" style="color:var(--teal)">₹5,600</td><td class="mono" style="color:var(--red)">₹12,768</td><td><span class="badge badge-confirmed">Posted</span></td></tr>
-              <tr><td class="mono">201</td><td>Arvind Mehta</td><td class="mono">1 of 2</td><td>MAP</td><td class="mono">₹4,700</td><td class="mono" style="color:var(--teal)">₹4,700</td><td class="mono" style="color:var(--red)">₹21,150</td><td><span class="badge badge-confirmed">Posted</span></td></tr>
+              <tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No audit data yet — run night audit to generate</td></tr>
             </tbody>
           </table>
         </div>
@@ -1183,10 +1063,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>Date</th><th>Rooms Occupied</th><th>Occupancy %</th><th>Room Revenue</th><th>F&B Revenue</th><th>Other</th><th>Total Revenue</th><th>GST</th><th>Net Revenue</th></tr></thead>
             <tbody>
-              <tr><td>01 May</td><td class="mono">24</td><td class="mono">69%</td><td class="mono">₹48,400</td><td class="mono">₹3,200</td><td class="mono">₹800</td><td class="mono" style="color:var(--gold)">₹52,400</td><td class="mono">₹5,808</td><td class="mono">₹46,592</td></tr>
-              <tr><td>02 May</td><td class="mono">22</td><td class="mono">63%</td><td class="mono">₹44,200</td><td class="mono">₹2,800</td><td class="mono">₹400</td><td class="mono" style="color:var(--gold)">₹47,400</td><td class="mono">₹5,208</td><td class="mono">₹42,192</td></tr>
-              <tr><td>03 May</td><td class="mono">28</td><td class="mono">80%</td><td class="mono">₹57,400</td><td class="mono">₹4,100</td><td class="mono">₹1,200</td><td class="mono" style="color:var(--gold)">₹62,700</td><td class="mono">₹7,152</td><td class="mono">₹55,548</td></tr>
-              <tr style="font-weight:500;background:var(--dark3)"><td>TOTAL (May)</td><td class="mono">—</td><td class="mono">72%</td><td class="mono" style="color:var(--gold)">₹8,42,600</td><td class="mono" style="color:var(--gold)">₹58,400</td><td class="mono" style="color:var(--gold)">₹12,600</td><td class="mono" style="color:var(--gold)">₹9,13,600</td><td class="mono" style="color:var(--gold)">₹1,04,400</td><td class="mono" style="color:var(--gold)">₹8,09,200</td></tr>
+              <tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No data yet for this month</td></tr>
             </tbody>
           </table>
         </div>
@@ -1200,10 +1077,10 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
         <button class="btn btn-outline" onclick="exportCardReport()">Export</button>
       </div>
       <div class="metrics-row">
-        <div class="metric-card"><div class="metric-label">Total Card Transactions</div><div class="metric-value">4</div></div>
-        <div class="metric-card"><div class="metric-label">Card Amount</div><div class="metric-value" style="color:var(--teal)">₹12,096</div></div>
-        <div class="metric-card"><div class="metric-label">UPI Amount</div><div class="metric-value" style="color:var(--teal)">₹7,050</div></div>
-        <div class="metric-card"><div class="metric-label">Net Digital</div><div class="metric-value" style="color:var(--gold)">₹19,146</div></div>
+        <div class="metric-card"><div class="metric-label">Total Card Transactions</div><div class="metric-value">0</div></div>
+        <div class="metric-card"><div class="metric-label">Card Amount</div><div class="metric-value" style="color:var(--teal)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">UPI Amount</div><div class="metric-value" style="color:var(--teal)">₹0</div></div>
+        <div class="metric-card"><div class="metric-label">Net Digital</div><div class="metric-value" style="color:var(--blue)">₹0</div></div>
       </div>
       <div class="panel">
         <div class="panel-header"><span class="panel-title">Card & Digital Payment Report — 18 May 2026</span></div>
@@ -1211,9 +1088,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
           <table class="data-table">
             <thead><tr><th>S.No</th><th>Time</th><th>Guest</th><th>Booking ID</th><th>Amount</th><th>Mode</th><th>Card Last 4</th><th>Bank</th><th>Reference</th></tr></thead>
             <tbody>
-              <tr><td class="mono">1</td><td>10:30</td><td>Sonia Kumar</td><td class="mono">HE20260514009</td><td class="mono" style="color:var(--teal)">₹3,024</td><td><span class="badge badge-confirmed">Card</span></td><td class="mono">6411</td><td style="color:var(--muted)">HDFC</td><td class="mono" style="color:var(--muted)">TXN202605180001</td></tr>
-              <tr><td class="mono">2</td><td>11:45</td><td>Arvind Mehta</td><td class="mono">HE20260515003</td><td class="mono" style="color:var(--teal)">₹7,050</td><td><span class="badge badge-checked_in">UPI</span></td><td class="mono">—</td><td style="color:var(--muted)">PhonePe</td><td class="mono" style="color:var(--muted)">TXN202605180002</td></tr>
-              <tr><td class="mono">3</td><td>14:20</td><td>Priya Kaur</td><td class="mono">HE20260515002</td><td class="mono" style="color:var(--teal)">₹9,072</td><td><span class="badge badge-confirmed">Card</span></td><td class="mono">8823</td><td style="color:var(--muted)">SBI</td><td class="mono" style="color:var(--muted)">TXN202605180003</td></tr>
+              <tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No digital payments yet</td></tr>
             </tbody>
           </table>
         </div>
@@ -1369,172 +1244,6 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
   </div>
 </div>
 
-<!-- ── CHATS PAGE ── -->
-<div class="page" id="page-chats">
-  <div style="display:flex;height:calc(100vh - 60px);overflow:hidden">
-    <!-- Left: Chat List -->
-    <div style="width:300px;min-width:300px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;background:#fff">
-      <div style="padding:12px;border-bottom:1px solid #e5e7eb">
-        <div style="background:#f3f4f6;border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px">
-          <span style="color:#9ca3af">🔍</span>
-          <input id="chat-search" placeholder="Search room or guest..." oninput="filterChats(this.value)"
-            style="background:none;border:none;outline:none;font-size:13px;width:100%;color:#111827">
-        </div>
-      </div>
-      <div style="display:flex;border-bottom:1px solid #e5e7eb">
-        <button onclick="filterChatTab('all',this)" class="chat-tab" style="flex:1;padding:10px;font-size:12px;font-weight:600;border:none;background:#fff;cursor:pointer;border-bottom:2px solid #1a6fdb;color:#1a6fdb">All</button>
-        <button onclick="filterChatTab('checked_in',this)" class="chat-tab" style="flex:1;padding:10px;font-size:12px;font-weight:500;border:none;background:#fff;cursor:pointer;border-bottom:2px solid transparent;color:#6b7280">In-House</button>
-        <button onclick="filterChatTab('tasks',this)" class="chat-tab" style="flex:1;padding:10px;font-size:12px;font-weight:500;border:none;background:#fff;cursor:pointer;border-bottom:2px solid transparent;color:#6b7280">Tasks</button>
-      </div>
-      <div id="chat-list" style="flex:1;overflow-y:auto"></div>
-    </div>
-
-    <!-- Right: Chat Window -->
-    <div style="flex:1;display:flex;flex-direction:column;background:#f9fafb">
-      <div id="chat-empty" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9ca3af">
-        <div style="font-size:48px;margin-bottom:16px">💬</div>
-        <div style="font-size:16px;font-weight:600;color:#374151">Guest Chats</div>
-        <div style="font-size:13px;margin-top:6px">Select a guest to view their service requests and tasks</div>
-      </div>
-      <div id="chat-window" style="display:none;flex-direction:column;height:100%">
-        <div style="padding:14px 20px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px">
-          <div id="chat-avatar" style="width:40px;height:40px;border-radius:50%;background:#e8f0fc;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#1a6fdb;flex-shrink:0">G</div>
-          <div style="flex:1">
-            <div id="chat-guest-name" style="font-size:14px;font-weight:600;color:#111827">Guest</div>
-            <div id="chat-room-info" style="font-size:12px;color:#6b7280">Room —</div>
-          </div>
-          <span id="chat-status-badge" style="font-size:11px;padding:4px 10px;border-radius:100px;background:#dcfce7;color:#16a34a;font-weight:500">Checked In</span>
-          <button onclick="loadChatMessages(currentChatPhone, currentChatGuest, currentChatRoom)" style="padding:6px 12px;background:#f3f4f6;border:none;border-radius:6px;font-size:12px;cursor:pointer">🔄 Refresh</button>
-        </div>
-        <div id="chat-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
-        <div style="padding:12px 16px;background:#fff;border-top:1px solid #e5e7eb">
-          <div style="display:flex;gap:8px;align-items:center">
-            <input id="chat-msg-input" placeholder="Send a message to guest via WhatsApp..."
-              style="flex:1;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;outline:none;font-family:inherit"
-              onkeypress="if(event.key==='Enter') sendStaffMessage()">
-            <button onclick="sendStaffMessage()" style="padding:10px 18px;background:#1a6fdb;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500">Send</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── BUSINESS OVERVIEW PAGE ── -->
-<div class="page" id="page-overview">
-  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
-    <div>
-      <h2 style="font-size:1.4rem;font-weight:700;color:#111827">Business Overview</h2>
-      <div style="font-size:12px;color:#6b7280;margin-top:2px" id="overview-date">Today</div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <select id="overview-period" onchange="loadOverview()" class="form-select" style="width:auto;padding:8px 12px;font-size:12px">
-        <option value="today">Today</option>
-        <option value="week">This Week</option>
-        <option value="month">This Month</option>
-      </select>
-      <button onclick="loadOverview()" style="padding:8px 16px;background:#1a6fdb;color:#fff;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:500">🔄 Refresh</button>
-    </div>
-  </div>
-
-  <!-- Top Stats Row -->
-  <div class="metrics-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.5rem">
-    <div class="metric-card" style="border-left:4px solid #1a6fdb">
-      <div class="metric-label">Total Tasks</div>
-      <div class="metric-value" id="ov-total-tasks">—</div>
-      <div class="metric-sub neutral" id="ov-tasks-sub">Loading...</div>
-    </div>
-    <div class="metric-card" style="border-left:4px solid #16a34a">
-      <div class="metric-label">Completed</div>
-      <div class="metric-value" style="color:#16a34a" id="ov-done-tasks">—</div>
-      <div class="metric-sub neutral" id="ov-done-sub">on time</div>
-    </div>
-    <div class="metric-card" style="border-left:4px solid #dc2626">
-      <div class="metric-label">Overdue / Escalated</div>
-      <div class="metric-value" style="color:#dc2626" id="ov-overdue-tasks">—</div>
-      <div class="metric-sub neutral">took &gt;5 min</div>
-    </div>
-    <div class="metric-card" style="border-left:4px solid #f59e0b">
-      <div class="metric-label">Avg Completion Time</div>
-      <div class="metric-value" style="color:#f59e0b" id="ov-avg-time">—</div>
-      <div class="metric-sub neutral">minutes</div>
-    </div>
-  </div>
-
-  <!-- Guest Satisfaction + Department Breakdown -->
-  <div class="grid-2" style="gap:1.5rem;margin-bottom:1.5rem">
-
-    <!-- Guest Satisfaction -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">⭐ Guest Satisfaction</span>
-        <span class="panel-action" onclick="loadOverview()">Refresh</span>
-      </div>
-      <div class="panel-body" style="padding:1.25rem">
-        <!-- Rating summary -->
-        <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:1.25rem">
-          <div style="text-align:center">
-            <div style="font-size:3rem;font-weight:700;color:#111827;line-height:1" id="ov-avg-rating">—</div>
-            <div style="font-size:11px;color:#6b7280;margin-top:4px">out of 5</div>
-            <div style="font-size:18px;margin-top:4px" id="ov-rating-stars">⭐⭐⭐⭐⭐</div>
-          </div>
-          <div style="flex:1">
-            <div id="ov-rating-bars"></div>
-          </div>
-        </div>
-        <!-- Feedback list -->
-        <div style="border-top:1px solid #e5e7eb;padding-top:1rem">
-          <div style="font-size:11px;font-weight:600;color:#374151;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Recent Feedback</div>
-          <div id="ov-feedback-list">
-            <div class="empty-state">No feedback yet</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Department Breakdown -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">📊 Department Performance</span>
-      </div>
-      <div class="panel-body" style="padding:1.25rem">
-        <div id="ov-dept-breakdown">
-          <div class="empty-state">No tasks yet</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Recent Tasks Table -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">📋 Recent Service Requests</span>
-      <span class="panel-action" onclick="loadOverview()">Refresh</span>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="data-table" style="width:100%">
-        <thead>
-          <tr>
-            <th>Task ID</th>
-            <th>Room</th>
-            <th>Guest</th>
-            <th>Service</th>
-            <th>Department</th>
-            <th>Created</th>
-            <th>Time Taken</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="ov-tasks-table">
-          <tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">Loading...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
 <!-- ── MODALS ── -->
 
 <!-- New Reservation Modal -->
@@ -1622,16 +1331,16 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
       <button class="modal-close" onclick="closeModal('checkout')">×</button>
     </div>
     <div class="modal-body" id="checkout-body">
-      <div style="background:var(--dark3);border-radius:8px;padding:1.25rem;margin-bottom:1rem">
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);margin-bottom:8px">HE20260514007</div>
-        <div style="font-size:16px;color:#fff;margin-bottom:4px">Rajesh Singh</div>
-        <div style="font-size:12px;color:var(--muted)">Deluxe × 2 rooms · CP · 2 nights</div>
+      <div style="background:#f3f4f6;border-radius:8px;padding:1.25rem;margin-bottom:1rem">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blue);margin-bottom:8px">—</div>
+        <div style="font-size:16px;color:#fff;margin-bottom:4px">Select a booking to checkout</div>
+        <div style="font-size:12px;color:#6b7280">No booking selected</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:var(--muted)">Room charges (₹4,100 × 2 × 2)</span><span>₹16,400</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:var(--muted)">Extra charges</span><span>₹0</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:var(--muted)">GST 12%</span><span>₹1,968</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:15px;padding:10px 0;font-weight:500"><span style="color:var(--cream)">Grand Total</span><span style="color:var(--gold);font-family:'DM Mono',monospace">₹18,368</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:#6b7280">Room charges</span><span>₹0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:#6b7280">Extra charges</span><span>₹0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid var(--border2)"><span style="color:#6b7280">GST 12%</span><span>₹0</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;padding:10px 0;font-weight:500"><span style="color:#111827">Grand Total</span><span style="color:var(--blue);font-family:'DM Mono',monospace">₹0</span></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1644,15 +1353,7 @@ body { background: var(--dark); color: var(--cream); font-family: 'DM Sans', san
 
 <script>
 function getApiBase() {
-  const params = new URLSearchParams(window.location.search);
-  const apiFromUrl = params.get('api');
-  if (apiFromUrl) localStorage.setItem('he_api', apiFromUrl.replace(/\/$/, ''));
-  if (window.location.hostname === 'optisetup.in' || window.location.hostname === 'www.optisetup.in') {
-    localStorage.setItem('he_api', 'https://hotelease-pms.onrender.com');
-  }
-  return (localStorage.getItem('he_api') ||
-    (window.location.protocol === 'file:' ? 'http://localhost:3001' : window.location.origin)
-  ).replace(/\/$/, '');
+  return 'https://hotelease-pms.onrender.com';
 }
 const API = getApiBase();
 const user = JSON.parse(localStorage.getItem('he_user') || '{}');
@@ -1720,8 +1421,6 @@ function showPage(name) {
   document.querySelector(`[onclick="showPage('${name}')"]`)?.classList.add('active');
   document.getElementById('pageTitle').textContent = pageTitles[name] || name;
   if (name === 'dashboard') loadDashboard();
-  if (name === 'chats') loadChats();
-  if (name === 'overview') loadOverview();
   if (name === 'rooms') renderRoomMap();
   if (name === 'reservations') loadReservations();
   if (name === 'checkin') loadCheckins();
@@ -1770,7 +1469,7 @@ async function loadDashboard() {
 async function loadReservations(status = '', q = '') {
   const tbody = document.getElementById('reservations-body');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:2rem">Loading...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:#6b7280;padding:2rem">Loading...</td></tr>`;
   const params = new URLSearchParams({ hotelId });
   if (status) params.append('status', status);
   const data = await apiFetch(`/api/reservations?${params}`);
@@ -1781,16 +1480,16 @@ async function loadReservations(status = '', q = '') {
     (r.agent_name||'').toLowerCase().includes(q.toLowerCase())
   );
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--muted);padding:2rem">No reservations found</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:#6b7280;padding:2rem">No reservations found</td></tr>`;
     return;
   }
   tbody.innerHTML = rows.map(r => {
     const nights = r.nights || Math.round((new Date(r.checkout_date) - new Date(r.checkin_date)) / 86400000) || 1;
     const total = r.total_amount || (r.rate_per_night * r.rooms_count * nights);
     return `<tr>
-      <td class="mono" style="color:var(--gold)">${r.reservation_no || r.id}</td>
+      <td class="mono" style="color:var(--blue)">${r.reservation_no || r.id}</td>
       <td>${r.guest_name || '—'}</td>
-      <td style="color:var(--muted)">${r.agent_name || 'Walk-in'}</td>
+      <td style="color:#6b7280">${r.agent_name || 'Walk-in'}</td>
       <td>${r.room_type_name || '—'}</td>
       <td class="mono">${r.rooms_count || 1}</td>
       <td>${fmtDate(r.checkin_date)}</td>
@@ -1798,10 +1497,10 @@ async function loadReservations(status = '', q = '') {
       <td class="mono">${nights}</td>
       <td>${r.plan || '—'}</td>
       <td class="mono">₹${(r.rate_per_night||0).toLocaleString()}</td>
-      <td class="mono" style="color:var(--gold)">₹${Math.round(total||0).toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue)">₹${Math.round(total||0).toLocaleString()}</td>
       <td><span class="badge badge-${r.status}">${(r.status||'').replace('_',' ')}</span></td>
       <td>
-        <span style="color:var(--gold);cursor:pointer;font-size:11px;margin-right:6px" onclick="viewBooking('${r.id}')">View</span>
+        <span style="color:var(--blue);cursor:pointer;font-size:11px;margin-right:6px" onclick="viewBooking('${r.id}')">View</span>
         ${r.status === 'confirmed' ? `<span style="color:var(--teal);cursor:pointer;font-size:11px" onclick="quickCheckin('${r.id}')">Check In</span>` : ''}
         ${r.status === 'checked_in' ? `<span style="color:var(--red);cursor:pointer;font-size:11px" onclick="quickCheckout('${r.id}','${r.guest_name}')">Check Out</span>` : ''}
       </td>
@@ -1848,7 +1547,7 @@ async function loadCheckins() {
       <div class="checkin-info">
         <div class="checkin-name">${r.guest_name || 'Guest'}</div>
         <div class="checkin-detail">${r.room_type_name} × ${r.rooms_count} · ${r.plan} · ₹${(r.rate_per_night||0).toLocaleString()}/night</div>
-        <div class="checkin-detail mono" style="color:var(--gold)">${r.reservation_no || r.id}</div>
+        <div class="checkin-detail mono" style="color:var(--blue)">${r.reservation_no || r.id}</div>
       </div>
       <button class="btn btn-gold" style="font-size:11px;padding:6px 14px" onclick="doCheckin('${r.id}')">Check in</button>
     </div>
@@ -1856,11 +1555,11 @@ async function loadCheckins() {
 
   if (coBody) coBody.innerHTML = (co?.data || []).length ? (co.data).map(r => `
     <div class="checkin-item">
-      <div class="checkin-avatar" style="background:var(--gold-dim);color:var(--gold)">${(r.guest_name||'?').slice(0,2).toUpperCase()}</div>
+      <div class="checkin-avatar" style="background:var(--blue-dim);color:var(--blue)">${(r.guest_name||'?').slice(0,2).toUpperCase()}</div>
       <div class="checkin-info">
         <div class="checkin-name">${r.guest_name || 'Guest'}</div>
         <div class="checkin-detail">${r.room_type_name} × ${r.rooms_count} · ${r.plan}</div>
-        <div class="checkin-detail mono" style="color:var(--gold)">${r.reservation_no || r.id}</div>
+        <div class="checkin-detail mono" style="color:var(--blue)">${r.reservation_no || r.id}</div>
       </div>
       <button class="btn btn-outline" style="font-size:11px;padding:6px 14px" onclick="doCheckout('${r.id}')">Checkout + Bill</button>
     </div>
@@ -1880,7 +1579,7 @@ async function loadCheckouts() {
   if (!tbody) return;
   const data = await apiFetch(`/api/reservations/checkouts/today?hotelId=${hotelId}`);
   const rows = data?.data || [];
-  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:2rem">No checkouts today</td></tr>`; return; }
+  if (!rows.length) { tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:#6b7280;padding:2rem">No checkouts today</td></tr>`; return; }
   tbody.innerHTML = rows.map(r => {
     const nights = r.nights || 1;
     const roomCharges = (r.rate_per_night||0) * (r.rooms_count||1) * nights;
@@ -1889,7 +1588,7 @@ async function loadCheckouts() {
     const advance = r.advance_paid || 0;
     const balance = total - advance;
     return `<tr>
-      <td class="mono" style="color:var(--gold)">${r.reservation_no || r.id}</td>
+      <td class="mono" style="color:var(--blue)">${r.reservation_no || r.id}</td>
       <td>${r.guest_name || '—'}</td>
       <td>${r.room_type_name || '—'}</td>
       <td>${r.plan || '—'}</td>
@@ -1897,7 +1596,7 @@ async function loadCheckouts() {
       <td class="mono">₹${Math.round(roomCharges).toLocaleString()}</td>
       <td class="mono">₹0</td>
       <td class="mono">₹${gst.toLocaleString()}</td>
-      <td class="mono" style="color:var(--gold)">₹${total.toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue)">₹${total.toLocaleString()}</td>
       <td class="mono" style="color:var(--teal)">₹${advance.toLocaleString()}</td>
       <td class="mono" style="color:var(--red)">₹${balance.toLocaleString()}</td>
       <td><button class="btn btn-gold" style="font-size:11px;padding:5px 12px" onclick="openCheckoutBill('${r.id}','${r.guest_name}',${total},${balance})">Checkout + Bill</button></td>
@@ -1922,7 +1621,7 @@ let currentStatusFilter = 'all', currentFloorFilter = 'all';
 async function renderRoomMap(statusFilter = 'all', floorFilter = 'all') {
   const mapEl = document.getElementById('room-map');
   if (!mapEl) return;
-  mapEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)">Loading rooms...</div>';
+  mapEl.innerHTML = '<div style="padding:2rem;text-align:center;color:#6b7280">Loading rooms...</div>';
   currentStatusFilter = statusFilter; currentFloorFilter = floorFilter;
 
   const data = await apiFetch(`/api/rooms?hotelId=${hotelId}`);
@@ -1937,7 +1636,7 @@ async function renderRoomMap(statusFilter = 'all', floorFilter = 'all') {
     rooms = apiRooms;
   }
 
-  if (!rooms.length) { mapEl.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted)">No rooms found. Add rooms in settings.</div>'; return; }
+  if (!rooms.length) { mapEl.innerHTML = '<div style="padding:2rem;text-align:center;color:#6b7280">No rooms found. Add rooms in settings.</div>'; return; }
 
   const floors = [...new Set(rooms.map(r => r.floor || 1))].sort();
   const floorNames = {1:'First Floor', 2:'Second Floor', 3:'Third Floor', 4:'Fourth Floor'};
@@ -1956,7 +1655,7 @@ async function renderRoomMap(statusFilter = 'all', floorFilter = 'all') {
     (floorFilter === 'all' || String(r.floor) === String(floorFilter))
   );
 
-  html += `<div style="font-size:12px;color:var(--muted)">Total: <span style="color:var(--gold);font-family:'DM Mono',monospace;margin-left:4px">${filtered.length}</span></div>`;
+  html += `<div style="font-size:12px;color:#6b7280">Total: <span style="color:var(--blue);font-family:'DM Mono',monospace;margin-left:4px">${filtered.length}</span></div>`;
   html += `<div style="display:flex;gap:8px;margin-left:auto;font-size:11px">
     <span><span style="width:10px;height:10px;background:#22C55E;border-radius:2px;display:inline-block;margin-right:3px"></span>Available</span>
     <span><span style="width:10px;height:10px;background:#3B82F6;border-radius:2px;display:inline-block;margin-right:3px"></span>Occupied</span>
@@ -2011,9 +1710,9 @@ async function loadGuests() {
       <td class="mono">${g.phone || '—'}</td>
       <td class="mono">${g.total_stays || 0}</td>
       <td>${g.last_checkin ? fmtDate(g.last_checkin) : '—'}</td>
-      <td class="mono" style="color:var(--gold)">₹${(g.total_revenue||0).toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue)">₹${(g.total_revenue||0).toLocaleString()}</td>
     </tr>
-  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">No guests found</td></tr>';
+  `).join('') : '<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:2rem">No guests found</td></tr>';
 }
 
 // ── AGENTS ─────────────────────────────────────────────────────
@@ -2026,14 +1725,14 @@ async function loadAgents() {
     <tr>
       <td>${a.name || '—'}</td>
       <td class="mono">${a.phone || '—'}</td>
-      <td style="color:var(--muted)">${a.company || '—'}</td>
+      <td style="color:#6b7280">${a.company || '—'}</td>
       <td><span class="badge badge-${(a.category||'c').toLowerCase()}">${a.category || 'C'}</span></td>
       <td class="mono" style="color:var(--teal)">${a.discount_pct || a.discount || 0}%</td>
       <td class="mono">${a.total_bookings || 0}</td>
-      <td class="mono" style="color:var(--gold)">₹${(a.total_revenue||0).toLocaleString()}</td>
-      <td><span style="color:var(--gold);cursor:pointer;font-size:11px" onclick="editAgent('${a.id}')">Edit</span></td>
+      <td class="mono" style="color:var(--blue)">₹${(a.total_revenue||0).toLocaleString()}</td>
+      <td><span style="color:var(--blue);cursor:pointer;font-size:11px" onclick="editAgent('${a.id}')">Edit</span></td>
     </tr>
-  `).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No agents found</td></tr>';
+  `).join('') : '<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No agents found</td></tr>';
 }
 function editAgent(id) { toast('Edit agent ' + id, 'info'); }
 async function addAgent() {
@@ -2076,8 +1775,8 @@ async function loadReports() {
   if (agentRpt?.success) {
     const tbody = document.querySelector('#page-reports .panel:last-child .data-table tbody');
     if (tbody) tbody.innerHTML = (agentRpt.data||[]).slice(0,5).map(a => `
-      <tr><td>${a.name}</td><td class="mono">${a.total_bookings}</td><td class="mono" style="color:var(--gold)">₹${(a.total_revenue||0).toLocaleString()}</td></tr>
-    `).join('') || '<tr><td colspan="3" style="text-align:center;color:var(--muted)">No data</td></tr>';
+      <tr><td>${a.name}</td><td class="mono">${a.total_bookings}</td><td class="mono" style="color:var(--blue)">₹${(a.total_revenue||0).toLocaleString()}</td></tr>
+    `).join('') || '<tr><td colspan="3" style="text-align:center;color:#6b7280">No data</td></tr>';
   }
 }
 
@@ -2103,15 +1802,15 @@ async function loadCashBook() {
     const time = e.transaction_at ? new Date(e.transaction_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
     return `<tr>
       <td class="mono">${i+1}</td>
-      <td style="color:var(--muted)">${time}</td>
+      <td style="color:#6b7280">${time}</td>
       <td>${e.description || '—'}</td>
-      <td class="mono" style="color:var(--muted)">${e.reservation_id || '—'}</td>
+      <td class="mono" style="color:#6b7280">${e.reservation_id || '—'}</td>
       <td class="mono" style="color:var(--teal)">${e.type==='in'?'₹'+Number(e.amount).toLocaleString():'—'}</td>
       <td class="mono" style="color:var(--red)">${e.type==='out'?'₹'+Number(e.amount).toLocaleString():'—'}</td>
-      <td class="mono" style="color:var(--gold)">₹${Math.round(balance).toLocaleString()}</td>
-      <td style="color:var(--muted)">${e.created_by || '—'}</td>
+      <td class="mono" style="color:var(--blue)">₹${Math.round(balance).toLocaleString()}</td>
+      <td style="color:#6b7280">${e.created_by || '—'}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No entries today</td></tr>';
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No entries today</td></tr>';
 }
 function exportCashBook() { toast('Exporting cash book...', 'info'); }
 
@@ -2139,8 +1838,8 @@ async function loadHousekeeping() {
       <td>${r.room_type || '—'}</td>
       <td><span class="badge badge-${r.is_occupied?'checked_in':'confirmed'}">${roomSt}</span></td>
       <td><span style="color:${stColor}">● ${st}</span></td>
-      <td style="color:var(--muted)">${r.assigned_to || '—'}</td>
-      <td style="color:var(--muted)">${time}</td>
+      <td style="color:#6b7280">${r.assigned_to || '—'}</td>
+      <td style="color:#6b7280">${time}</td>
       <td><select class="form-select" style="width:auto;padding:4px 8px;font-size:11px" onchange="updateRoomStatus('${r.room_id}',this.value)">
         <option ${st==='clean'?'selected':''} value="clean">Clean</option>
         <option ${st==='dirty'?'selected':''} value="dirty">Dirty</option>
@@ -2149,7 +1848,7 @@ async function loadHousekeeping() {
         <option ${st==='out_of_order'?'selected':''} value="out_of_order">Out of Order</option>
       </select></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">No rooms found</td></tr>';
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem">No rooms found</td></tr>';
 }
 
 async function updateRoomStatus(roomId, status) {
@@ -2195,11 +1894,11 @@ async function loadRoomInvestigation() {
       <td>${r.checkout_date?fmtDate(r.checkout_date):'—'}</td>
       <td class="mono">${r.nights||'—'}</td>
       <td>${r.current_plan||'—'}</td>
-      <td style="color:var(--muted)">${r.current_agent||'—'}</td>
+      <td style="color:#6b7280">${r.current_agent||'—'}</td>
       <td class="mono">₹${(r.rate||0).toLocaleString()}</td>
       <td><span style="color:${hkColor}">${hkSt} ${hkSt==='clean'?'✓':''}</span></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="12" style="text-align:center;color:var(--muted);padding:2rem">No rooms found</td></tr>';
+  }).join('') : '<tr><td colspan="12" style="text-align:center;color:#6b7280;padding:2rem">No rooms found</td></tr>';
 }
 function filterInvestigation(v) { loadRoomInvestigation(); }
 function exportInvestigation() { toast('Exporting...', 'info'); }
@@ -2216,9 +1915,9 @@ async function loadSwapRoom() {
       <td>${s.guest_name || '—'}</td>
       <td class="mono">${s.from_room_number || s.from_room || '—'}</td>
       <td class="mono">${s.to_room_number || s.to_room || '—'}</td>
-      <td style="color:var(--muted)">${s.reason || '—'}</td>
+      <td style="color:#6b7280">${s.reason || '—'}</td>
     </tr>
-  `).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">No swaps recorded</td></tr>';
+  `).join('') : '<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:2rem">No swaps recorded</td></tr>';
 }
 
 async function doSwapRoom() {
@@ -2296,11 +1995,11 @@ async function loadRecapitulation() {
       <td class="mono">₹${(r.room_revenue||0).toLocaleString()}</td>
       <td class="mono">₹${(r.fb_revenue||0).toLocaleString()}</td>
       <td class="mono">₹${(r.other_revenue||0).toLocaleString()}</td>
-      <td class="mono" style="color:var(--gold)">₹${(r.total_revenue||0).toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue)">₹${(r.total_revenue||0).toLocaleString()}</td>
       <td class="mono">₹${(r.total_gst||0).toLocaleString()}</td>
       <td class="mono">₹${((r.total_revenue||0)-(r.total_gst||0)).toLocaleString()}</td>
     </tr>
-  `).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">No data for this month</td></tr>';
+  `).join('') : '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No data for this month</td></tr>';
 }
 function exportRecap() { toast('Exporting...', 'info'); }
 
@@ -2326,10 +2025,10 @@ async function loadGST() {
       <td>${r.room_type_name||'—'}</td>
       <td class="mono">₹${Math.round(roomCharges).toLocaleString()}</td>
       <td class="mono">${gstPct}%</td>
-      <td class="mono" style="color:var(--gold)">₹${gst.toLocaleString()}</td>
+      <td class="mono" style="color:var(--blue)">₹${gst.toLocaleString()}</td>
       <td class="mono">₹${(Math.round(roomCharges)+gst).toLocaleString()}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">No checkouts this month</td></tr>';
+  }).join('') : '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No checkouts this month</td></tr>';
 }
 function exportGST() { toast('Exporting GST report...', 'info'); }
 
@@ -2344,16 +2043,16 @@ async function loadCardPayments() {
     const time = r.transaction_at ? new Date(r.transaction_at).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—';
     return `<tr>
       <td class="mono">${i+1}</td>
-      <td style="color:var(--muted)">${time}</td>
+      <td style="color:#6b7280">${time}</td>
       <td>${r.guest_name||'—'}</td>
       <td class="mono">${r.reservation_id||'—'}</td>
       <td class="mono" style="color:var(--teal)">₹${(r.amount||0).toLocaleString()}</td>
       <td><span class="badge badge-confirmed">${(r.payment_mode||'card').toUpperCase()}</span></td>
       <td class="mono">${r.card_last4||'—'}</td>
-      <td style="color:var(--muted)">${r.bank||'—'}</td>
-      <td class="mono" style="color:var(--muted)">${r.reference_no||'—'}</td>
+      <td style="color:#6b7280">${r.bank||'—'}</td>
+      <td class="mono" style="color:#6b7280">${r.reference_no||'—'}</td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:2rem">No card/UPI payments today</td></tr>';
+  }).join('') : '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No card/UPI payments today</td></tr>';
 }
 function exportCardReport() { toast('Exporting...', 'info'); }
 
@@ -2750,6 +2449,42 @@ async function populateBookingAgents() {
   ).join('');
 }
 
+const DEFAULT_BOOKING_RATES = {
+  peak: {
+    Deluxe: { EP: 3500, CP: 4100, MAP: 4900 },
+    'Super Deluxe': { EP: 4000, CP: 4600, MAP: 5400 },
+    Honeymoon: { EP: 4500, CP: 5100, MAP: 5900 },
+  },
+  off: {
+    Deluxe: { EP: 2500, CP: 3000, MAP: 3600 },
+    'Super Deluxe': { EP: 3000, CP: 3500, MAP: 4100 },
+    Honeymoon: { EP: 3500, CP: 4000, MAP: 4600 },
+  }
+};
+
+function getDefaultBookingRate(roomTypeName, plan, checkinDate) {
+  const date = checkinDate ? new Date(checkinDate) : new Date();
+  const monthDay = (date.getMonth() + 1) * 100 + date.getDate();
+  const season = monthDay >= 415 && monthDay <= 630 ? 'peak' : 'off';
+  return DEFAULT_BOOKING_RATES[season]?.[roomTypeName]?.[plan] || 0;
+}
+
+async function updateBookingRate() {
+  const rateInput = document.getElementById('rate-preview');
+  if (!rateInput) return;
+  const roomTypeName = document.getElementById('booking-room-type')?.value || 'Deluxe';
+  const plan = document.getElementById('booking-plan')?.value || 'EP';
+  const checkinDate = document.getElementById('booking-checkin')?.value;
+
+  rateInput.value = getDefaultBookingRate(roomTypeName, plan, checkinDate);
+  const roomTypeId = await findRoomTypeId(roomTypeName);
+  if (!roomTypeId) return;
+
+  const data = await apiFetch(`/api/rates/agent?hotelId=${hotelId}&roomTypeId=${encodeURIComponent(roomTypeId)}&checkinDate=${encodeURIComponent(checkinDate || '')}&plan=${encodeURIComponent(plan)}&agentCategory=C`);
+  const apiRate = data?.data?.finalRate || data?.data?.ratePerNight || data?.data?.rate_per_night;
+  if (apiRate) rateInput.value = apiRate;
+}
+
 function setDefaultBookingDates() {
   const ci = document.getElementById('booking-checkin');
   const co = document.getElementById('booking-checkout');
@@ -2758,6 +2493,7 @@ function setDefaultBookingDates() {
   const tomorrow = new Date(today.getTime() + 86400000);
   if (!ci.value) ci.value = today.toISOString().split('T')[0];
   if (!co.value) co.value = tomorrow.toISOString().split('T')[0];
+  updateBookingRate();
 }
 
 function showModal(name) {
@@ -2765,10 +2501,14 @@ function showModal(name) {
   if (name === 'newReservation') {
     setDefaultBookingDates();
     populateBookingAgents();
+    updateBookingRate();
   }
 }
 function closeModal(name) { document.getElementById('modal-'+name)?.classList.remove('show'); }
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('show'); }));
+['booking-room-type','booking-plan','booking-checkin'].forEach(id => {
+  document.getElementById(id)?.addEventListener('change', updateBookingRate);
+});
 
 async function findRoomTypeId(roomTypeName) {
   const data = await apiFetch(`/api/rooms/types?hotelId=${hotelId}`);
@@ -2875,8 +2615,6 @@ const NAV_MENUS = {
   owner: [
     { section: 'Main' },
     { page:'dashboard', icon:'📊', label:'Dashboard' },
-    { page:'overview', icon:'🏢', label:'Business Overview' },
-    { page:'chats', icon:'💬', label:'Guest Chats' },
     { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
     { page:'rooms', icon:'🏨', label:'Room View' },
     { page:'guests', icon:'👤', label:'Guest View' },
@@ -2911,7 +2649,6 @@ const NAV_MENUS = {
   hotel_admin: [
     { section: 'Main' },
     { page:'dashboard', icon:'📊', label:'Dashboard' },
-    { page:'chats', icon:'💬', label:'Guest Chats' },
     { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
     { page:'rooms', icon:'🏨', label:'Room View' },
     { page:'guests', icon:'👤', label:'Guest View' },
