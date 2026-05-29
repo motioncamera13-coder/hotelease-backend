@@ -15,7 +15,7 @@ app.use(cors({
 app.use(express.json());
 
 // ── Static dashboard ──────────────────────────────────────────
-app.use('/dashboard', express.static(path.join(__dirname, 'public')));
+app.use('/dashboard', express.static(path.join(__dirname, '..', 'public')));
 app.get('/dashboard', (req, res) => res.redirect('/dashboard/login.html'));
 
 // ── PostgreSQL Pool ─────────────────────────────────────────────
@@ -119,6 +119,22 @@ async function initDB() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS room_types (
+      id          SERIAL PRIMARY KEY,
+      hotel_id    VARCHAR(30) NOT NULL,
+      name        VARCHAR(100) NOT NULL,
+      base_rate   NUMERIC(10,2) DEFAULT 0,
+      capacity    INTEGER DEFAULT 2,
+      created_at  TIMESTAMP DEFAULT NOW()
+    );
+  `);
+  await pool.query(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS hotel_id VARCHAR(30)`);
+  await pool.query(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS whatsapp_bot VARCHAR(20)`);
+  await pool.query(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true`);
+  await pool.query(`ALTER TABLE room_types ADD COLUMN IF NOT EXISTS base_rate NUMERIC(10,2) DEFAULT 0`);
+  await pool.query(`ALTER TABLE room_types ADD COLUMN IF NOT EXISTS capacity INTEGER DEFAULT 2`);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS cashbook (
       id          SERIAL PRIMARY KEY,
       hotel_id    VARCHAR(30) NOT NULL,
@@ -150,6 +166,50 @@ async function initDB() {
 }
 
 initDB().catch(console.error);
+
+async function ensureHotelInventory(hotelId) {
+  const hotelResult = await pool.query(
+    'SELECT id::text as id, COALESCE(total_rooms, 50) as total_rooms FROM hotels WHERE id::text=$1 OR hotel_id=$1 LIMIT 1',
+    [String(hotelId)]
+  );
+  const hotel = hotelResult.rows[0];
+  if (!hotel) return { createdRooms: 0, roomTypeId: null };
+
+  const dbHotelId = hotel.id;
+  const totalRooms = Math.max(parseInt(hotel.total_rooms, 10) || 50, 1);
+
+  let typeResult = await pool.query(
+    'SELECT id::text as id FROM room_types WHERE hotel_id=$1 ORDER BY id LIMIT 1',
+    [dbHotelId]
+  );
+  if (!typeResult.rows[0]) {
+    typeResult = await pool.query(
+      'INSERT INTO room_types (hotel_id, name, base_rate, capacity) VALUES ($1,$2,$3,$4) RETURNING id::text as id',
+      [dbHotelId, 'Standard Room', 0, 2]
+    );
+  }
+
+  const roomTypeId = typeResult.rows[0].id;
+  const existingRooms = await pool.query('SELECT COUNT(*)::int as count FROM rooms WHERE hotel_id=$1', [dbHotelId]);
+  if (existingRooms.rows[0].count > 0) return { createdRooms: 0, roomTypeId };
+
+  let createdRooms = 0;
+  for (let i = 1; i <= totalRooms; i++) {
+    const floor = Math.ceil(i / 10);
+    const roomOnFloor = ((i - 1) % 10) + 1;
+    const roomNumber = `${floor}${String(roomOnFloor).padStart(2, '0')}`;
+    const inserted = await pool.query(
+      `INSERT INTO rooms (hotel_id, room_number, floor, room_type_id, status, hk_status)
+       SELECT $1,$2,$3,$4,'available','clean'
+       WHERE NOT EXISTS (SELECT 1 FROM rooms WHERE hotel_id=$1 AND room_number=$2)
+       RETURNING id`,
+      [dbHotelId, roomNumber, floor, roomTypeId]
+    );
+    createdRooms += inserted.rowCount;
+  }
+
+  return { createdRooms, roomTypeId };
+}
 
 // ── Middleware ──────────────────────────────────────────────────
 function auth(req, res, next) {
@@ -183,49 +243,97 @@ app.post('/api/auth/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ success: false, error: 'Invalid credentials' });
 
-    if (user.role !== 'super_admin' && user.hotel_id !== hotelId)
-      return res.status(401).json({ success: false, error: 'Invalid Hotel ID' });
+    let resolvedHotelId = user.hotel_id;
+    if (user.role !== 'super_admin') {
+      const hotelResult = await pool.query(
+        'SELECT id::text as db_id FROM hotels WHERE id::text=$1 OR hotel_id=$1 LIMIT 1',
+        [hotelId]
+      );
+      resolvedHotelId = hotelResult.rows[0]?.db_id || hotelId;
+      if (String(user.hotel_id) !== String(resolvedHotelId))
+        return res.status(401).json({ success: false, error: 'Invalid Hotel ID' });
+    }
 
     await pool.query('UPDATE users SET last_login=NOW() WHERE id=$1', [user.id]);
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role, hotelId: user.hotel_id },
+      { id: user.id, username: user.username, role: user.role, hotelId: resolvedHotelId },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    res.json({ success: true, token, user: { username: user.username, name: user.name, role: user.role, hotelId: user.hotel_id } });
+    res.json({ success: true, token, user: { username: user.username, name: user.name, role: user.role, hotelId: resolvedHotelId } });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 app.post('/api/auth/register-hotel', auth, superAdminOnly, async (req, res) => {
+  const client = await pool.connect();
   try {
     const { hotelId, name, city, state, phone, email, gstin,
-            totalRooms, bufferRooms, whatsappBotNumber, adminName, username, password } = req.body;
+            totalRooms, bufferRooms, whatsappBotNumber, adminName, username, password, rooms } = req.body;
+    const roomList = Array.isArray(rooms) ? rooms : [];
+    const roomTotal = roomList.length || parseInt(totalRooms || 0, 10) || 50;
 
     const userExists = await pool.query('SELECT id FROM users WHERE username=$1', [username]);
     if (userExists.rows.length > 0)
       return res.status(400).json({ success: false, error: 'Username already taken' });
 
-    // Insert hotel — id is auto-generated UUID
-    const hotelResult = await pool.query(
-      `INSERT INTO hotels (name,city,state,phone,email,gstin,total_rooms,buffer_rooms,whatsapp_bot_number)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-      [name, city, state, phone, email, gstin, totalRooms, bufferRooms, whatsappBotNumber]
+    await client.query('BEGIN');
+    const hotelResult = await client.query(
+      `INSERT INTO hotels (hotel_id,name,city,state,phone,email,gstin,total_rooms,buffer_rooms,whatsapp_bot)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id, hotel_id`,
+      [hotelId, name, city, state, phone, email, gstin, roomTotal, bufferRooms || 4, whatsappBotNumber]
     );
     const newHotelId = hotelResult.rows[0].id;
 
+    const typeNames = [...new Set((roomList.length ? roomList.map(r => r.type) : ['Standard Room']).filter(Boolean))];
+    const typeRows = {};
+    for (const type of typeNames) {
+      const typeResult = await client.query(
+        'INSERT INTO room_types (hotel_id, name, base_rate, capacity) VALUES ($1,$2,$3,$4) RETURNING id',
+        [newHotelId, type, 0, 2]
+      );
+      typeRows[type] = typeResult.rows[0].id;
+    }
+
+    if (roomList.length) {
+      for (const room of roomList) {
+        const type = room.type || typeNames[0] || 'Standard Room';
+        await client.query(
+          `INSERT INTO rooms (hotel_id, room_number, floor, room_type_id, status, hk_status)
+           VALUES ($1,$2,$3,$4,'available','clean')`,
+          [newHotelId, String(room.roomNumber), parseInt(room.floor || 1, 10), typeRows[type]]
+        );
+      }
+    } else {
+      const type = typeNames[0] || 'Standard Room';
+      for (let i = 1; i <= roomTotal; i++) {
+        const floor = Math.ceil(i / 10);
+        const roomOnFloor = ((i - 1) % 10) + 1;
+        const roomNumber = `${floor}${String(roomOnFloor).padStart(2, '0')}`;
+        await client.query(
+          `INSERT INTO rooms (hotel_id, room_number, floor, room_type_id, status, hk_status)
+           VALUES ($1,$2,$3,$4,'available','clean')`,
+          [newHotelId, roomNumber, floor, typeRows[type]]
+        );
+      }
+    }
+
     const hashed = await bcrypt.hash(password, 10);
-    await pool.query(
+    await client.query(
       'INSERT INTO users (username,password_hash,name,role,hotel_id) VALUES ($1,$2,$3,$4,$5)',
       [username, hashed, adminName, 'hotel_admin', newHotelId]
     );
 
-    res.json({ success: true, hotelId: newHotelId });
+    await client.query('COMMIT');
+    res.json({ success: true, hotelId: hotelResult.rows[0].hotel_id || newHotelId, id: newHotelId, roomsCreated: roomTotal });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ success: false, error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -239,6 +347,43 @@ app.post('/api/auth/change-password', auth, async (req, res) => {
     const hashed = await bcrypt.hash(newPassword, 10);
     await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hashed, req.user.id]);
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/auth/hotels/:hotelId/password', auth, superAdminOnly, async (req, res) => {
+  try {
+    const { hotelId } = req.params;
+    const { password, username } = req.body;
+
+    if (!password || password.length < 8) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 8 characters' });
+    }
+
+    const hotel = await pool.query('SELECT id::text as db_id, hotel_id FROM hotels WHERE id::text=$1 OR hotel_id=$1 LIMIT 1', [hotelId]);
+    if (!hotel.rows[0]) return res.status(404).json({ success: false, error: 'Hotel not found' });
+
+    const ids = [hotel.rows[0].db_id, hotel.rows[0].hotel_id].filter(Boolean);
+    const params = [ids];
+    let userSql = `
+      SELECT id, username FROM users
+      WHERE hotel_id::text = ANY($1)
+        AND role IN ('hotel_admin','hotel_owner','general_manager')
+    `;
+    if (username) {
+      params.push(username);
+      userSql += ' AND username=$2';
+    }
+    userSql += " ORDER BY CASE role WHEN 'hotel_admin' THEN 1 WHEN 'hotel_owner' THEN 2 ELSE 3 END, id ASC LIMIT 1";
+
+    const userResult = await pool.query(userSql, params);
+    const adminUser = userResult.rows[0];
+    if (!adminUser) return res.status(404).json({ success: false, error: 'Hotel admin user not found' });
+
+    const hashed = await bcrypt.hash(password, 10);
+    await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2', [hashed, adminUser.id]);
+    res.json({ success: true, username: adminUser.username });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -305,12 +450,39 @@ app.post('/api/auth/permissions', auth, async (req, res) => {
   res.json({ success: true });
 });
 
+app.get('/api/auth/hotels', auth, superAdminOnly, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT h.id::text as db_id,
+             COALESCE(h.hotel_id, h.id::text) as id,
+             h.name, h.city, h.state, h.phone, h.email, h.gstin,
+             h.total_rooms, h.buffer_rooms, COALESCE(h.active, true) as active, h.created_at,
+             COALESCE(COUNT(DISTINCT r.id), 0) as bookings,
+             (
+               SELECT u2.username
+               FROM users u2
+               WHERE (u2.hotel_id::text = h.id::text OR u2.hotel_id::text = h.hotel_id::text)
+                 AND u2.role IN ('hotel_admin','hotel_owner','general_manager')
+               ORDER BY CASE u2.role WHEN 'hotel_admin' THEN 1 WHEN 'hotel_owner' THEN 2 ELSE 3 END, u2.id ASC
+               LIMIT 1
+             ) as admin_username
+      FROM hotels h
+      LEFT JOIN reservations r ON r.hotel_id::text = h.id::text OR r.hotel_id::text = h.hotel_id::text
+      GROUP BY h.id, h.hotel_id, h.name, h.city, h.state, h.phone, h.email, h.gstin, h.total_rooms, h.buffer_rooms, h.active, h.created_at
+      ORDER BY h.created_at DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ══════════════════════════════════════════════════════════════
 //  HOTEL ROUTES
 // ══════════════════════════════════════════════════════════════
 
 app.get('/api/hotels/lookup', async (req, res) => {
-  const result = await pool.query('SELECT name, city FROM hotels WHERE id::text=$1', [req.query.hotelId]);
+  const result = await pool.query('SELECT name, city FROM hotels WHERE id::text=$1 OR hotel_id=$1', [req.query.hotelId]);
   if (result.rows.length === 0) return res.json({ found: false });
   res.json({ found: true, ...result.rows[0] });
 });
@@ -319,7 +491,7 @@ app.get('/api/hotels/next-seq', auth, superAdminOnly, async (req, res) => {
   const { cityCode } = req.query;
   const year = new Date().getFullYear();
   const result = await pool.query(
-    "SELECT COUNT(*) FROM hotels WHERE id::text LIKE $1",
+    "SELECT COUNT(*) FROM hotels WHERE hotel_id LIKE $1",
     [`HE-${cityCode}-${year}-%`]
   );
   res.json({ seq: parseInt(result.rows[0].count) + 1 });
@@ -333,13 +505,17 @@ app.get('/api/hotels', auth, superAdminOnly, async (req, res) => {
 app.delete('/api/hotels/:hotelId', auth, superAdminOnly, async (req, res) => {
   try {
     const { hotelId } = req.params;
-    await pool.query('DELETE FROM reservations WHERE hotel_id::text=$1', [hotelId]);
-    await pool.query('DELETE FROM guests WHERE hotel_id::text=$1', [hotelId]);
-    await pool.query('DELETE FROM agents WHERE hotel_id::text=$1', [hotelId]);
-    await pool.query('DELETE FROM rooms WHERE hotel_id::text=$1', [hotelId]);
-    await pool.query('DELETE FROM cashbook WHERE hotel_id::text=$1', [hotelId]);
-    await pool.query('DELETE FROM users WHERE hotel_id::text=$1', [hotelId]);
-    await pool.query('DELETE FROM hotels WHERE id::text=$1', [hotelId]);
+    const hotel = await pool.query('SELECT id::text as db_id, hotel_id FROM hotels WHERE id::text=$1 OR hotel_id=$1 LIMIT 1', [hotelId]);
+    if (!hotel.rows[0]) return res.status(404).json({ success: false, error: 'Hotel not found' });
+    const ids = [hotel.rows[0].db_id, hotel.rows[0].hotel_id].filter(Boolean);
+    await pool.query('DELETE FROM reservations WHERE hotel_id::text = ANY($1)', [ids]);
+    await pool.query('DELETE FROM guests WHERE hotel_id::text = ANY($1)', [ids]);
+    await pool.query('DELETE FROM agents WHERE hotel_id::text = ANY($1)', [ids]);
+    await pool.query('DELETE FROM rooms WHERE hotel_id::text = ANY($1)', [ids]);
+    await pool.query('DELETE FROM room_types WHERE hotel_id::text = ANY($1)', [ids]);
+    await pool.query('DELETE FROM cashbook WHERE hotel_id::text = ANY($1)', [ids]);
+    await pool.query('DELETE FROM users WHERE hotel_id::text = ANY($1)', [ids]);
+    await pool.query('DELETE FROM hotels WHERE id::text=$1 OR hotel_id=$2', [hotel.rows[0].db_id, hotel.rows[0].hotel_id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -354,6 +530,7 @@ app.get('/api/reports/daily', auth, async (req, res) => {
   try {
     const hotelId = req.user.hotelId;
     const date = req.query.date || new Date().toISOString().split('T')[0];
+    await ensureHotelInventory(hotelId);
 
     const [totalRoomsRes, bookedRooms, checkins, checkouts, revenue, newBookings] = await Promise.all([
       pool.query("SELECT COUNT(*) FROM rooms WHERE hotel_id=$1", [hotelId]),
@@ -390,6 +567,7 @@ app.get('/api/reports/daily', auth, async (req, res) => {
 
 app.get('/api/rooms/types', auth, async (req, res) => {
   try {
+    await ensureHotelInventory(req.user.hotelId);
     const result = await pool.query('SELECT * FROM room_types WHERE hotel_id=$1 ORDER BY name', [req.user.hotelId]);
     res.json({ success: true, data: result.rows });
   } catch (err) {
@@ -399,6 +577,7 @@ app.get('/api/rooms/types', auth, async (req, res) => {
 
 app.get('/api/rooms', auth, async (req, res) => {
   try {
+    await ensureHotelInventory(req.user.hotelId);
     const result = await pool.query(`
       SELECT r.*, rt.name as room_type_name
       FROM rooms r
@@ -709,6 +888,7 @@ app.get('/api/reports/agents', auth, async (req, res) => {
 
 app.get('/api/housekeeping', auth, async (req, res) => {
   try {
+    await ensureHotelInventory(req.user.hotelId);
     const result = await pool.query(`
       SELECT r.*, rt.name as room_type_name
       FROM rooms r LEFT JOIN room_types rt ON r.room_type_id::text = rt.id::text
