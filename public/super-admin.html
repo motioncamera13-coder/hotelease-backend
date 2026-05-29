@@ -356,10 +356,14 @@ async function loadData() {
         <td style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn-sm btn-gold" onclick="viewHotel('${escapeAttr(h.id)}')">View</button>
           <button class="btn-sm btn-red" onclick="prepareSingleHotelReset('${escapeAttr(h.id)}')">Reset</button>
+          <button class="btn-sm hotel-password-btn" style="background:#eef2ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px" data-hotel-id="${escapeAttr(h.id)}" data-hotel-name="${escapeAttr(h.name)}" data-admin-username="${escapeAttr(h.admin_username || '')}">Password</button>
           <button class="btn-sm hotel-delete-btn" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px" data-hotel-id="${escapeAttr(h.id)}" data-hotel-name="${escapeAttr(h.name)}">Delete</button>
         </td>
       </tr>
     `).join('') : '<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No hotels found</td></tr>';
+    document.querySelectorAll('.hotel-password-btn').forEach(btn => {
+      btn.addEventListener('click', () => openPasswordModal(btn.dataset.hotelId, btn.dataset.hotelName, btn.dataset.adminUsername));
+    });
     document.querySelectorAll('.hotel-delete-btn').forEach(btn => {
       btn.addEventListener('click', () => confirmDeleteHotel(btn.dataset.hotelId, btn.dataset.hotelName));
     });
@@ -575,7 +579,71 @@ function clearForm() {
 function loginAs(username) { showToast(`Logging in as ${username}...`); }
 function viewHotel(id) { showToast('Opening hotel dashboard...'); }
 function toggleHotel(id) { if (confirm('Disable this hotel?')) showToast('Hotel disabled'); }
-function resetPassword(username) { const p = prompt(`New password for ${username}:`); if (p) showToast(`Password reset for ${username}`); }
+function resetPassword(username) { openPasswordModal('', username, username); }
+
+// ── Change Hotel Admin Password ─────────────────────────────────
+let _passwordHotelId = null;
+let _passwordHotelName = null;
+let _passwordUsername = null;
+
+function openPasswordModal(hotelId, hotelName, username) {
+  _passwordHotelId = hotelId;
+  _passwordHotelName = hotelName;
+  _passwordUsername = username || '';
+  document.getElementById('password-hotel-name').textContent = hotelName || 'Selected hotel';
+  document.getElementById('password-admin-username').textContent = username || 'Hotel admin';
+  document.getElementById('new-admin-password').value = '';
+  document.getElementById('confirm-admin-password').value = '';
+  document.getElementById('password-confirm-error').style.display = 'none';
+  document.getElementById('password-hotel-modal').style.display = 'flex';
+}
+
+function closePasswordModal() {
+  document.getElementById('password-hotel-modal').style.display = 'none';
+  _passwordHotelId = null;
+  _passwordHotelName = null;
+  _passwordUsername = null;
+}
+
+async function executePasswordChange() {
+  const password = document.getElementById('new-admin-password').value;
+  const confirmPassword = document.getElementById('confirm-admin-password').value;
+  const errEl = document.getElementById('password-confirm-error');
+
+  if (password.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('password-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+
+  try {
+    const res = await apiFetch(`/api/auth/hotels/${_passwordHotelId}/password`, {
+      method: 'POST',
+      body: JSON.stringify({ password, username: _passwordUsername })
+    });
+    if (res?.success) {
+      showToast(`Password changed for ${res.username || _passwordUsername || _passwordHotelName}.`, 'green');
+      closePasswordModal();
+    } else {
+      showToast(`Password change failed: ${res?.error || 'API error'}`, 'red');
+    }
+  } catch {
+    showToast('Password change failed. Try again.', 'red');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Change Password';
+  }
+}
 
 // ── Delete Hotel ────────────────────────────────────────────────
 let _deleteHotelId = null;
@@ -694,6 +762,56 @@ function showToast(msg, color = 'teal') {
 
 loadData();
 </script>
+<!-- ── Change Hotel Admin Password Modal ── -->
+<div id="password-hotel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div style="background:#fff;border-radius:14px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;animation:modalIn 0.2s ease">
+    <div style="background:#eff6ff;padding:1.25rem 1.5rem;border-bottom:1px solid #bfdbfe;display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🔑</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#1d4ed8">Change Admin Password</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px">Updates the hotel admin login password</div>
+      </div>
+      <button onclick="closePasswordModal()" style="margin-left:auto;background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1">×</button>
+    </div>
+
+    <div style="padding:1.5rem">
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:1rem;margin-bottom:1.25rem">
+        <div style="font-size:12px;color:#6b7280;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Hotel admin account</div>
+        <div style="font-size:15px;font-weight:700;color:#111827" id="password-hotel-name">—</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:#6b7280;margin-top:3px" id="password-admin-username">—</div>
+      </div>
+
+      <div style="display:grid;gap:12px">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">New password</label>
+          <input id="new-admin-password" type="password" placeholder="Minimum 8 characters"
+            style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;outline:none;color:#111827"
+            oninput="document.getElementById('password-confirm-error').style.display='none'">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px">Confirm password</label>
+          <input id="confirm-admin-password" type="password" placeholder="Repeat password"
+            style="width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;outline:none;color:#111827"
+            oninput="document.getElementById('password-confirm-error').style.display='none'"
+            onkeypress="if(event.key==='Enter') executePasswordChange()">
+        </div>
+        <div id="password-confirm-error" style="display:none;font-size:12px;color:#dc2626"></div>
+      </div>
+    </div>
+
+    <div style="padding:1rem 1.5rem;border-top:1px solid #e5e7eb;background:#f9fafb;display:flex;gap:8px;justify-content:flex-end;border-radius:0 0 14px 14px">
+      <button onclick="closePasswordModal()"
+        style="padding:9px 20px;border:1.5px solid #d1d5db;background:#fff;color:#374151;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
+        Cancel
+      </button>
+      <button id="password-confirm-btn" onclick="executePasswordChange()"
+        style="padding:9px 20px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s">
+        Change Password
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Delete Hotel Modal ── -->
 <div id="delete-hotel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
   <div style="background:#fff;border-radius:14px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;animation:modalIn 0.2s ease">
