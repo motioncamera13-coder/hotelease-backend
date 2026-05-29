@@ -215,8 +215,8 @@ router.post('/register-hotel', async (req, res) => {
       name, address, city, state, phone, email, gstin,
       whatsappBotNumber, adminPhone, totalRooms, bufferRooms,
       adminName, username, password,
-      rooms,        // structured array: [{ floor, roomNumber, type }]
-      hasRestaurant // boolean
+      rooms,
+      hasRestaurant
     } = req.body;
 
     if (!name || !city || !adminName || !username || !password) {
@@ -224,7 +224,6 @@ router.post('/register-hotel', async (req, res) => {
     }
     if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
-    // Validate rooms array
     const roomList = Array.isArray(rooms) ? rooms : [];
     if (roomList.length === 0) {
       return res.status(400).json({ error: 'At least one room is required. Add floors and rooms before registering.' });
@@ -247,7 +246,6 @@ router.post('/register-hotel', async (req, res) => {
     ]);
     const hotel = hotelResult.rows[0];
 
-    // Create room types
     const typeRows = {};
     for (const type of ['Deluxe', 'Super Deluxe', 'Honeymoon']) {
       const rt = await client.query(`
@@ -258,7 +256,6 @@ router.post('/register-hotel', async (req, res) => {
       typeRows[type] = rt.rows[0];
     }
 
-    // Insert rooms exactly as defined by the super-admin
     for (const r of roomList) {
       const typeName = r.type && typeRows[r.type] ? r.type : 'Deluxe';
       await client.query(`
@@ -275,15 +272,7 @@ router.post('/register-hotel', async (req, res) => {
     `, [hotel.id, username, hash, adminName]);
 
     await client.query('COMMIT');
-    res.status(201).json({
-      success: true,
-      data: {
-        hotel,
-        admin: userResult.rows[0],
-        roomsCreated: actualTotal,
-        hasRestaurant: !!hasRestaurant
-      }
-    });
+    res.status(201).json({ success: true, data: { hotel, admin: userResult.rows[0], roomsCreated: actualTotal } });
   } catch (err) {
     await client.query('ROLLBACK');
     if (err.code === '23505') return res.status(409).json({ error: 'Username, phone or another unique value already exists' });
