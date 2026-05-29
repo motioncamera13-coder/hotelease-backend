@@ -1639,6 +1639,7 @@ async function loadReservations(status = '', q = '') {
         <span style="color:var(--blue);cursor:pointer;font-size:11px;margin-right:6px" onclick="viewBooking('${r.id}')">View</span>
         ${r.status === 'confirmed' ? `<span style="color:var(--teal);cursor:pointer;font-size:11px" onclick="quickCheckin('${r.id}')">Check In</span>` : ''}
         ${r.status === 'checked_in' ? `<span style="color:var(--red);cursor:pointer;font-size:11px" onclick="quickCheckout('${r.id}','${r.guest_name}')">Check Out</span>` : ''}
+        <span style="color:var(--red);cursor:pointer;font-size:11px;margin-left:6px" onclick="deleteBooking('${r.id}','${(r.guest_name || r.reservation_no || r.id || '').replace(/'/g, "\\'")}')">Delete</span>
       </td>
     </tr>`;
   }).join('');
@@ -1647,6 +1648,21 @@ async function loadReservations(status = '', q = '') {
 function filterReservations(q) { loadReservations('', q); }
 function filterByStatus(s) { loadReservations(s); }
 function viewBooking(id) { toast('Opening booking ' + id + '...', 'info'); }
+
+async function deleteBooking(id, label = '') {
+  if (!confirm(`Delete booking${label ? ' for ' + label : ''}?`)) return;
+  const res = await apiFetch(`/api/reservations/${encodeURIComponent(id)}`, { method:'DELETE' });
+  if (res?.success) {
+    toast('Booking deleted');
+    loadReservations();
+    loadDashboard();
+    renderRoomMap();
+    loadCheckins();
+    loadCheckouts();
+  } else {
+    toast('Delete failed: ' + (res?.error || 'Unknown'), 'error');
+  }
+}
 
 async function quickCheckin(id) {
   if (!confirm('Confirm check-in for this booking?')) return;
