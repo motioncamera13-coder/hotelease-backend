@@ -431,11 +431,31 @@ body { background: #f9fafb; color: #111827; font-family: 'Plus Jakarta Sans', sa
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
 
+.chat-shell { display:grid; grid-template-columns:320px minmax(360px,1fr); gap:12px; height:calc(100vh - 140px); min-height:560px; }
+.chat-list { border:1px solid var(--border); border-radius:8px; background:#fff; overflow:hidden; display:flex; flex-direction:column; }
+.chat-list-head { padding:12px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+.chat-thread-list { overflow:auto; flex:1; }
+.chat-thread { padding:12px; border-bottom:1px solid var(--border); cursor:pointer; display:grid; gap:4px; }
+.chat-thread:hover, .chat-thread.active { background:#eff6ff; }
+.chat-thread-top { display:flex; justify-content:space-between; gap:8px; font-size:13px; font-weight:600; color:#111827; }
+.chat-thread-meta { font-size:11px; color:#6b7280; display:flex; justify-content:space-between; gap:8px; }
+.chat-unread { background:var(--blue); color:#fff; border-radius:999px; padding:1px 7px; font-size:10px; }
+.chat-panel { border:1px solid var(--border); border-radius:8px; background:#fff; overflow:hidden; display:flex; flex-direction:column; }
+.chat-panel-head { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; gap:12px; align-items:center; }
+.chat-messages { flex:1; overflow:auto; padding:16px; background:#f8fafc; display:flex; flex-direction:column; gap:8px; }
+.chat-bubble { max-width:72%; padding:9px 11px; border-radius:8px; font-size:13px; line-height:1.45; white-space:pre-wrap; }
+.chat-bubble.inbound { background:#fff; border:1px solid var(--border); align-self:flex-start; }
+.chat-bubble.outbound { background:#dbeafe; border:1px solid #bfdbfe; align-self:flex-end; }
+.chat-time { font-size:10px; color:#6b7280; margin-top:4px; }
+.chat-compose { padding:12px; border-top:1px solid var(--border); display:flex; gap:8px; }
+.chat-compose textarea { resize:none; min-height:42px; max-height:90px; }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
   .sidebar { display: none; }
   .metrics-row { grid-template-columns: repeat(2, 1fr); }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .chat-shell { grid-template-columns:1fr; height:auto; }
 }
 </style>
 </head>
@@ -584,6 +604,40 @@ body { background: #f9fafb; color: #111827; font-family: 'Plus Jakarta Sans', sa
               <tr><td colspan="9" style="text-align:center;color:#6b7280;padding:2rem">No bookings yet</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GUEST CHATS PAGE ── -->
+    <div class="page" id="page-chats">
+      <div class="chat-shell">
+        <div class="chat-list">
+          <div class="chat-list-head">
+            <div class="search-box" style="flex:1;margin:0">
+              <span>🔍</span>
+              <input class="search-input" id="chat-search" placeholder="Search guest, phone, room..." oninput="loadChatThreads(this.value)">
+            </div>
+            <button class="btn btn-outline" style="padding:8px 10px" onclick="loadChatThreads()">↻</button>
+          </div>
+          <div class="chat-thread-list" id="chat-thread-list">
+            <div class="empty-state">No WhatsApp chats yet</div>
+          </div>
+        </div>
+        <div class="chat-panel">
+          <div class="chat-panel-head">
+            <div>
+              <div class="panel-title" id="chat-active-name">Select a guest chat</div>
+              <div style="font-size:11px;color:#6b7280" id="chat-active-sub">Inbound WhatsApp messages will appear here.</div>
+            </div>
+            <button class="btn btn-outline" onclick="loadChatMessages(activeChatPhone)" id="chat-refresh-btn" disabled>Refresh</button>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="empty-state">Choose a guest from the left to view the conversation.</div>
+          </div>
+          <div class="chat-compose">
+            <textarea class="form-input" id="chat-compose-text" placeholder="Type a WhatsApp reply..." disabled></textarea>
+            <button class="btn btn-gold" onclick="sendChatReply()" id="chat-send-btn" disabled>Send</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1403,7 +1457,7 @@ function logout() {
 // ── Page navigation ────────────────────────────────────────────
 const pageTitles = {
   dashboard:'Dashboard', reservations:'Reservations', rooms:'Room View',
-  checkin:'Check-in / Check-out', guests:'Guests', agents:'Travel Agents',
+  chats:'Guest Chats', checkin:'Check-in / Check-out', guests:'Guests', agents:'Travel Agents',
   rates:'Rate Management', reports:'Reports & Analytics', billing:'Billing',
   checkout:'Check Out', swaproom:'Swap Room', roominvestigation:'Room Investigation',
   rsupdate:'R.S. Update', cashbook:'Cash Book', receipt:'Receipt',
@@ -1423,6 +1477,7 @@ function showPage(name) {
   if (name === 'dashboard') loadDashboard();
   if (name === 'rooms') renderRoomMap();
   if (name === 'reservations') loadReservations();
+  if (name === 'chats') loadChatThreads();
   if (name === 'checkin') loadCheckins();
   if (name === 'checkout') loadCheckouts();
   if (name === 'guests') loadGuests();
@@ -1463,6 +1518,87 @@ async function loadDashboard() {
   if (metrics[1]) metrics[1].textContent = availableRooms || '0';
   if (metrics[2]) metrics[2].textContent = '₹' + (d.revenue?.total || 0).toLocaleString();
   if (metrics[3]) metrics[3].textContent = d.newBookings || 0;
+}
+
+// ── GUEST CHATS ────────────────────────────────────────────────
+let activeChatPhone = null;
+let chatThreadTimer = null;
+let chatMessageTimer = null;
+
+function chatTime(value) {
+  if (!value) return '';
+  try { return new Date(value).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }); }
+  catch { return ''; }
+}
+
+async function loadChatThreads(search = '') {
+  const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+  const data = await apiFetch(`/api/whatsapp/threads${qs}`);
+  const box = document.getElementById('chat-thread-list');
+  if (!box) return;
+  const rows = data?.data || [];
+  if (!rows.length) {
+    box.innerHTML = '<div class="empty-state">No WhatsApp chats yet</div>';
+    return;
+  }
+  box.innerHTML = rows.map(t => `
+    <div class="chat-thread ${activeChatPhone === t.phone ? 'active' : ''}" onclick="selectChat('${t.phone}', '${(t.guest_name || '').replace(/'/g, "\\'")}', '${(t.room_number || '').replace(/'/g, "\\'")}')">
+      <div class="chat-thread-top">
+        <span>${t.guest_name || t.phone}</span>
+        ${Number(t.unread_count || 0) ? `<span class="chat-unread">${t.unread_count}</span>` : ''}
+      </div>
+      <div style="font-size:12px;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.last_message || 'No message preview'}</div>
+      <div class="chat-thread-meta"><span>${t.phone}${t.room_number ? ' | Room ' + t.room_number : ''}</span><span>${chatTime(t.last_at)}</span></div>
+    </div>
+  `).join('');
+}
+
+async function selectChat(phone, name = '', room = '') {
+  activeChatPhone = phone;
+  document.getElementById('chat-active-name').textContent = name || phone;
+  document.getElementById('chat-active-sub').textContent = `${phone}${room ? ' | Room ' + room : ''}`;
+  document.getElementById('chat-compose-text').disabled = false;
+  document.getElementById('chat-send-btn').disabled = false;
+  document.getElementById('chat-refresh-btn').disabled = false;
+  await loadChatMessages(phone);
+  await loadChatThreads(document.getElementById('chat-search')?.value || '');
+}
+
+async function loadChatMessages(phone) {
+  if (!phone) return;
+  const data = await apiFetch(`/api/whatsapp/threads/${encodeURIComponent(phone)}/messages`);
+  const box = document.getElementById('chat-messages');
+  if (!box) return;
+  const rows = data?.data || [];
+  if (!rows.length) {
+    box.innerHTML = '<div class="empty-state">No messages in this chat yet</div>';
+    return;
+  }
+  box.innerHTML = rows.map(m => `
+    <div class="chat-bubble ${m.direction === 'inbound' ? 'inbound' : 'outbound'}">
+      ${String(m.message || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+      <div class="chat-time">${m.sender || m.direction} | ${chatTime(m.created_at)}</div>
+    </div>
+  `).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChatReply() {
+  const input = document.getElementById('chat-compose-text');
+  const message = input.value.trim();
+  if (!activeChatPhone || !message) return;
+  const res = await apiFetch(`/api/whatsapp/threads/${encodeURIComponent(activeChatPhone)}/send`, {
+    method:'POST',
+    body: JSON.stringify({ message })
+  });
+  if (res?.success) {
+    input.value = '';
+    await loadChatMessages(activeChatPhone);
+    await loadChatThreads(document.getElementById('chat-search')?.value || '');
+    toast('WhatsApp reply sent');
+  } else {
+    toast('Reply failed: ' + (res?.error || 'Unknown error'), 'error');
+  }
 }
 
 // ── RESERVATIONS ───────────────────────────────────────────────
@@ -2615,6 +2751,7 @@ const NAV_MENUS = {
   owner: [
     { section: 'Main' },
     { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'chats', icon:'💬', label:'Guest Chats' },
     { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
     { page:'rooms', icon:'🏨', label:'Room View' },
     { page:'guests', icon:'👤', label:'Guest View' },
@@ -2649,6 +2786,7 @@ const NAV_MENUS = {
   hotel_admin: [
     { section: 'Main' },
     { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'chats', icon:'💬', label:'Guest Chats' },
     { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
     { page:'rooms', icon:'🏨', label:'Room View' },
     { page:'guests', icon:'👤', label:'Guest View' },
@@ -2680,6 +2818,7 @@ const NAV_MENUS = {
   hotel_staff: [
     { section: 'Main' },
     { page:'dashboard', icon:'📊', label:'Dashboard' },
+    { page:'chats', icon:'💬', label:'Guest Chats' },
     { page:'reservations', icon:'📋', label:'Reservation / Book Now' },
     { page:'rooms', icon:'🏨', label:'Room View' },
     { page:'guests', icon:'👤', label:'Guest View' },
