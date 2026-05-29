@@ -352,7 +352,7 @@ function escapeAttr(value) {
 
 // ── Load data ──────────────────────────────────────────────────
 async function loadData() {
-  const hotelsRes = await apiFetch('/api/auth/hotels');
+  const hotelsRes = await apiFetch('/api/hotels');
   if (hotelsRes?.success) {
     const hotels = hotelsRes.data || [];
     window.heHotels = hotels;
