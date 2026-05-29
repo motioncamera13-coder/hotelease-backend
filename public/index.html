@@ -2702,6 +2702,9 @@ async function createBooking() {
     closeModal('newReservation');
     loadReservations();
     loadDashboard();
+    renderRoomMap();
+    loadCheckins();
+    loadCheckouts();
   } else {
     toast('Booking failed: ' + (res?.error || 'Unknown'), 'error');
   }
