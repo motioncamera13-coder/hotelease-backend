@@ -214,7 +214,9 @@ router.post('/register-hotel', async (req, res) => {
     const {
       name, address, city, state, phone, email, gstin,
       whatsappBotNumber, adminPhone, totalRooms, bufferRooms,
-      adminName, username, password
+      adminName, username, password,
+      rooms,        // structured array: [{ floor, roomNumber, type }]
+      hasRestaurant // boolean
     } = req.body;
 
     if (!name || !city || !adminName || !username || !password) {
@@ -222,7 +224,15 @@ router.post('/register-hotel', async (req, res) => {
     }
     if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
+    // Validate rooms array
+    const roomList = Array.isArray(rooms) ? rooms : [];
+    if (roomList.length === 0) {
+      return res.status(400).json({ error: 'At least one room is required. Add floors and rooms before registering.' });
+    }
+
     await client.query('BEGIN');
+
+    const actualTotal = roomList.length;
 
     const hotelResult = await client.query(`
       INSERT INTO hotels (name, address, city, state, phone, email, gstin,
@@ -232,11 +242,12 @@ router.post('/register-hotel', async (req, res) => {
     `, [
       name, address || null, city, state || null, phone || null, email || null, gstin || null,
       whatsappBotNumber || null, adminPhone || null,
-      parseInt(totalRooms || 0, 10) || 0,
+      actualTotal,
       parseInt(bufferRooms || 4, 10) || 4
     ]);
     const hotel = hotelResult.rows[0];
 
+    // Create room types
     const typeRows = {};
     for (const type of ['Deluxe', 'Super Deluxe', 'Honeymoon']) {
       const rt = await client.query(`
@@ -247,15 +258,13 @@ router.post('/register-hotel', async (req, res) => {
       typeRows[type] = rt.rows[0];
     }
 
-    const roomTotal = parseInt(totalRooms || 0, 10) || 0;
-    for (let i = 0; i < roomTotal; i++) {
-      const floor = Math.floor(i / 10) + 1;
-      const roomNumber = `${floor}${String((i % 10) + 1).padStart(2, '0')}`;
-      const type = roomTypeForIndex(i, roomTotal);
+    // Insert rooms exactly as defined by the super-admin
+    for (const r of roomList) {
+      const typeName = r.type && typeRows[r.type] ? r.type : 'Deluxe';
       await client.query(`
         INSERT INTO rooms (hotel_id, room_type_id, room_number, floor)
-        VALUES ($1,$2,$3,$4)
-      `, [hotel.id, typeRows[type].id, roomNumber, floor]);
+        VALUES ($1, $2, $3, $4)
+      `, [hotel.id, typeRows[typeName].id, String(r.roomNumber), parseInt(r.floor, 10) || 1]);
     }
 
     const hash = await bcrypt.hash(password, 10);
@@ -266,7 +275,15 @@ router.post('/register-hotel', async (req, res) => {
     `, [hotel.id, username, hash, adminName]);
 
     await client.query('COMMIT');
-    res.status(201).json({ success: true, data: { hotel, admin: userResult.rows[0] } });
+    res.status(201).json({
+      success: true,
+      data: {
+        hotel,
+        admin: userResult.rows[0],
+        roomsCreated: actualTotal,
+        hasRestaurant: !!hasRestaurant
+      }
+    });
   } catch (err) {
     await client.query('ROLLBACK');
     if (err.code === '23505') return res.status(409).json({ error: 'Username, phone or another unique value already exists' });

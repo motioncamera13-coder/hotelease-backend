@@ -67,6 +67,9 @@ body { background:var(--dark); color:#111827; font-family:'DM Sans',sans-serif; 
 .divider { height:0.5px; background:var(--border); margin:1.25rem 0; }
 .cred-section { background:#f3f4f6; border-radius:6px; padding:1rem 1.25rem; margin-top:12px; border-left:2px solid var(--gold); }
 .cred-title { font-size:10px; color:var(--blue); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; }
+.floor-row { display:grid; grid-template-columns:70px 130px 110px 1fr auto; gap:8px; align-items:end; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:10px 12px; margin-bottom:8px; }
+.rooms-count-pill { display:inline-flex; align-items:center; gap:6px; font-size:11px; color:#6b7280; background:#eff6ff; border:1px solid #bfdbfe; border-radius:999px; padding:4px 12px; }
+.rooms-count-pill strong { color:var(--blue); font-family:'DM Mono',monospace; }
 .danger-panel {
   background:rgba(226,75,74,0.06);
   border:0.5px solid rgba(226,75,74,0.35);
@@ -184,10 +187,24 @@ body { background:var(--dark); color:#111827; font-family:'DM Sans',sans-serif; 
       <div class="form-group"><label class="form-label">GSTIN</label><input class="form-input" id="h-gstin" placeholder="27AABCU9603R1ZX"></div>
     </div>
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">Total rooms</label><input class="form-input" id="h-rooms" type="number" placeholder="50" value="50"></div>
-      <div class="form-group"><label class="form-label">Buffer rooms</label><input class="form-input" id="h-buffer" type="number" placeholder="4" value="4"></div>
       <div class="form-group"><label class="form-label">WhatsApp bot number</label><input class="form-input" id="h-wa" placeholder="919816003322"></div>
+      <div class="form-group"><label class="form-label">Buffer rooms</label><input class="form-input" id="h-buffer" type="number" placeholder="4" value="4"></div>
+      <div class="form-group"><label class="form-label">Has restaurant?</label>
+        <select class="form-select" id="h-restaurant">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
     </div>
+
+    <div class="divider"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:11px;color:#6b7280;letter-spacing:0.04em">FLOORS & ROOMS</div>
+      <div class="rooms-count-pill">Total: <strong id="rooms-total-count">0</strong> rooms</div>
+    </div>
+    <div id="floors-builder" style="margin-bottom:10px"></div>
+    <button class="btn-sm btn-outline" onclick="addFloor()" style="padding:7px 16px;font-size:12px">+ Add Floor</button>
 
     <div class="divider"></div>
 
@@ -216,7 +233,8 @@ body { background:var(--dark); color:#111827; font-family:'DM Sans',sans-serif; 
       <div style="font-size:12px;color:#6b7280;line-height:1.7">
         ✅ Hotel account created with unique Hotel ID<br>
         ✅ Admin login credentials set (username + password)<br>
-        ✅ Default room types created (Deluxe, Super Deluxe, Honeymoon)<br>
+        ✅ Room types created (Deluxe, Super Deluxe, Honeymoon)<br>
+        ✅ Exact rooms created with your floor layout and room numbers<br>
         ✅ Hotel can login at: <span style="color:var(--blue)">hotelease.in/login</span><br>
         ✅ All data completely separate from other hotels
       </div>
@@ -505,6 +523,65 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// ── Floor builder ──────────────────────────────────────────────
+let floorRows = [];
+
+function addFloor() {
+  const num = floorRows.length + 1;
+  floorRows.push({ floor: num, roomStart: num * 100 + 1, count: 10, type: 'Deluxe' });
+  renderFloors();
+}
+
+function removeFloor(i) {
+  floorRows.splice(i, 1);
+  renderFloors();
+}
+
+function updateFloor(i, key, value) {
+  floorRows[i][key] = key === 'type' ? value : (parseInt(value, 10) || 0);
+  document.getElementById('rooms-total-count').textContent =
+    floorRows.reduce((s, f) => s + (parseInt(f.count) || 0), 0);
+}
+
+function renderFloors() {
+  const el = document.getElementById('floors-builder');
+  if (floorRows.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:#6b7280;padding:4px 0 8px">No floors added yet — click "+ Add Floor".</div>';
+    document.getElementById('rooms-total-count').textContent = '0';
+    return;
+  }
+  el.innerHTML = floorRows.map((f, i) => `
+    <div class="floor-row">
+      <div class="form-group">
+        <label class="form-label">Floor</label>
+        <input class="form-input" type="number" value="${f.floor}" min="0"
+          onchange="updateFloor(${i},'floor',this.value)" style="text-align:center">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room start no.</label>
+        <input class="form-input" type="number" value="${f.roomStart}" min="1"
+          onchange="updateFloor(${i},'roomStart',this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">No. of rooms</label>
+        <input class="form-input" type="number" value="${f.count}" min="1" max="99"
+          onchange="updateFloor(${i},'count',this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room type</label>
+        <select class="form-select" onchange="updateFloor(${i},'type',this.value)">
+          <option ${f.type==='Deluxe'?'selected':''}>Deluxe</option>
+          <option ${f.type==='Super Deluxe'?'selected':''}>Super Deluxe</option>
+          <option ${f.type==='Honeymoon'?'selected':''}>Honeymoon</option>
+        </select>
+      </div>
+      <button class="btn-sm btn-red" onclick="removeFloor(${i})" style="padding:7px 10px;align-self:end">✕</button>
+    </div>
+  `).join('');
+  document.getElementById('rooms-total-count').textContent =
+    floorRows.reduce((s, f) => s + (parseInt(f.count) || 0), 0);
+}
+
 // ── Register hotel ─────────────────────────────────────────────
 async function registerHotel() {
   const name = document.getElementById('h-name').value.trim();
@@ -520,6 +597,20 @@ async function registerHotel() {
   if (password.length < 8) {
     showToast('Password must be at least 8 characters', 'red');
     return;
+  }
+  if (floorRows.length === 0) {
+    showToast('Add at least one floor with rooms', 'red');
+    return;
+  }
+
+  // Build exact rooms array from floor builder
+  const rooms = [];
+  for (const f of floorRows) {
+    const count = parseInt(f.count, 10) || 0;
+    const start = parseInt(f.roomStart, 10) || (f.floor * 100 + 1);
+    for (let i = 0; i < count; i++) {
+      rooms.push({ floor: f.floor, roomNumber: String(start + i), type: f.type });
+    }
   }
 
   // Generate Hotel ID if not already generated
@@ -540,9 +631,11 @@ async function registerHotel() {
       phone: document.getElementById('h-phone').value.trim(),
       email: document.getElementById('h-email').value.trim(),
       gstin: document.getElementById('h-gstin').value.trim(),
-      totalRooms: document.getElementById('h-rooms').value,
+      totalRooms: rooms.length,
       bufferRooms: document.getElementById('h-buffer').value,
+      hasRestaurant: document.getElementById('h-restaurant').value === 'yes',
       whatsappBotNumber: document.getElementById('h-wa').value.trim(),
+      rooms,
       adminName,
       username,
       password
@@ -550,14 +643,13 @@ async function registerHotel() {
   });
 
   if (res?.success) {
-    // Show success card with full details
     document.getElementById('sc-id').textContent = hotelId;
     document.getElementById('sc-name').textContent = name;
     document.getElementById('sc-city').textContent = city;
     document.getElementById('sc-user').textContent = username;
     document.getElementById('reg-success-card').style.display = 'block';
     document.getElementById('hotel-id-preview').style.display = 'none';
-    showToast(`✅ Hotel "${name}" registered! ID: ${hotelId}`, 'green');
+    showToast(`✅ Hotel "${name}" registered — ${rooms.length} rooms created!`, 'green');
     currentHotelId = null;
     clearForm();
     loadData();
@@ -570,10 +662,12 @@ function clearForm() {
   ['h-name','h-city','h-state','h-phone','h-email','h-gstin','h-admin-name','h-username','h-password'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  document.getElementById('h-rooms').value = '50';
   document.getElementById('h-buffer').value = '4';
+  document.getElementById('h-restaurant').value = 'no';
   document.getElementById('hotel-id-preview').style.display = 'none';
   currentHotelId = null;
+  floorRows = [];
+  addFloor();
 }
 
 function loginAs(username) { showToast(`Logging in as ${username}...`); }
@@ -760,6 +854,7 @@ function showToast(msg, color = 'teal') {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+addFloor(); // seed one default floor on page load
 loadData();
 </script>
 <!-- ── Change Hotel Admin Password Modal ── -->
