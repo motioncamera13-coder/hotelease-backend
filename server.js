@@ -196,31 +196,64 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.post('/api/auth/register-hotel', auth, superAdminOnly, async (req, res) => {
+  const client = await pool.connect();
   try {
     const { hotelId, name, city, state, phone, email, gstin,
-            totalRooms, bufferRooms, whatsappBotNumber, adminName, username, password } = req.body;
+            totalRooms, bufferRooms, whatsappBotNumber, adminName, username, password,
+            rooms, hasRestaurant } = req.body;
 
-    const userExists = await pool.query('SELECT id FROM users WHERE username=$1', [username]);
+    const userExists = await client.query('SELECT id FROM users WHERE username=$1', [username]);
     if (userExists.rows.length > 0)
       return res.status(400).json({ success: false, error: 'Username already taken' });
 
-    // Insert hotel — id is auto-generated UUID
-    const hotelResult = await pool.query(
+    const roomList = Array.isArray(rooms) ? rooms : [];
+    if (roomList.length === 0)
+      return res.status(400).json({ success: false, error: 'Add at least one floor with rooms before registering.' });
+
+    await client.query('BEGIN');
+
+    const actualTotal = roomList.length;
+
+    // Insert hotel
+    const hotelResult = await client.query(
       `INSERT INTO hotels (name,city,state,phone,email,gstin,total_rooms,buffer_rooms,whatsapp_bot_number)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-      [name, city, state, phone, email, gstin, totalRooms, bufferRooms, whatsappBotNumber]
+      [name, city, state, phone, email, gstin, actualTotal, bufferRooms, whatsappBotNumber]
     );
     const newHotelId = hotelResult.rows[0].id;
 
+    // Create room types
+    const typeRows = {};
+    for (const type of ['Deluxe', 'Super Deluxe', 'Honeymoon']) {
+      const rt = await client.query(
+        `INSERT INTO room_types (hotel_id, name, capacity) VALUES ($1,$2,2) RETURNING id`,
+        [newHotelId, type]
+      );
+      typeRows[type] = rt.rows[0].id;
+    }
+
+    // Insert exact rooms from floor builder
+    for (const r of roomList) {
+      const typeName = r.type && typeRows[r.type] ? r.type : 'Deluxe';
+      await client.query(
+        `INSERT INTO rooms (hotel_id, room_type_id, room_number, floor) VALUES ($1,$2,$3,$4)`,
+        [newHotelId, typeRows[typeName], String(r.roomNumber), parseInt(r.floor, 10) || 1]
+      );
+    }
+
     const hashed = await bcrypt.hash(password, 10);
-    await pool.query(
+    await client.query(
       'INSERT INTO users (username,password_hash,name,role,hotel_id) VALUES ($1,$2,$3,$4,$5)',
       [username, hashed, adminName, 'hotel_admin', newHotelId]
     );
 
-    res.json({ success: true, hotelId: newHotelId });
+    await client.query('COMMIT');
+    res.json({ success: true, hotelId: newHotelId, roomsCreated: actualTotal });
   } catch (err) {
+    await client.query('ROLLBACK');
     res.status(500).json({ success: false, error: err.message });
+  } finally {
+    client.release();
   }
 });
 
