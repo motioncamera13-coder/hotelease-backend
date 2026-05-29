@@ -307,22 +307,6 @@ if (!token || user.role !== 'super_admin') {
   window.location.href = 'login.html';
 }
 
-// ── Mock data for demo ─────────────────────────────────────────
-const MOCK_HOTELS = [
-  { id: 'uuid-001', name: 'Hotel Sukhsagar Regency', city: 'Shimla', username: 'sukhsagar_admin', rooms: 50, bookings: 124, active: true },
-  { id: 'uuid-002', name: 'The Pine Resort', city: 'Manali', username: 'pineresort_admin', rooms: 32, bookings: 86, active: true },
-  { id: 'uuid-003', name: 'Mountain View Hotel', city: 'Dharamshala', username: 'mtnview_admin', rooms: 28, bookings: 54, active: true },
-  { id: 'uuid-004', name: 'Kasauli Hills Resort', city: 'Kasauli', username: 'kasauli_admin', rooms: 20, bookings: 31, active: false },
-];
-
-const MOCK_USERS = [
-  { username: 'sukhsagar_admin', name: 'Harmeet Singh', hotel: 'Hotel Sukhsagar Regency', role: 'hotel_admin', lastLogin: '04 May 2026, 4:30 PM', active: true },
-  { username: 'sukhsagar_staff', name: 'Front Desk Staff', hotel: 'Hotel Sukhsagar Regency', role: 'hotel_staff', lastLogin: '04 May 2026, 9:00 AM', active: true },
-  { username: 'pineresort_admin', name: 'Rajesh Kumar', hotel: 'The Pine Resort', role: 'hotel_admin', lastLogin: '03 May 2026, 6:00 PM', active: true },
-  { username: 'mtnview_admin', name: 'Priya Sharma', hotel: 'Mountain View Hotel', role: 'hotel_admin', lastLogin: '02 May 2026, 11:00 AM', active: true },
-  { username: 'kasauli_admin', name: 'Vikram Nair', hotel: 'Kasauli Hills Resort', role: 'hotel_admin', lastLogin: '01 Apr 2026, 3:00 PM', active: false },
-];
-
 function authHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('he_token') || '') };
 }
@@ -336,6 +320,16 @@ async function apiFetch(path, opts = {}) {
   } catch (err) {
     return { success: false, error: err.message };
   }
+}
+
+function escapeAttr(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
 }
 
 // ── Load data ──────────────────────────────────────────────────
@@ -358,55 +352,30 @@ async function loadData() {
         <td class="mono">${h.admin_username || '—'}</td>
         <td class="mono">${h.total_rooms || 0}</td>
         <td class="mono">${h.bookings || 0}</td>
-        <td><span class="badge badge-active">Active</span></td>
-        <td style="display:flex;gap:6px">
-          <button class="btn-sm btn-gold" onclick="viewHotel('${h.id}')">View</button>
-          <button class="btn-sm btn-red" onclick="prepareSingleHotelReset('${h.id}')">Reset</button>
+        <td><span class="badge ${h.active ? 'badge-active' : 'badge-inactive'}">${h.active ? 'Active' : 'Inactive'}</span></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn-sm btn-gold" onclick="viewHotel('${escapeAttr(h.id)}')">View</button>
+          <button class="btn-sm btn-red" onclick="prepareSingleHotelReset('${escapeAttr(h.id)}')">Reset</button>
+          <button class="btn-sm hotel-delete-btn" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px" data-hotel-id="${escapeAttr(h.id)}" data-hotel-name="${escapeAttr(h.name)}">Delete</button>
         </td>
       </tr>
     `).join('') : '<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:2rem">No hotels found</td></tr>';
+    document.querySelectorAll('.hotel-delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => confirmDeleteHotel(btn.dataset.hotelId, btn.dataset.hotelName));
+    });
     document.getElementById('users-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem">Open a hotel to manage users</td></tr>';
     return;
   }
 
-  // Stats
-  document.getElementById('total-hotels').textContent = MOCK_HOTELS.filter(h => h.active).length;
-  document.getElementById('total-rooms').textContent = MOCK_HOTELS.reduce((s, h) => s + h.rooms, 0);
-  document.getElementById('total-bookings').textContent = MOCK_HOTELS.reduce((s, h) => s + h.bookings, 0);
-  document.getElementById('total-revenue').textContent = '₹8.4L';
-
-  // Hotels table
-  document.getElementById('hotels-count').textContent = MOCK_HOTELS.length + ' hotels';
-  document.getElementById('hotels-tbody').innerHTML = MOCK_HOTELS.map(h => `
-    <tr>
-      <td class="mono" style="color:#6b7280">${h.id}</td>
-      <td style="font-weight:400">${h.name}</td>
-      <td style="color:#6b7280">${h.city}</td>
-      <td class="mono">${h.username}</td>
-      <td class="mono">${h.rooms}</td>
-      <td class="mono">${h.bookings}</td>
-      <td><span class="badge ${h.active ? 'badge-active' : 'badge-inactive'}">${h.active ? 'Active' : 'Inactive'}</span></td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn-sm btn-outline" onclick="loginAs('${h.username}')">Login as</button>
-        <button class="btn-sm btn-gold" onclick="viewHotel('${h.id}')">View</button>
-        <button class="btn-sm btn-red" onclick="toggleHotel('${h.id}')">Disable</button>
-        <button class="btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px" onclick="confirmDeleteHotel('${h.id}','${h.name}')">🗑 Delete</button>
-      </td>
-    </tr>
-  `).join('');
-
-  // Users table
-  document.getElementById('users-tbody').innerHTML = MOCK_USERS.map(u => `
-    <tr>
-      <td class="mono">${u.username}</td>
-      <td>${u.name}</td>
-      <td style="color:#6b7280">${u.hotel}</td>
-      <td><span class="badge ${u.role === 'hotel_admin' ? 'badge-active' : ''}" style="${u.role === 'hotel_staff' ? 'background:var(--blue-dim);color:var(--blue)' : ''}">${u.role.replace('_',' ')}</span></td>
-      <td style="color:#6b7280;font-size:11px">${u.lastLogin}</td>
-      <td><span class="badge ${u.active ? 'badge-active' : 'badge-inactive'}">${u.active ? 'Active' : 'Inactive'}</span></td>
-      <td><span style="color:var(--blue);cursor:pointer;font-size:11px" onclick="resetPassword('${u.username}')">Reset pwd</span></td>
-    </tr>
-  `).join('');
+  window.heHotels = [];
+  populateResetHotelOptions([]);
+  document.getElementById('total-hotels').textContent = '0';
+  document.getElementById('total-rooms').textContent = '0';
+  document.getElementById('total-bookings').textContent = '0';
+  document.getElementById('total-revenue').textContent = '—';
+  document.getElementById('hotels-count').textContent = 'Unable to load';
+  document.getElementById('hotels-tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;color:#dc2626;padding:2rem">Could not load live hotels: ${escapeAttr(hotelsRes?.error || 'API error')}</td></tr>`;
+  document.getElementById('users-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:2rem">Hotel list is unavailable</td></tr>';
 }
 
 // ── Hotel ID Generator ─────────────────────────────────────────
@@ -649,22 +618,14 @@ async function executeDeleteHotel() {
       closeDeleteModal();
       loadData();
     } else {
-      // If API not ready, remove from mock list
-      const idx = (window.heHotels || MOCK_HOTELS).findIndex(h => h.id === _deleteHotelId);
-      if (idx !== -1) {
-        if (window.heHotels) window.heHotels.splice(idx, 1);
-        else MOCK_HOTELS.splice(idx, 1);
-      }
-      showToast(`Hotel "${_deleteHotelName}" removed.`, 'green');
-      closeDeleteModal();
-      loadData();
+      showToast(`Delete failed: ${res?.error || 'API error'}`, 'red');
     }
   } catch {
     showToast('Delete failed. Try again.', 'red');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Yes, Delete Permanently';
   }
-
-  btn.disabled = false;
-  btn.textContent = 'Yes, Delete Permanently';
 }
 function logout() { localStorage.removeItem('he_token'); localStorage.removeItem('he_user'); window.location.href = 'login.html'; }
 
