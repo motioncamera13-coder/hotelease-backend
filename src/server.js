@@ -244,14 +244,22 @@ app.post('/api/auth/login', async (req, res) => {
     if (!valid) return res.status(401).json({ success: false, error: 'Invalid credentials' });
 
     let resolvedHotelId = user.hotel_id;
+    let hotelInfo = null;
     if (user.role !== 'super_admin') {
       const hotelResult = await pool.query(
-        'SELECT id::text as db_id FROM hotels WHERE id::text=$1 OR hotel_id=$1 LIMIT 1',
+        'SELECT id::text as db_id, hotel_id, name, city FROM hotels WHERE id::text=$1 OR hotel_id=$1 LIMIT 1',
         [hotelId]
       );
-      resolvedHotelId = hotelResult.rows[0]?.db_id || hotelId;
+      hotelInfo = hotelResult.rows[0] || null;
+      resolvedHotelId = hotelInfo?.db_id || hotelId;
       if (String(user.hotel_id) !== String(resolvedHotelId))
         return res.status(401).json({ success: false, error: 'Invalid Hotel ID' });
+    } else if (hotelId) {
+      const hotelResult = await pool.query(
+        'SELECT id::text as db_id, hotel_id, name, city FROM hotels WHERE id::text=$1 OR hotel_id=$1 LIMIT 1',
+        [hotelId]
+      );
+      hotelInfo = hotelResult.rows[0] || null;
     }
 
     await pool.query('UPDATE users SET last_login=NOW() WHERE id=$1', [user.id]);
@@ -262,7 +270,19 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    res.json({ success: true, token, user: { username: user.username, name: user.name, role: user.role, hotelId: resolvedHotelId } });
+    res.json({
+      success: true,
+      token,
+      user: {
+        username: user.username,
+        name: user.name,
+        role: user.role,
+        hotelId: resolvedHotelId,
+        publicHotelId: hotelInfo?.hotel_id || hotelId || null,
+        hotelName: hotelInfo?.name || null,
+        city: hotelInfo?.city || null
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

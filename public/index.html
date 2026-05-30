@@ -2754,7 +2754,7 @@ if (localStorage.getItem('he_token') && !hotelId && user.role !== 'super_admin')
 const sbUser = document.getElementById('sb-user-name');
 const sbHotel = document.getElementById('sb-hotel-name');
 if (sbUser) sbUser.textContent = (user.name||user.username||'Admin').toUpperCase() + ' — ' + (user.role||'Staff').replace('_',' ').toUpperCase();
-if (sbHotel) sbHotel.textContent = user.hotelName || 'Sukhsagar Regency';
+if (sbHotel) sbHotel.textContent = user.hotelName || user.name || 'HotelEase PMS';
 
 function logout() {
   if (confirm('Are you sure you want to logout?')) {
