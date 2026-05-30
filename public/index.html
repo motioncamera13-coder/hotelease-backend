@@ -1843,8 +1843,32 @@ async function renderRoomMap(statusFilter = 'all', floorFilter = 'all') {
 }
 
 function roomClick(num, status) {
-  const msgs = { available:`Room ${num} is available.`, occupied:`Room ${num} is occupied.`, checkout:`Room ${num} — checking out today.`, maintenance:`Room ${num} — under maintenance.` };
-  alert(msgs[status] || `Room ${num}`);
+  if (status === 'available') {
+    // Pre-fill room number hint and open new reservation modal
+    showModal('newReservation');
+    const noteEl = document.getElementById('special-requests');
+    if (noteEl && !noteEl.value) noteEl.value = `Room ${num}`;
+  } else if (status === 'occupied') {
+    showPage('checkin');
+    loadCheckins();
+  } else if (status === 'checkout') {
+    // Find matching checkout reservation by looking up active reservations
+    apiFetch(`/api/reservations?hotelId=${hotelId}`).then(data => {
+      const reservations = data?.data || [];
+      const today = new Date().toISOString().split('T')[0];
+      const match = reservations.find(r =>
+        r.status === 'checked_in' && r.checkout_date && r.checkout_date.slice(0,10) === today
+      );
+      if (match) {
+        doCheckout(match.id);
+      } else {
+        showPage('checkin');
+        loadCheckins();
+      }
+    });
+  } else if (status === 'maintenance') {
+    toast(`Room ${num} is under maintenance.`);
+  }
 }
 function addExtra(num) { alert(`Add extra charge for Room ${num}`); }
 function editRoom(num) { alert(`Edit Room ${num}`); }

@@ -859,6 +859,63 @@ app.post('/api/reservations', auth, async (req, res) => {
   }
 });
 
+app.post('/api/reservations/direct', auth, async (req, res) => {
+  try {
+    const hotelId = req.user.hotelId;
+    const { guestName, guestPhone, agentId, roomTypeId, checkinDate, checkoutDate,
+            roomsCount, plan, ratePerNight, source, specialRequests } = req.body;
+
+    if (!guestName || !checkinDate || !checkoutDate || !plan || !ratePerNight) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    const resNo = 'HE' + Date.now().toString().slice(-10);
+
+    // Upsert guest
+    let guestId = null;
+    if (guestPhone) {
+      const gRes = await pool.query(
+        `INSERT INTO guests (hotel_id, name, phone) VALUES ($1::uuid, $2, $3)
+         ON CONFLICT DO NOTHING RETURNING id`,
+        [hotelId, guestName, guestPhone]
+      );
+      if (gRes.rows.length) {
+        guestId = gRes.rows[0].id;
+      } else {
+        const existing = await pool.query(
+          'SELECT id FROM guests WHERE hotel_id=$1::uuid AND phone=$2 LIMIT 1',
+          [hotelId, guestPhone]
+        );
+        guestId = existing.rows[0]?.id || null;
+      }
+    }
+
+    const insertRes = await pool.query(
+      `INSERT INTO reservations
+        (hotel_id, reservation_no, guest_id, agent_id, room_type_id,
+         checkin_date, checkout_date, rooms_count, plan, rate_per_night, source, special_requests, status)
+       VALUES ($1::uuid, $2,
+         $3,
+         $4,
+         $5,
+         $6::date, $7::date, $8, $9, $10, $11, $12, 'confirmed')
+       RETURNING id::text, reservation_no`,
+      [hotelId, resNo,
+       guestId || null,
+       agentId || null,
+       roomTypeId || null,
+       checkinDate, checkoutDate,
+       roomsCount || 1, plan, ratePerNight,
+       source || 'dashboard', specialRequests || null]
+    );
+
+    const row = insertRes.rows[0];
+    res.json({ success: true, reservationId: row.id, reservationNo: row.reservation_no });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.patch('/api/reservations/:id/status', auth, async (req, res) => {
   try {
     const { status } = req.body;
