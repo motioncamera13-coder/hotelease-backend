@@ -131,6 +131,7 @@ async function initDB() {
   await pool.query(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS hotel_id VARCHAR(30)`);
   await pool.query(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS whatsapp_bot VARCHAR(20)`);
   await pool.query(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT true`);
+  await pool.query(`ALTER TABLE rooms ADD COLUMN IF NOT EXISTS hk_status VARCHAR(20) DEFAULT 'clean'`);
   await pool.query(`ALTER TABLE room_types ADD COLUMN IF NOT EXISTS base_rate NUMERIC(10,2) DEFAULT 0`);
   await pool.query(`ALTER TABLE room_types ADD COLUMN IF NOT EXISTS capacity INTEGER DEFAULT 2`);
 
