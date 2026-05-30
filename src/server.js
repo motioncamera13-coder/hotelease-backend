@@ -553,7 +553,7 @@ app.patch('/api/hotels/:hotelId', auth, superAdminOnly, async (req, res) => {
         name=COALESCE($1,name), city=COALESCE($2,city), state=COALESCE($3,state),
         phone=COALESCE($4,phone), email=COALESCE($5,email), gstin=COALESCE($6,gstin),
         buffer_rooms=COALESCE($7,buffer_rooms), whatsapp_bot=COALESCE($8,whatsapp_bot)
-       WHERE id::text=$9 OR hotel_id=$9`,
+       WHERE id::text=$9 OR hotel_id::text=$9`,
       [name||null, city||null, state||null, phone||null, email||null,
        gstin||null, bufferRooms||null, whatsappBotNumber||null, hotelId]
     );
@@ -576,7 +576,7 @@ app.get('/api/hotels/:hotelId/rooms', auth, superAdminOnly, async (req, res) => 
       SELECT r.*, rt.name as room_type_name
       FROM rooms r
       LEFT JOIN room_types rt ON r.room_type_id::text = rt.id::text
-      WHERE r.hotel_id=$1
+      WHERE r.hotel_id::text=$1
       ORDER BY r.floor, r.room_number
     `, [dbId]);
     res.json({ success: true, data: result.rows });
@@ -598,25 +598,25 @@ app.post('/api/hotels/:hotelId/rooms', auth, superAdminOnly, async (req, res) =>
     let added = 0;
     for (const room of rooms) {
       let typeRes = await pool.query(
-        'SELECT id FROM room_types WHERE hotel_id=$1 AND name=$2 LIMIT 1',
+        'SELECT id::text as id FROM room_types WHERE hotel_id::text=$1 AND name=$2 LIMIT 1',
         [dbId, room.type || 'Standard']
       );
       if (!typeRes.rows[0]) {
         typeRes = await pool.query(
-          'INSERT INTO room_types (hotel_id, name, base_rate, capacity) VALUES ($1,$2,0,2) RETURNING id',
+          'INSERT INTO room_types (hotel_id, name, base_rate, capacity) VALUES ($1::uuid,$2,0,2) RETURNING id::text as id',
           [dbId, room.type || 'Standard']
         );
       }
       const ins = await pool.query(
         `INSERT INTO rooms (hotel_id, room_number, floor, room_type_id, status, hk_status)
-         VALUES ($1,$2,$3,$4,'available','clean')
+         VALUES ($1::uuid,$2,$3,$4::uuid,'available','clean')
          ON CONFLICT (hotel_id, room_number) DO NOTHING`,
         [dbId, String(room.roomNumber), parseInt(room.floor)||1, typeRes.rows[0].id]
       ).catch(() => ({ rowCount: 0 }));
       added += ins.rowCount || 0;
     }
     await pool.query(
-      'UPDATE hotels SET total_rooms=(SELECT COUNT(*) FROM rooms WHERE hotel_id=$1) WHERE id::text=$1',
+      'UPDATE hotels SET total_rooms=(SELECT COUNT(*) FROM rooms WHERE hotel_id::text=$1) WHERE id::text=$1',
       [dbId]
     );
     res.json({ success: true, added });
@@ -634,9 +634,9 @@ app.delete('/api/hotels/:hotelId/rooms/:roomNumber', auth, superAdminOnly, async
     );
     if (!hotel.rows[0]) return res.status(404).json({ success: false, error: 'Hotel not found' });
     const dbId = hotel.rows[0].db_id;
-    await pool.query('DELETE FROM rooms WHERE hotel_id=$1 AND room_number=$2', [dbId, req.params.roomNumber]);
+    await pool.query('DELETE FROM rooms WHERE hotel_id::text=$1 AND room_number=$2', [dbId, req.params.roomNumber]);
     await pool.query(
-      'UPDATE hotels SET total_rooms=(SELECT COUNT(*) FROM rooms WHERE hotel_id=$1) WHERE id::text=$1',
+      'UPDATE hotels SET total_rooms=(SELECT COUNT(*) FROM rooms WHERE hotel_id::text=$1) WHERE id::text=$1',
       [dbId]
     );
     res.json({ success: true });
