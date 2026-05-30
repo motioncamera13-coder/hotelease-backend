@@ -354,7 +354,7 @@ function escapeAttr(value) {
 async function loadData() {
   const hotelsRes = await apiFetch('/api/hotels');
   if (hotelsRes?.success) {
-    const hotels = hotelsRes.data || [];
+    const hotels = hotelsRes.data || hotelsRes.hotels || [];
     window.heHotels = hotels;
     populateResetHotelOptions(hotels);
     document.getElementById('total-hotels').textContent = hotels.length;
@@ -372,7 +372,7 @@ async function loadData() {
         <td class="mono">${h.bookings || 0}</td>
         <td><span class="badge ${h.active ? 'badge-active' : 'badge-inactive'}">${h.active ? 'Active' : 'Inactive'}</span></td>
         <td style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn-sm btn-gold" onclick="viewHotel('${escapeAttr(h.id)}')">View</button>
+          <button class="btn-sm btn-gold" onclick="openEditHotel('${escapeAttr(h.id)}','${escapeAttr(h.name)}','${escapeAttr(h.city||'')}','${escapeAttr(h.state||'')}','${escapeAttr(h.phone||'')}','${escapeAttr(h.email||'')}','${escapeAttr(h.gstin||'')}','${escapeAttr(String(h.buffer_rooms||4))}','${escapeAttr(h.whatsapp_bot||'')}')">Edit</button>
           <button class="btn-sm btn-red" onclick="prepareSingleHotelReset('${escapeAttr(h.id)}')">Reset</button>
           <button class="btn-sm hotel-password-btn" style="background:#eef2ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px" data-hotel-id="${escapeAttr(h.id)}" data-hotel-name="${escapeAttr(h.name)}" data-admin-username="${escapeAttr(h.admin_username || '')}">Password</button>
           <button class="btn-sm hotel-delete-btn" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px" data-hotel-id="${escapeAttr(h.id)}" data-hotel-name="${escapeAttr(h.name)}">Delete</button>
@@ -670,6 +670,218 @@ function clearForm() {
   addFloor();
 }
 
+// ── Edit Hotel ─────────────────────────────────────────────────
+let _editHotelId = null;
+let editFloorRows = [];
+
+function openEditHotel(id, name, city, state, phone, email, gstin, buffer, wa) {
+  _editHotelId = id;
+  document.getElementById('edit-modal-subtitle').textContent = name;
+  document.getElementById('edit-h-name').value = name;
+  document.getElementById('edit-h-city').value = city;
+  document.getElementById('edit-h-state').value = state;
+  document.getElementById('edit-h-phone').value = phone;
+  document.getElementById('edit-h-email').value = email;
+  document.getElementById('edit-h-gstin').value = gstin;
+  document.getElementById('edit-h-buffer').value = buffer;
+  document.getElementById('edit-h-wa').value = wa;
+  document.getElementById('edit-details-msg').textContent = '';
+  document.getElementById('edit-rooms-msg').textContent = '';
+  editFloorRows = [];
+  renderEditFloors();
+  switchEditTab('details');
+  document.getElementById('edit-hotel-modal').style.display = 'flex';
+  loadExistingRooms();
+}
+
+function closeEditModal() {
+  document.getElementById('edit-hotel-modal').style.display = 'none';
+  _editHotelId = null;
+}
+
+function switchEditTab(tab) {
+  document.getElementById('edit-tab-details').style.display = tab === 'details' ? 'block' : 'none';
+  document.getElementById('edit-tab-rooms').style.display = tab === 'rooms' ? 'block' : 'none';
+  document.getElementById('edit-tab-btn-details').style.borderBottomColor = tab === 'details' ? '#1a6fdb' : 'transparent';
+  document.getElementById('edit-tab-btn-details').style.color = tab === 'details' ? '#1a6fdb' : '#6b7280';
+  document.getElementById('edit-tab-btn-rooms').style.borderBottomColor = tab === 'rooms' ? '#1a6fdb' : 'transparent';
+  document.getElementById('edit-tab-btn-rooms').style.color = tab === 'rooms' ? '#1a6fdb' : '#6b7280';
+}
+
+async function saveHotelDetails() {
+  const msgEl = document.getElementById('edit-details-msg');
+  msgEl.textContent = 'Saving...';
+  msgEl.style.color = '#6b7280';
+  const res = await apiFetch(`/api/hotels/${_editHotelId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      name: document.getElementById('edit-h-name').value.trim(),
+      city: document.getElementById('edit-h-city').value.trim(),
+      state: document.getElementById('edit-h-state').value.trim(),
+      phone: document.getElementById('edit-h-phone').value.trim(),
+      email: document.getElementById('edit-h-email').value.trim(),
+      gstin: document.getElementById('edit-h-gstin').value.trim(),
+      bufferRooms: document.getElementById('edit-h-buffer').value,
+      whatsappBotNumber: document.getElementById('edit-h-wa').value.trim(),
+    })
+  });
+  if (res?.success) {
+    msgEl.textContent = '✅ Hotel details updated successfully.';
+    msgEl.style.color = '#16a34a';
+    document.getElementById('edit-modal-subtitle').textContent = document.getElementById('edit-h-name').value.trim();
+    loadData();
+  } else {
+    msgEl.textContent = '❌ ' + (res?.error || 'Failed to save');
+    msgEl.style.color = '#dc2626';
+  }
+}
+
+async function loadExistingRooms() {
+  const el = document.getElementById('edit-existing-rooms');
+  el.innerHTML = '<div style="padding:1rem;text-align:center;color:#6b7280;font-size:12px">Loading rooms...</div>';
+  const res = await apiFetch(`/api/hotels/${_editHotelId}/rooms`);
+  if (!res?.success) {
+    el.innerHTML = '<div style="padding:1rem;text-align:center;color:#dc2626;font-size:12px">Failed to load rooms</div>';
+    return;
+  }
+  const rooms = res.data || [];
+  document.getElementById('edit-rooms-total').textContent = rooms.length;
+  if (!rooms.length) {
+    el.innerHTML = '<div style="padding:1rem;text-align:center;color:#6b7280;font-size:12px">No rooms added yet</div>';
+    return;
+  }
+
+  // Group by floor
+  const byFloor = {};
+  rooms.forEach(r => {
+    const f = r.floor ?? '?';
+    if (!byFloor[f]) byFloor[f] = [];
+    byFloor[f].push(r);
+  });
+
+  el.innerHTML = Object.keys(byFloor).sort((a,b) => Number(a)-Number(b)).map(floor => `
+    <div style="border-bottom:1px solid #f3f4f6">
+      <div style="padding:6px 12px;background:#f9fafb;font-size:10px;font-weight:700;color:#6b7280;letter-spacing:0.06em;text-transform:uppercase">
+        Floor ${floor} — ${byFloor[floor].length} room${byFloor[floor].length>1?'s':''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px">
+        ${byFloor[floor].map(r => `
+          <div style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:4px 10px;font-size:11px">
+            <span style="font-family:'DM Mono',monospace;font-weight:600;color:#111827">${r.room_number}</span>
+            <span style="color:#6b7280;font-size:10px">${r.room_type_name || 'Standard'}</span>
+            <span onclick="deleteRoom('${r.room_number}')" style="cursor:pointer;color:#9ca3af;font-size:14px;line-height:1" title="Remove room">×</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteRoom(roomNumber) {
+  if (!confirm(`Remove room ${roomNumber}? This cannot be undone.`)) return;
+  const res = await apiFetch(`/api/hotels/${_editHotelId}/rooms/${encodeURIComponent(roomNumber)}`, { method: 'DELETE' });
+  if (res?.success) {
+    showToast(`Room ${roomNumber} removed`);
+    loadExistingRooms();
+    loadData();
+  } else {
+    showToast('Failed to remove room: ' + (res?.error || 'error'), 'red');
+  }
+}
+
+// Edit modal floor builder
+function addEditFloor() {
+  const existingTotal = parseInt(document.getElementById('edit-rooms-total').textContent) || 0;
+  const num = editFloorRows.length + 1;
+  const floorNum = num;
+  const startRoom = floorNum * 100 + 1;
+  editFloorRows.push({ floor: floorNum, roomStart: startRoom, count: 10, type: 'Deluxe' });
+  renderEditFloors();
+}
+
+function removeEditFloor(i) {
+  editFloorRows.splice(i, 1);
+  renderEditFloors();
+}
+
+function updateEditFloor(i, key, value) {
+  editFloorRows[i][key] = key === 'type' ? value : (parseInt(value, 10) || 0);
+  document.getElementById('edit-adding-count').textContent =
+    editFloorRows.reduce((s, f) => s + (parseInt(f.count) || 0), 0);
+}
+
+function renderEditFloors() {
+  const el = document.getElementById('edit-floors-builder');
+  if (!editFloorRows.length) {
+    el.innerHTML = '<div style="font-size:12px;color:#6b7280;padding:4px 0 8px">Click "+ Add Floor" to add more rooms to this hotel.</div>';
+    document.getElementById('edit-adding-count').textContent = '0';
+    return;
+  }
+  el.innerHTML = editFloorRows.map((f, i) => `
+    <div class="floor-row">
+      <div class="form-group">
+        <label class="form-label">Floor</label>
+        <input class="form-input" type="number" value="${f.floor}" min="0"
+          onchange="updateEditFloor(${i},'floor',this.value)" style="text-align:center">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room start no.</label>
+        <input class="form-input" type="number" value="${f.roomStart}" min="1"
+          onchange="updateEditFloor(${i},'roomStart',this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">No. of rooms</label>
+        <input class="form-input" type="number" value="${f.count}" min="1" max="99"
+          onchange="updateEditFloor(${i},'count',this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Room type</label>
+        <select class="form-select" onchange="updateEditFloor(${i},'type',this.value)">
+          <option ${f.type==='Deluxe'?'selected':''}>Deluxe</option>
+          <option ${f.type==='Super Deluxe'?'selected':''}>Super Deluxe</option>
+          <option ${f.type==='Honeymoon'?'selected':''}>Honeymoon</option>
+        </select>
+      </div>
+      <button class="btn-sm btn-red" onclick="removeEditFloor(${i})" style="padding:7px 10px;align-self:end">✕</button>
+    </div>
+  `).join('');
+  document.getElementById('edit-adding-count').textContent =
+    editFloorRows.reduce((s, f) => s + (parseInt(f.count) || 0), 0);
+}
+
+async function saveNewRooms() {
+  if (!editFloorRows.length) { showToast('Add at least one floor first', 'red'); return; }
+  const msgEl = document.getElementById('edit-rooms-msg');
+  msgEl.textContent = 'Saving rooms...';
+  msgEl.style.color = '#6b7280';
+
+  const rooms = [];
+  editFloorRows.forEach(f => {
+    const count = parseInt(f.count) || 0;
+    const start = parseInt(f.roomStart) || (f.floor * 100 + 1);
+    for (let i = 0; i < count; i++) {
+      rooms.push({ floor: f.floor, roomNumber: String(start + i), type: f.type });
+    }
+  });
+
+  const res = await apiFetch(`/api/hotels/${_editHotelId}/rooms`, {
+    method: 'POST',
+    body: JSON.stringify({ rooms })
+  });
+
+  if (res?.success) {
+    msgEl.textContent = `✅ ${res.added} room(s) added successfully.`;
+    msgEl.style.color = '#16a34a';
+    editFloorRows = [];
+    renderEditFloors();
+    loadExistingRooms();
+    loadData();
+  } else {
+    msgEl.textContent = '❌ ' + (res?.error || 'Failed to save rooms');
+    msgEl.style.color = '#dc2626';
+  }
+}
+
 function loginAs(username) { showToast(`Logging in as ${username}...`); }
 function viewHotel(id) { showToast('Opening hotel dashboard...'); }
 function toggleHotel(id) { if (confirm('Disable this hotel?')) showToast('Hotel disabled'); }
@@ -857,6 +1069,92 @@ function showToast(msg, color = 'teal') {
 addFloor(); // seed one default floor on page load
 loadData();
 </script>
+<!-- ── Edit Hotel Modal ── -->
+<div id="edit-hotel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem;backdrop-filter:blur(4px)">
+  <div style="background:#fff;border-radius:14px;width:700px;max-width:98vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;animation:modalIn 0.2s ease;margin:auto">
+
+    <!-- Header -->
+    <div style="background:#eff6ff;padding:1.25rem 1.5rem;border-bottom:1px solid #bfdbfe;display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏨</div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:#1d4ed8">Edit Hotel</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px" id="edit-modal-subtitle">Loading...</div>
+      </div>
+      <button onclick="closeEditModal()" style="margin-left:auto;background:none;border:none;font-size:22px;color:#9ca3af;cursor:pointer;line-height:1">×</button>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:1px solid #e5e7eb;background:#f9fafb">
+      <button id="edit-tab-btn-details" onclick="switchEditTab('details')"
+        style="padding:10px 24px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:none;border-bottom:2px solid #1a6fdb;color:#1a6fdb">
+        Hotel Details
+      </button>
+      <button id="edit-tab-btn-rooms" onclick="switchEditTab('rooms')"
+        style="padding:10px 24px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:none;border-bottom:2px solid transparent;color:#6b7280">
+        Floors & Rooms
+      </button>
+    </div>
+
+    <!-- Details Tab -->
+    <div id="edit-tab-details" style="padding:1.5rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="form-group"><label class="form-label">Hotel name *</label><input class="form-input" id="edit-h-name"></div>
+        <div class="form-group"><label class="form-label">City *</label><input class="form-input" id="edit-h-city"></div>
+        <div class="form-group"><label class="form-label">State</label><input class="form-input" id="edit-h-state"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="edit-h-phone"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="edit-h-email"></div>
+        <div class="form-group"><label class="form-label">GSTIN</label><input class="form-input" id="edit-h-gstin"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
+        <div class="form-group"><label class="form-label">Buffer rooms</label><input class="form-input" type="number" id="edit-h-buffer"></div>
+        <div class="form-group"><label class="form-label">WhatsApp bot number</label><input class="form-input" id="edit-h-wa"></div>
+      </div>
+      <button onclick="saveHotelDetails()"
+        style="padding:10px 28px;background:#1a6fdb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+        Save Hotel Details
+      </button>
+      <div id="edit-details-msg" style="margin-top:10px;font-size:12px"></div>
+    </div>
+
+    <!-- Rooms Tab -->
+    <div id="edit-tab-rooms" style="padding:1.5rem;display:none">
+
+      <!-- Existing rooms -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Current Rooms</div>
+        <div class="rooms-count-pill">Total: <strong id="edit-rooms-total">0</strong> rooms</div>
+      </div>
+      <div id="edit-existing-rooms" style="margin-bottom:1.5rem;max-height:260px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px">
+        <div style="padding:1rem;text-align:center;color:#6b7280;font-size:12px">Loading rooms...</div>
+      </div>
+
+      <!-- Add new floors -->
+      <div style="height:0.5px;background:#e5e7eb;margin:1.25rem 0"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:11px;color:#6b7280;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Add New Floors / Rooms</div>
+        <div class="rooms-count-pill">Adding: <strong id="edit-adding-count">0</strong> rooms</div>
+      </div>
+      <div id="edit-floors-builder" style="margin-bottom:10px">
+        <div style="font-size:12px;color:#6b7280;padding:4px 0 8px">Click "+ Add Floor" to add more rooms to this hotel.</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button onclick="addEditFloor()"
+          style="padding:7px 16px;background:transparent;border:0.5px solid #e5e7eb;color:#6b7280;border-radius:4px;font-size:12px;cursor:pointer;font-family:inherit">
+          + Add Floor
+        </button>
+        <button onclick="saveNewRooms()"
+          style="padding:7px 20px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">
+          Save New Rooms
+        </button>
+      </div>
+      <div id="edit-rooms-msg" style="margin-top:10px;font-size:12px"></div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ── Change Hotel Admin Password Modal ── -->
 <div id="password-hotel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
   <div style="background:#fff;border-radius:14px;width:440px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.2);overflow:hidden;animation:modalIn 0.2s ease">
