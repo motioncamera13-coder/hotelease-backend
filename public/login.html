@@ -419,7 +419,7 @@ body {
 
     <!-- Hotel ID -->
     <div class="form-group">
-      <label class="form-label">Hotel ID <span style="font-size:11px;color:#6b7280;font-weight:400">(leave blank for Super Admin)</span></label>
+      <label class="form-label">Hotel ID</label>
       <div class="input-wrap">
         <input class="form-input" type="text" id="hotelId"
           placeholder="e.g. 290323537"
@@ -587,7 +587,7 @@ async function login() {
   [document.getElementById('hotelId'), document.getElementById('username'), document.getElementById('password')]
     .forEach(el => el.classList.remove('error'));
 
-  // Hotel ID is optional for super admin — don't block if blank
+  if (!hotelId) { showError('Please enter your Hotel ID'); document.getElementById('hotelId').classList.add('error'); return; }
   if (!username) { showError('Please enter your username'); document.getElementById('username').classList.add('error'); return; }
   if (!password) { showError('Please enter your password'); document.getElementById('password').classList.add('error'); return; }
 
